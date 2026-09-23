@@ -58,11 +58,8 @@ export const GATS = DEFAULT_GATS;
 
 export interface ActivityTemplate {
   id: string;
-  day: number; // dia do mês (ex: 8, 10, 11)
-  start: string;
-  end: string;
-  modality: ModalityType;
-  descriptionTemplate: string; // ex: "{gatLabel} (Síncrona virtual)" ou título fixo
+  name: string; // nome da atividade (ex: "Reunião do GAT", "Oficina formativa...")
+  modality: ModalityType; // Síncrona virtual | Síncrona presencial | Assíncrona virtual
   isGatSpecific?: boolean;
 }
 

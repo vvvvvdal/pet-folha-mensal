@@ -74,73 +74,39 @@ export const DEFAULT_PROFILES: UserProfile[] = [
 export const DEFAULT_TEMPLATES: ActivityTemplate[] = [
   {
     id: 'tpl-1',
-    day: 8,
-    start: '19:00',
-    end: '21:00',
+    name: 'Reunião do GAT {gatNumber} ({gatName})',
     modality: 'Síncrona virtual',
-    descriptionTemplate: '{gatLabel} (Síncrona virtual)',
     isGatSpecific: true
   },
   {
     id: 'tpl-2',
-    day: 10,
-    start: '10:00',
-    end: '12:00',
-    modality: 'Síncrona virtual',
-    descriptionTemplate:
-      'Oficina formativa: REDCap e construção de instrumentos para pesquisa científica (Síncrona virtual)'
+    name: 'Oficina formativa: REDCap e construção de instrumentos para pesquisa científica',
+    modality: 'Síncrona virtual'
   },
   {
     id: 'tpl-3',
-    day: 11,
-    start: '13:30',
-    end: '17:30',
-    modality: 'Síncrona presencial',
-    descriptionTemplate: 'Reunião geral do PET (Síncrona presencial)'
+    name: 'Reunião geral do PET',
+    modality: 'Síncrona presencial'
   },
   {
     id: 'tpl-4',
-    day: 21,
-    start: '15:00',
-    end: '19:20',
-    modality: 'Síncrona presencial',
-    descriptionTemplate: 'Oficinas de SUStentabilidade (Síncrona presencial)'
+    name: 'Oficinas de SUStentabilidade',
+    modality: 'Síncrona presencial'
   },
   {
     id: 'tpl-5',
-    day: 17,
-    start: '19:00',
-    end: '20:07',
-    modality: 'Síncrona virtual',
-    descriptionTemplate:
-      'Ciclo de Palestra 2026 - Cavernas como arquivo climático: A região Centro-Oeste no holoceno (Síncrona virtual)'
+    name: 'Ciclo de Palestra 2026 - Cavernas como arquivo climático: A região Centro-Oeste no holoceno',
+    modality: 'Síncrona virtual'
   },
   {
     id: 'tpl-6',
-    day: 16,
-    start: '20:00',
-    end: '21:27',
-    modality: 'Síncrona virtual',
-    descriptionTemplate:
-      'Conselho Federal de Psicologia - Atuação psicossocial em desastres climáticos e o El Niño (Síncrona virtual)'
+    name: 'Conselho Federal de Psicologia - Atuação psicossocial em desastres climáticos e o El Niño',
+    modality: 'Síncrona virtual'
   },
   {
     id: 'tpl-7',
-    day: 22,
-    start: '15:00',
-    end: '16:00',
-    modality: 'Assíncrona virtual',
-    descriptionTemplate:
-      'Síntese analítica: Desastres climáticos e atuação psicossocial (Assíncrona virtual)'
-  },
-  {
-    id: 'tpl-8',
-    day: 22,
-    start: '19:00',
-    end: '20:40',
-    modality: 'Síncrona virtual',
-    descriptionTemplate: '{gatLabel} (Síncrona virtual)',
-    isGatSpecific: true
+    name: 'Síntese analítica: Desastres climáticos e atuação psicossocial',
+    modality: 'Assíncrona virtual'
   }
 ];
 
@@ -329,6 +295,29 @@ export function saveGats(gats: Record<string, GATInfo>): void {
   localStorage.setItem(GATS_KEY, JSON.stringify(gats));
 }
 
+export function updateGatInfo(oldNumber: string, updatedGat: GATInfo): void {
+  if (typeof window === 'undefined') return;
+  const gats = getStoredGats();
+  if (oldNumber !== updatedGat.number) {
+    delete gats[oldNumber];
+  }
+  gats[updatedGat.number] = updatedGat;
+  saveGats(gats);
+
+  const profiles = getStoredProfiles();
+  const updatedProfiles = profiles.map((p) => {
+    if (p.gatNumber === oldNumber) {
+      return {
+        ...p,
+        gatNumber: updatedGat.number,
+        gatName: updatedGat.name
+      };
+    }
+    return p;
+  });
+  saveProfiles(updatedProfiles);
+}
+
 // ============================================================
 // GESTÃO DINÂMICA DE FUNÇÕES / ROLES (ADMIN)
 // ============================================================
@@ -348,6 +337,19 @@ export function getStoredRoles(): string[] {
 export function saveRoles(roles: string[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+}
+
+export function updateRoleName(oldRole: string, newRole: string): void {
+  if (typeof window === 'undefined') return;
+  const roles = getStoredRoles();
+  const updatedRoles = roles.map((r) => (r === oldRole ? newRole.trim() : r));
+  saveRoles(updatedRoles);
+
+  const profiles = getStoredProfiles();
+  const updatedProfiles = profiles.map((p) =>
+    p.role === oldRole ? { ...p, role: newRole.trim() } : p
+  );
+  saveProfiles(updatedProfiles);
 }
 
 // ============================================================
@@ -381,20 +383,34 @@ export function generateSeedActivities(
   monthKey: string = '2026-09'
 ): Activity[] {
   const templates = getStoredTemplates();
-  const gatLabel = `Reunião do GAT ${gatNumber} (${gatName})`;
+
+  const defaultSlots = [
+    { day: 8, start: '19:00', end: '21:00' },
+    { day: 10, start: '10:00', end: '12:00' },
+    { day: 11, start: '13:30', end: '17:30' },
+    { day: 21, start: '15:00', end: '19:20' },
+    { day: 17, start: '19:00', end: '20:07' },
+    { day: 16, start: '20:00', end: '21:27' },
+    { day: 22, start: '15:00', end: '16:00' },
+    { day: 22, start: '19:00', end: '20:40' }
+  ];
 
   return templates.map((tpl, index) => {
-    const dayStr = String(tpl.day).padStart(2, '0');
+    const slot = defaultSlots[index % defaultSlots.length];
+    const dayStr = String(slot.day).padStart(2, '0');
     const date = `${monthKey}-${dayStr}`;
-    const description = tpl.descriptionTemplate.replace('{gatLabel}', gatLabel);
+    let description = tpl.name.replace('{gatNumber}', gatNumber).replace('{gatName}', gatName);
+    if (!description.includes('(') && !description.includes(')')) {
+      description = `${description} (${tpl.modality})`;
+    }
     return {
       id: `act-seed-${index + 1}-${Date.now().toString(36).slice(-3)}`,
       date,
-      start: tpl.start,
-      end: tpl.end,
+      start: slot.start,
+      end: slot.end,
       modality: tpl.modality,
       description,
-      hours: calcPetHours(tpl.start, tpl.end)
+      hours: calcPetHours(slot.start, slot.end)
     };
   });
 }

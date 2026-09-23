@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import {
   UserProfile,
-  UserRole,
   GATInfo,
   ActivityTemplate,
   ModalityType
@@ -18,6 +17,8 @@ import {
   saveGats,
   saveRoles,
   saveTemplates,
+  updateRoleName,
+  updateGatInfo,
   DEFAULT_TEMPLATES
 } from '@/lib/storage';
 import {
@@ -79,22 +80,24 @@ export function AdminModal({
   const [newUserRole, setNewUserRole] = useState(roles[0] || 'Estudante');
   const [newUserGat, setNewUserGat] = useState(Object.keys(gats)[0] || '01');
 
-  // Formulário de Nova Função (Role)
+  // Formulário de Edição / Nova Função (Role)
   const [newRoleName, setNewRoleName] = useState('');
+  const [editingRoleOriginal, setEditingRoleOriginal] = useState<string | null>(null);
+  const [editingRoleNewName, setEditingRoleNewName] = useState('');
 
-  // Formulário de Novo GAT
+  // Formulário de Edição / Novo GAT
   const [newGatNumber, setNewGatNumber] = useState('');
   const [newGatName, setNewGatName] = useState('');
   const [newGatAxis, setNewGatAxis] = useState('Eixo I');
   const [newGatDesc, setNewGatDesc] = useState('');
+  const [editingGatOriginalNumber, setEditingGatOriginalNumber] = useState<string | null>(null);
+  const [editingGat, setEditingGat] = useState<GATInfo | null>(null);
 
-  // Formulário de Novo Template
-  const [newTplDay, setNewTplDay] = useState(15);
-  const [newTplStart, setNewTplStart] = useState('19:00');
-  const [newTplEnd, setNewTplEnd] = useState('21:00');
+  // Formulário de Edição / Novo Template (Sem datas nem horários!)
+  const [newTplName, setNewTplName] = useState('');
   const [newTplModality, setNewTplModality] = useState<ModalityType>('Síncrona virtual');
-  const [newTplDesc, setNewTplDesc] = useState('');
   const [newTplGatSpecific, setNewTplGatSpecific] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<ActivityTemplate | null>(null);
 
   if (!isOpen) return null;
 
@@ -183,7 +186,7 @@ export function AdminModal({
   };
 
   // ============================================================
-  // AÇÕES: FUNÇÕES (ROLES)
+  // AÇÕES: FUNÇÕES / TIPOS DE PESSOAS (ROLES) - COM EDIÇÃO
   // ============================================================
 
   const handleAddRole = (e: React.FormEvent) => {
@@ -200,6 +203,39 @@ export function AdminModal({
     setNewRoleName('');
   };
 
+  const handleStartEditRole = (role: string) => {
+    setEditingRoleOriginal(role);
+    setEditingRoleNewName(role);
+  };
+
+  const handleSaveEditRole = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRoleOriginal) return;
+    const clean = editingRoleNewName.trim();
+    if (!clean) return;
+
+    if (
+      clean.toLowerCase() !== editingRoleOriginal.toLowerCase() &&
+      roles.some((r) => r.toLowerCase() === clean.toLowerCase())
+    ) {
+      alert('Já existe outra função com este nome.');
+      return;
+    }
+
+    updateRoleName(editingRoleOriginal, clean);
+    const updatedRoles = roles.map((r) => (r === editingRoleOriginal ? clean : r));
+    onRolesChange(updatedRoles);
+
+    // Atualiza usuários em tela
+    const updatedProfiles = profiles.map((p) =>
+      p.role === editingRoleOriginal ? { ...p, role: clean } : p
+    );
+    onProfilesChange(updatedProfiles);
+
+    setEditingRoleOriginal(null);
+    setEditingRoleNewName('');
+  };
+
   const handleDeleteRole = (roleToDelete: string) => {
     const isUsed = profiles.some((p) => p.role === roleToDelete);
     if (isUsed) {
@@ -214,7 +250,7 @@ export function AdminModal({
   };
 
   // ============================================================
-  // AÇÕES: GATS
+  // AÇÕES: GRUPOS TUTORIAIS (GATS) - COM EDIÇÃO
   // ============================================================
 
   const handleAddGat = (e: React.FormEvent) => {
@@ -247,6 +283,58 @@ export function AdminModal({
     setNewGatDesc('');
   };
 
+  const handleStartEditGat = (num: string, info: GATInfo) => {
+    setEditingGatOriginalNumber(num);
+    setEditingGat({ ...info });
+  };
+
+  const handleSaveEditGat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingGatOriginalNumber || !editingGat) return;
+
+    const num = editingGat.number.trim().padStart(2, '0');
+    const name = editingGat.name.trim();
+    if (!num || !name) return;
+
+    // Se mudou o número e o novo número já existe em outro GAT
+    if (num !== editingGatOriginalNumber && gats[num]) {
+      alert(`O GAT ${num} já existe.`);
+      return;
+    }
+
+    const finalGat: GATInfo = {
+      ...editingGat,
+      number: num,
+      name,
+      fullName: `GAT ${num} (${name})`
+    };
+
+    updateGatInfo(editingGatOriginalNumber, finalGat);
+
+    const updatedGats = { ...gats };
+    if (editingGatOriginalNumber !== num) {
+      delete updatedGats[editingGatOriginalNumber];
+    }
+    updatedGats[num] = finalGat;
+    onGatsChange(updatedGats);
+
+    // Atualiza participantes em tela
+    const updatedProfiles = profiles.map((p) => {
+      if (p.gatNumber === editingGatOriginalNumber) {
+        return {
+          ...p,
+          gatNumber: num,
+          gatName: name
+        };
+      }
+      return p;
+    });
+    onProfilesChange(updatedProfiles);
+
+    setEditingGatOriginalNumber(null);
+    setEditingGat(null);
+  };
+
   const handleDeleteGat = (gatNum: string) => {
     const isUsed = profiles.some((p) => p.gatNumber === gatNum);
     if (isUsed) {
@@ -262,20 +350,21 @@ export function AdminModal({
   };
 
   // ============================================================
-  // AÇÕES: TEMPLATES DE ATIVIDADES
+  // AÇÕES: TEMPLATES DE ATIVIDADES (SEM DATAS/HORÁRIOS, COM EDIÇÃO)
   // ============================================================
 
   const handleAddTemplate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTplDesc.trim()) return;
+    const cleanName = newTplGatSpecific
+      ? 'Reunião do GAT {gatNumber} ({gatName})'
+      : newTplName.trim();
+
+    if (!cleanName) return;
 
     const newTpl: ActivityTemplate = {
       id: `tpl-${Date.now().toString(36)}`,
-      day: Number(newTplDay),
-      start: newTplStart,
-      end: newTplEnd,
+      name: cleanName,
       modality: newTplModality,
-      descriptionTemplate: newTplGatSpecific ? `{gatLabel} (${newTplModality})` : newTplDesc.trim(),
       isGatSpecific: newTplGatSpecific
     };
 
@@ -283,8 +372,33 @@ export function AdminModal({
     saveTemplates(updated);
     onTemplatesChange(updated);
 
-    setNewTplDesc('');
+    setNewTplName('');
     setNewTplGatSpecific(false);
+  };
+
+  const handleStartEditTemplate = (tpl: ActivityTemplate) => {
+    setEditingTemplate({ ...tpl });
+  };
+
+  const handleSaveEditTemplate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTemplate) return;
+
+    const cleanName = editingTemplate.isGatSpecific
+      ? 'Reunião do GAT {gatNumber} ({gatName})'
+      : editingTemplate.name.trim();
+
+    if (!cleanName) return;
+
+    const finalTpl: ActivityTemplate = {
+      ...editingTemplate,
+      name: cleanName
+    };
+
+    const updated = templates.map((t) => (t.id === editingTemplate.id ? finalTpl : t));
+    saveTemplates(updated);
+    onTemplatesChange(updated);
+    setEditingTemplate(null);
   };
 
   const handleDeleteTemplate = (id: string) => {
@@ -443,7 +557,6 @@ export function AdminModal({
                   ============================================================ */}
               {activeTab === 'users' && (
                 <div className="space-y-4">
-                  {/* Alerta de Duplicidade */}
                   {hasDuplicateUsers() && (
                     <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 text-xs text-amber-300">
                       <div className="flex items-center gap-2">
@@ -460,7 +573,6 @@ export function AdminModal({
                     </div>
                   )}
 
-                  {/* Toolbar */}
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-slate-400 font-medium">
                       Gerencie e edite os participantes cadastrados no sistema.
@@ -475,7 +587,6 @@ export function AdminModal({
                     </button>
                   </div>
 
-                  {/* Formulário: Novo Participante */}
                   {isAddingUser && (
                     <form onSubmit={handleAddUser} className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3 text-xs animate-fade-in">
                       <div className="font-semibold text-slate-200">Cadastrar Novo Participante</div>
@@ -544,7 +655,6 @@ export function AdminModal({
                     </form>
                   )}
 
-                  {/* Formulário: Edição de Participante */}
                   {editingUser && (
                     <form onSubmit={handleSaveEditUser} className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 space-y-3 text-xs animate-fade-in">
                       <div className="font-semibold text-emerald-300">Editando Participante: {editingUser.name}</div>
@@ -619,7 +729,6 @@ export function AdminModal({
                     </form>
                   )}
 
-                  {/* Tabela de Participantes */}
                   <div className="rounded-xl border border-slate-800 bg-slate-950/40 overflow-hidden">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
@@ -681,7 +790,7 @@ export function AdminModal({
               )}
 
               {/* ============================================================
-                  ABA 2: FUNÇÕES / TIPOS DE PESSOAS (ROLES)
+                  ABA 2: FUNÇÕES / TIPOS DE PESSOAS (ROLES) - COM EDIÇÃO
                   ============================================================ */}
               {activeTab === 'roles' && (
                 <div className="space-y-4">
@@ -691,7 +800,6 @@ export function AdminModal({
                     </span>
                   </div>
 
-                  {/* Adicionar Nova Função */}
                   <form onSubmit={handleAddRole} className="flex gap-2">
                     <input
                       type="text"
@@ -710,32 +818,80 @@ export function AdminModal({
                     </button>
                   </form>
 
-                  {/* Lista de Funções */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                  {/* Lista de Funções com Edição */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                     {roles.map((r) => {
                       const count = profiles.filter((p) => p.role === r).length;
+                      const isEditing = editingRoleOriginal === r;
+
+                      if (isEditing) {
+                        return (
+                          <form
+                            key={r}
+                            onSubmit={handleSaveEditRole}
+                            className="p-2.5 rounded-lg border border-emerald-500/40 bg-emerald-950/20 flex items-center gap-2"
+                          >
+                            <input
+                              type="text"
+                              required
+                              autoFocus
+                              value={editingRoleNewName}
+                              onChange={(e) => setEditingRoleNewName(e.target.value)}
+                              className="flex-1 px-2 py-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-100 outline-none focus:border-emerald-500"
+                            />
+                            <button
+                              type="submit"
+                              className="p-1.5 rounded bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                              title="Salvar alteração"
+                            >
+                              <Check className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingRoleOriginal(null)}
+                              className="p-1.5 rounded text-slate-400 hover:bg-slate-800 cursor-pointer"
+                              title="Cancelar"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </form>
+                        );
+                      }
+
                       return (
                         <div
                           key={r}
-                          className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 flex items-center justify-between text-xs"
+                          className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 flex items-center justify-between text-xs hover:border-slate-700 transition-colors"
                         >
                           <div>
                             <div className="font-semibold text-slate-200">{r}</div>
-                            <div className="text-[11px] text-slate-500">{count} {count === 1 ? 'participante' : 'participantes'}</div>
+                            <div className="text-[11px] text-slate-500">
+                              {count} {count === 1 ? 'participante' : 'participantes'}
+                            </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteRole(r)}
-                            disabled={count > 0}
-                            className={`p-1 rounded cursor-pointer transition-colors ${
-                              count > 0
-                                ? 'text-slate-600 cursor-not-allowed'
-                                : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
-                            }`}
-                            title={count > 0 ? 'Não é possível excluir função em uso' : 'Excluir função'}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditRole(r)}
+                              className="p-1 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                              title="Editar nome da função"
+                            >
+                              <Edit2 className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRole(r)}
+                              disabled={count > 0}
+                              className={`p-1 rounded transition-colors ${
+                                count > 0
+                                  ? 'text-slate-600 cursor-not-allowed'
+                                  : 'text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer'
+                              }`}
+                              title={count > 0 ? 'Não é possível excluir função em uso' : 'Excluir função'}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -744,7 +900,7 @@ export function AdminModal({
               )}
 
               {/* ============================================================
-                  ABA 3: GRUPOS TUTORIAIS (GATS)
+                  ABA 3: GRUPOS TUTORIAIS (GATS) - COM EDIÇÃO
                   ============================================================ */}
               {activeTab === 'gats' && (
                 <div className="space-y-4">
@@ -753,6 +909,76 @@ export function AdminModal({
                       Cadastre novos GATs ou ajuste a estrutura temática territorial.
                     </span>
                   </div>
+
+                  {/* Edição de GAT Selecionado */}
+                  {editingGat && (
+                    <form onSubmit={handleSaveEditGat} className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20 space-y-3 text-xs animate-fade-in">
+                      <div className="font-semibold text-emerald-300">
+                        Editando GAT {editingGatOriginalNumber}: {editingGat.name}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[11px] text-slate-400 mb-1">Número</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingGat.number}
+                            onChange={(e) => setEditingGat({ ...editingGat, number: e.target.value })}
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] text-slate-400 mb-1">Nome / Bioma</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingGat.name}
+                            onChange={(e) => setEditingGat({ ...editingGat, name: e.target.value })}
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] text-slate-400 mb-1">Eixo Temático</label>
+                          <select
+                            value={editingGat.axis}
+                            onChange={(e) => setEditingGat({ ...editingGat, axis: e.target.value })}
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                          >
+                            <option value="Eixo I">Eixo I (Atenção Primária e SAN)</option>
+                            <option value="Eixo II">Eixo II (Atenção Especializada)</option>
+                            <option value="Eixo III">Eixo III (Comunicação e IA Preditiva)</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-400 mb-1">Descrição do Território / Foco</label>
+                        <input
+                          type="text"
+                          value={editingGat.description}
+                          onChange={(e) => setEditingGat({ ...editingGat, description: e.target.value })}
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingGatOriginalNumber(null);
+                            setEditingGat(null);
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-3.5 py-1.5 font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                        >
+                          Salvar GAT
+                        </button>
+                      </div>
+                    </form>
+                  )}
 
                   {/* Adicionar Novo GAT */}
                   <form onSubmit={handleAddGat} className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3 text-xs">
@@ -814,14 +1040,14 @@ export function AdminModal({
                     </div>
                   </form>
 
-                  {/* Cards de GATs Atuais */}
+                  {/* Cards de GATs Atuais com Edição */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     {Object.entries(gats).map(([num, info]) => {
                       const count = profiles.filter((p) => p.gatNumber === num).length;
                       return (
                         <div
                           key={num}
-                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 text-xs flex flex-col justify-between"
+                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 text-xs flex flex-col justify-between hover:border-slate-700 transition-colors"
                         >
                           <div>
                             <div className="flex items-center justify-between mb-1.5">
@@ -838,19 +1064,29 @@ export function AdminModal({
                           </div>
                           <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-slate-500">
                             <span>{count} {count === 1 ? 'participante' : 'participantes'}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteGat(num)}
-                              disabled={count > 0}
-                              className={`p-1 rounded cursor-pointer transition-colors ${
-                                count > 0
-                                  ? 'text-slate-600 cursor-not-allowed'
-                                  : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
-                              }`}
-                              title={count > 0 ? 'Não é possível excluir GAT com participantes ativos' : 'Excluir GAT'}
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditGat(num, info)}
+                                className="p-1 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                                title="Editar GAT"
+                              >
+                                <Edit2 className="size-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGat(num)}
+                                disabled={count > 0}
+                                className={`p-1 rounded transition-colors ${
+                                  count > 0
+                                    ? 'text-slate-600 cursor-not-allowed'
+                                    : 'text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer'
+                                }`}
+                                title={count > 0 ? 'Não é possível excluir GAT com participantes ativos' : 'Excluir GAT'}
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       );
@@ -860,13 +1096,13 @@ export function AdminModal({
               )}
 
               {/* ============================================================
-                  ABA 4: TEMPLATES DE ATIVIDADES
+                  ABA 4: TEMPLATES DE ATIVIDADES (SEM DATAS NEM HORÁRIOS)
                   ============================================================ */}
               {activeTab === 'templates' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-400">
-                      Configure as atividades-padrão que são carregadas ao clicar em &quot;Carregar Atividades de Exemplo&quot;.
+                      Configure os modelos de atividades (nomes e modalidades) usados para preenchimento rápido.
                     </span>
                     <button
                       type="button"
@@ -878,40 +1114,78 @@ export function AdminModal({
                     </button>
                   </div>
 
-                  {/* Adicionar Novo Template */}
+                  {/* Edição de Template */}
+                  {editingTemplate && (
+                    <form onSubmit={handleSaveEditTemplate} className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20 space-y-3 text-xs animate-fade-in">
+                      <div className="font-semibold text-emerald-300">Editando Modelo de Atividade</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2">
+                          <label className="block text-[11px] text-slate-400 mb-1">Nome / Descrição da Atividade</label>
+                          <input
+                            type="text"
+                            required
+                            disabled={editingTemplate.isGatSpecific}
+                            value={editingTemplate.isGatSpecific ? 'Reunião do GAT {gatNumber} ({gatName})' : editingTemplate.name}
+                            onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 disabled:opacity-50"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] text-slate-400 mb-1">Modalidade</label>
+                          <select
+                            value={editingTemplate.modality}
+                            onChange={(e) => setEditingTemplate({ ...editingTemplate, modality: e.target.value as ModalityType })}
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                          >
+                            <option value="Síncrona virtual">Síncrona virtual</option>
+                            <option value="Síncrona presencial">Síncrona presencial</option>
+                            <option value="Assíncrona virtual">Assíncrona virtual</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center pt-1">
+                        <label className="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editingTemplate.isGatSpecific || false}
+                            onChange={(e) => setEditingTemplate({ ...editingTemplate, isGatSpecific: e.target.checked })}
+                            className="rounded accent-emerald-500"
+                          />
+                          <span>Atividade própria do GAT (dinâmica)</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingTemplate(null)}
+                            className="px-3 py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-3.5 py-1.5 font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                          >
+                            Salvar Modelo
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Adicionar Novo Template (Sem Dia, Sem Entrada, Sem Saída) */}
                   <form onSubmit={handleAddTemplate} className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3 text-xs">
-                    <div className="font-semibold text-slate-200">Adicionar Atividade ao Template</div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Dia do Mês</label>
+                    <div className="font-semibold text-slate-200">Adicionar Novo Modelo de Atividade</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
+                        <label className="block text-[11px] text-slate-400 mb-1">Nome da Atividade</label>
                         <input
-                          type="number"
-                          min={1}
-                          max={31}
-                          required
-                          value={newTplDay}
-                          onChange={(e) => setNewTplDay(Number(e.target.value))}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Entrada</label>
-                        <input
-                          type="time"
-                          required
-                          value={newTplStart}
-                          onChange={(e) => setNewTplStart(e.target.value)}
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Saída</label>
-                        <input
-                          type="time"
-                          required
-                          value={newTplEnd}
-                          onChange={(e) => setNewTplEnd(e.target.value)}
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                          type="text"
+                          required={!newTplGatSpecific}
+                          disabled={newTplGatSpecific}
+                          placeholder={newTplGatSpecific ? 'Reunião do GAT (automática)' : 'Ex: Oficina de Indicadores SISVAN, Seminário...'}
+                          value={newTplGatSpecific ? 'Reunião do GAT {gatNumber} ({gatName})' : newTplName}
+                          onChange={(e) => setNewTplName(e.target.value)}
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 disabled:opacity-50"
                         />
                       </div>
                       <div>
@@ -928,68 +1202,59 @@ export function AdminModal({
                       </div>
                     </div>
 
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[11px] text-slate-400">Descrição da Atividade</label>
-                        <label className="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={newTplGatSpecific}
-                            onChange={(e) => setNewTplGatSpecific(e.target.checked)}
-                            className="rounded accent-emerald-500"
-                          />
-                          <span>Atividade própria do GAT (injeta nome/número automaticamente)</span>
-                        </label>
-                      </div>
-                      <input
-                        type="text"
-                        disabled={newTplGatSpecific}
-                        placeholder={newTplGatSpecific ? 'Reunião do GAT (automática)' : 'Ex: Oficina formativa, Palestra climática...'}
-                        value={newTplGatSpecific ? '{gatLabel} (Síncrona virtual)' : newTplDesc}
-                        onChange={(e) => setNewTplDesc(e.target.value)}
-                        required={!newTplGatSpecific}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 disabled:opacity-50"
-                      />
-                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <label className="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newTplGatSpecific}
+                          onChange={(e) => setNewTplGatSpecific(e.target.checked)}
+                          className="rounded accent-emerald-500"
+                        />
+                        <span>Atividade própria do GAT (injeta número e nome automaticamente)</span>
+                      </label>
 
-                    <div className="flex justify-end">
                       <button
                         type="submit"
                         className="px-3.5 py-1.5 font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5"
                       >
                         <Plus className="size-3.5" />
-                        <span>Adicionar ao Template</span>
+                        <span>Adicionar Modelo</span>
                       </button>
                     </div>
                   </form>
 
-                  {/* Lista de Atividades do Template */}
+                  {/* Lista de Modelos de Atividades com Edição e Exclusão */}
                   <div className="space-y-2">
                     {templates.map((tpl, i) => (
                       <div
                         key={tpl.id || i}
-                        className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 text-xs flex items-center justify-between gap-3"
+                        className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 text-xs flex items-center justify-between gap-3 hover:border-slate-700 transition-colors"
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-emerald-400 font-semibold w-12 text-center py-1 rounded bg-slate-900 border border-slate-800">
-                            Dia {tpl.day}
-                          </span>
-                          <div>
-                            <div className="font-medium text-slate-200">{tpl.descriptionTemplate}</div>
-                            <div className="text-[11px] text-slate-400">
-                              {tpl.start} às {tpl.end} • {tpl.modality}
-                              {tpl.isGatSpecific && <span className="ml-2 text-emerald-400 font-medium">(GAT dinâmico)</span>}
-                            </div>
+                        <div>
+                          <div className="font-medium text-slate-200">{tpl.name}</div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">
+                            Tipo: <span className="text-emerald-400 font-medium">{tpl.modality}</span>
+                            {tpl.isGatSpecific && <span className="ml-2 text-sky-400 font-medium">• GAT Dinâmico</span>}
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteTemplate(tpl.id)}
-                          className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
-                          title="Excluir este template"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditTemplate(tpl)}
+                            className="p-1 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                            title="Editar modelo"
+                          >
+                            <Edit2 className="size-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTemplate(tpl.id)}
+                            className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                            title="Excluir modelo"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>

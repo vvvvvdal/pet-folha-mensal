@@ -5,17 +5,27 @@ import { Activity, UserProfile } from '@/types';
 import { formatDateBR } from '@/lib/pet-calculator';
 
 interface OfficialSheetProps {
-  user: UserProfile;
-  monthLabel: string;
-  activities: Activity[];
-  totalHours: number;
+  user?: UserProfile;
+  monthLabel?: string;
+  activities?: Activity[];
+  totalHours?: number;
+  isBlankTemplate?: boolean;
 }
 
-export function OfficialSheet({ user, monthLabel, activities, totalHours }: OfficialSheetProps) {
-  const emptyRowsCount = Math.max(0, 7 - activities.length);
+export function OfficialSheet({
+  user,
+  monthLabel = 'Setembro/2026',
+  activities = [],
+  totalHours = 0,
+  isBlankTemplate = false
+}: OfficialSheetProps) {
+  const emptyRowsCount = isBlankTemplate ? 10 : Math.max(0, 7 - activities.length);
 
   return (
-    <div className="official-sheet bg-white text-black p-6 md:p-8 font-sans w-full max-w-[297mm] mx-auto box-border" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+    <div
+      className="official-sheet bg-white text-black p-6 md:p-8 font-sans w-full max-w-[297mm] mx-auto box-border"
+      style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+    >
       {/* Cabeçalho Tríplice Oficial */}
       <div className="flex justify-between items-center mb-3">
         <div className="w-[32%] text-center text-[9pt] leading-tight text-black">
@@ -44,16 +54,45 @@ export function OfficialSheet({ user, monthLabel, activities, totalHours }: Offi
       </h1>
 
       {/* Metadados */}
-      <div className="text-[10pt] md:text-[10.5pt] text-black mb-2 leading-relaxed">
-        <div className="mb-1">
-          <span className="font-bold">Nome:</span> {user.name}
+      {isBlankTemplate ? (
+        <div className="text-[10pt] md:text-[10.5pt] text-black mb-2 leading-relaxed">
+          <div className="mb-1 flex items-baseline">
+            <span className="font-bold mr-1 shrink-0">Nome:</span>
+            <span className="flex-1 border-b border-black h-4"></span>
+          </div>
+          <div className="flex justify-between items-baseline gap-4">
+            <span className="flex-1 flex items-baseline">
+              <span className="font-bold mr-1 shrink-0">Perfil**:</span>
+              <span className="flex-1 border-b border-black h-4"></span>
+            </span>
+            <span className="w-36 flex items-baseline">
+              <span className="font-bold mr-1 shrink-0">Nº do GAT:</span>
+              <span className="flex-1 border-b border-black h-4"></span>
+            </span>
+            <span className="w-48 flex items-baseline">
+              <span className="font-bold mr-1 shrink-0">Mês/ano:</span>
+              <span className="flex-1 border-b border-black h-4"></span>
+            </span>
+          </div>
         </div>
-        <div className="flex justify-between">
-          <span><span className="font-bold">Perfil:</span> {user.role}</span>
-          <span><span className="font-bold">Nº do GAT:</span> {user.gatNumber}</span>
-          <span><span className="font-bold">Mês/ano:</span> {monthLabel}</span>
+      ) : (
+        <div className="text-[10pt] md:text-[10.5pt] text-black mb-2 leading-relaxed">
+          <div className="mb-1">
+            <span className="font-bold">Nome:</span> {user?.name || ''}
+          </div>
+          <div className="flex justify-between">
+            <span>
+              <span className="font-bold">Perfil:</span> {user?.role || ''}
+            </span>
+            <span>
+              <span className="font-bold">Nº do GAT:</span> {user?.gatNumber || ''}
+            </span>
+            <span>
+              <span className="font-bold">Mês/ano:</span> {monthLabel}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tabela de Lançamentos */}
       <table className="official-table w-full border-collapse border-[1.5px] border-black text-[9pt] md:text-[9.5pt] text-black mb-2">
@@ -67,20 +106,23 @@ export function OfficialSheet({ user, monthLabel, activities, totalHours }: Offi
           </tr>
         </thead>
         <tbody>
-          {activities.map((act) => (
-            <tr key={act.id}>
-              <td className="border border-black p-1.5 text-center">{formatDateBR(act.date)}</td>
-              <td className="border border-black p-1.5 text-center">{act.start}</td>
-              <td className="border border-black p-1.5 text-center">{act.end} ({act.hours}h)</td>
-              <td className="border border-black p-1.5 text-left">{act.description}</td>
-              <td className="border border-black p-1.5 text-center"></td>
-            </tr>
-          ))}
+          {!isBlankTemplate &&
+            activities.map((act) => (
+              <tr key={act.id}>
+                <td className="border border-black p-1.5 text-center">{formatDateBR(act.date)}</td>
+                <td className="border border-black p-1.5 text-center">{act.start}</td>
+                <td className="border border-black p-1.5 text-center">
+                  {act.end} ({act.hours}h)
+                </td>
+                <td className="border border-black p-1.5 text-left">{act.description}</td>
+                <td className="border border-black p-1.5 text-center"></td>
+              </tr>
+            ))}
 
-          {/* Linhas em branco de preenchimento para manter fidelidade ao template */}
+          {/* Linhas em branco de preenchimento */}
           {Array.from({ length: emptyRowsCount }).map((_, i) => (
             <tr key={`empty-${i}`}>
-              <td className="border border-black p-1.5 text-center h-6"></td>
+              <td className="border border-black p-1.5 text-center h-7"></td>
               <td className="border border-black p-1.5 text-center"></td>
               <td className="border border-black p-1.5 text-center"></td>
               <td className="border border-black p-1.5 text-left"></td>
@@ -92,13 +134,18 @@ export function OfficialSheet({ user, monthLabel, activities, totalHours }: Offi
 
       {/* Total de Horas */}
       <div className="text-[11pt] md:text-[11.5pt] font-bold text-black my-2">
-        TOTAL: {totalHours} horas
+        TOTAL: {isBlankTemplate ? 0 : totalHours} horas
       </div>
 
       {/* Notas de Rodapé Oficiais */}
       <div className="text-[7.5pt] md:text-[8pt] text-gray-800 border-t border-gray-200 pt-2 leading-tight">
-        <p>* Envio obrigatório até primeiro dia útil do mês posterior as atividades para o e-mail oficial do projeto. O não envio desta ficha devidamente preenchida no prazo estabelecido acarretará a não validação da bolsa.</p>
-        <p className="mt-0.5">**Estudante, Orientador de Serviço, Preceptor, Tutor, Coordenador de GAT</p>
+        <p>
+          * Envio obrigatório até primeiro dia útil do mês posterior as atividades para o e-mail oficial do projeto. O não
+          envio desta ficha devidamente preenchida no prazo estabelecido acarretará a não validação da bolsa.
+        </p>
+        <p className="mt-0.5">
+          **Estudante, Orientador de Serviço, Preceptor, Tutor, Coordenador de GAT
+        </p>
       </div>
     </div>
   );

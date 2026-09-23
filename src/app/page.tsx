@@ -36,6 +36,7 @@ export default function Home() {
   const [monthKey, setMonthKey] = useState('2026-09');
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'official'>('dashboard');
+  const [showBlankTemplate, setShowBlankTemplate] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -272,6 +273,7 @@ export default function Home() {
                 onCancelEdit={() => setEditingActivity(null)}
                 defaultGatNumber={activeUser.gatNumber}
                 defaultGatName={activeUser.gatName || gats[activeUser.gatNumber]?.name}
+                templates={templates}
               />
 
               <ActivityTable
@@ -291,21 +293,57 @@ export default function Home() {
           {/* ABA 2: FOLHA OFICIAL (PREVIEW A4 PAISAGEM) */}
           {activeTab === 'official' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="flex justify-between items-center p-3 rounded-xl border border-slate-800 bg-slate-900/60 text-xs">
-                <span className="text-slate-400">
-                  Pré-visualização do modelo oficial em A4 Paisagem (Ministério da Saúde).
-                </span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-slate-900/60 text-xs">
+                {/* Seletor entre Minha Folha e Template Vazio */}
+                <div className="flex p-0.5 rounded-lg bg-slate-950 border border-slate-800 font-medium">
+                  <button
+                    type="button"
+                    onClick={() => setShowBlankTemplate(false)}
+                    className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                      !showBlankTemplate
+                        ? 'bg-slate-800 text-slate-100 shadow-xs'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Minha Folha ({activeUser.name})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowBlankTemplate(true)}
+                    className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                      showBlankTemplate
+                        ? 'bg-slate-800 text-slate-100 shadow-xs'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Template em Branco / Vazio
+                  </button>
+                </div>
+
                 <div className="flex items-center gap-2">
+                  {showBlankTemplate && (
+                    <a
+                      href="/templates/PET%20-%20Folha%20de%20Frequ%C3%AAncia%20-%20Modelo%20Vazio.pdf"
+                      download="PET - Folha de Frequência - Modelo Vazio.pdf"
+                      className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1.5 text-xs font-medium transition-all"
+                      title="Baixar arquivo PDF original em branco"
+                    >
+                      <Download className="size-3.5" />
+                      <span>Baixar PDF</span>
+                    </a>
+                  )}
                   <button
                     onClick={handlePrint}
-                    className="px-3.5 py-1.5 rounded-lg font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all"
+                    className="px-3.5 py-1.5 rounded-lg font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all text-xs"
                   >
                     <Printer className="size-3.5" />
-                    Imprimir / Gerar PDF
+                    <span>
+                      {showBlankTemplate ? 'Imprimir / Gerar PDF' : 'Imprimir / PDF'}
+                    </span>
                   </button>
                   <button
                     onClick={() => setActiveTab('dashboard')}
-                    className="px-2.5 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1 text-xs"
                   >
                     <ArrowLeft className="size-3.5" />
                     Voltar
@@ -319,6 +357,7 @@ export default function Home() {
                   monthLabel={monthLabel}
                   activities={activities}
                   totalHours={totalHours}
+                  isBlankTemplate={showBlankTemplate}
                 />
               </div>
             </div>
@@ -377,6 +416,7 @@ export default function Home() {
           monthLabel={monthLabel}
           activities={activities}
           totalHours={totalHours}
+          isBlankTemplate={showBlankTemplate}
         />
       </div>
     </>

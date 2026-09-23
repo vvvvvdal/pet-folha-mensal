@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Activity, ModalityType } from '@/types';
+import { Activity, ModalityType, ActivityTemplate } from '@/types';
 import { calcPetHours } from '@/lib/pet-calculator';
 import { Plus, Check, X, Sparkles } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface ActivityFormProps {
   onCancelEdit: () => void;
   defaultGatNumber?: string;
   defaultGatName?: string;
+  templates?: ActivityTemplate[];
 }
 
 export function ActivityForm({
@@ -18,7 +19,8 @@ export function ActivityForm({
   editingActivity,
   onCancelEdit,
   defaultGatNumber = '04',
-  defaultGatName = 'Mangaba'
+  defaultGatName = 'Mangaba',
+  templates = []
 }: ActivityFormProps) {
   const [date, setDate] = useState('2026-09-23');
   const [start, setStart] = useState('19:00');
@@ -105,24 +107,60 @@ export function ActivityForm({
           )}
         </div>
 
-        {/* Quick presets */}
+        {/* Quick presets from dynamic templates */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => applyPreset('gat')}
-            className="px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-slate-100 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer"
-          >
-            <Sparkles className="size-3 text-emerald-400" />
-            <span>Reunião GAT {defaultGatNumber}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => applyPreset('geral')}
-            className="px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-slate-100 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer"
-          >
-            <Sparkles className="size-3 text-sky-400" />
-            <span>Reunião Geral PET</span>
-          </button>
+          {templates && templates.length > 0 ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-slate-500 hidden sm:inline">Modelos rápidos:</span>
+              <select
+                onChange={(e) => {
+                  const tplId = e.target.value;
+                  if (!tplId) return;
+                  const found = templates.find((t) => t.id === tplId);
+                  if (found) {
+                    const finalTitle = found.name
+                      .replace('{gatNumber}', defaultGatNumber)
+                      .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`);
+                    setDescription(finalTitle);
+                    setModality(found.modality);
+                  }
+                  e.target.value = '';
+                }}
+                defaultValue=""
+                className="px-2.5 py-1 rounded-md bg-slate-800/90 border border-slate-700/60 text-slate-300 text-[11px] outline-none cursor-pointer focus:border-emerald-500"
+              >
+                <option value="" disabled>
+                  ⚡ Escolher a partir de um Modelo...
+                </option>
+                {templates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    {tpl.name.includes('{gatNumber}')
+                      ? `Reunião do GAT ${defaultGatNumber} (${tpl.modality})`
+                      : `${tpl.name} (${tpl.modality})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => applyPreset('gat')}
+                className="px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-slate-100 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Sparkles className="size-3 text-emerald-400" />
+                <span>Reunião GAT {defaultGatNumber}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => applyPreset('geral')}
+                className="px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-slate-100 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Sparkles className="size-3 text-sky-400" />
+                <span>Reunião Geral PET</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
