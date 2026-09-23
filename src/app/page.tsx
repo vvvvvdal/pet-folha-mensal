@@ -216,23 +216,78 @@ export default function Home() {
     showToast(`Folha de ${getMonthYearLabel(monthKey)} zerada.`);
   };
 
-  const handlePrint = () => {
-    setHasChanges(false);
-    window.print();
+  const handlePrint = async (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      let resolved = false;
+      const onAfterPrint = () => {
+        if (!resolved) {
+          resolved = true;
+          window.removeEventListener('afterprint', onAfterPrint);
+          resolve(true);
+        }
+      };
+      window.addEventListener('afterprint', onAfterPrint);
+      // Timeout de segurança caso afterprint não dispare no navegador
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          window.removeEventListener('afterprint', onAfterPrint);
+          resolve(true);
+        }
+      }, 5000);
+      window.print();
+    });
   };
 
-  // Exportar Backup Local em JSON
-  const handleExportBackup = () => {
-    if (!activeUser) return;
+  // Exportar Backup Local em JSON com detecção real de cancelamento
+  const handleExportBackup = async (): Promise<boolean> => {
+    if (!activeUser) return false;
     const jsonString = exportUserData(activeUser, monthKey);
     const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup-frequencia-${activeUser.name.toLowerCase().replace(/\s+/g, '-')}-${monthKey}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Backup da folha exportado com sucesso.');
+    const filename = `backup-frequencia-${activeUser.name.toLowerCase().replace(/\s+/g, '-')}-${monthKey}.json`;
+
+    // 1. Tenta API moderna showSaveFilePicker (Chrome/Edge): detecta com precisão se o usuário clicou em Cancelar
+    if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+      try {
+        const fileHandle = await (window as any).showSaveFilePicker({
+          suggestedName: filename,
+          types: [
+            {
+              description: 'Arquivo de Backup JSON',
+              accept: { 'application/json': ['.json'] }
+            }
+          ]
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        setHasChanges(false);
+        showToast('Backup da folha salvo com sucesso!');
+        return true;
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          // O usuário clicou explicitamente em Cancelar na caixa de download do sistema!
+          showToast('Salvamento do arquivo .json cancelado.');
+          return false;
+        }
+        console.warn('showSaveFilePicker falhou, tentando fallback:', err);
+      }
+    }
+
+    // 2. Fallback para navegadores sem showSaveFilePicker
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setHasChanges(false);
+      showToast('Download do backup iniciado.');
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   // Importar Backup Local em JSON

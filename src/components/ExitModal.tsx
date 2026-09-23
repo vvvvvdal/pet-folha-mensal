@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, FileText, CheckCircle2, ShieldCheck, X, HardDrive, Smartphone, Cloud, ArrowRight, AlertTriangle } from 'lucide-react';
 
 interface ExitModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirmExit: () => void;
-  onDownloadJson: () => void;
-  onDownloadPdf: () => void;
+  onDownloadJson: () => Promise<boolean> | boolean | void;
+  onDownloadPdf: () => Promise<boolean> | boolean | void;
   userName: string;
   hasChanges?: boolean;
 }
@@ -24,43 +24,75 @@ export function ExitModal({
 }: ExitModalProps) {
   const [downloadedJson, setDownloadedJson] = useState(false);
   const [downloadedPdf, setDownloadedPdf] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setDownloadedJson(false);
+      setDownloadedPdf(false);
+      setIsProcessing(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleDownloadJson = () => {
-    onDownloadJson();
-    setDownloadedJson(true);
+  const handleDownloadJson = async () => {
+    const success = await onDownloadJson();
+    if (success !== false) {
+      setDownloadedJson(true);
+    } else {
+      setDownloadedJson(false);
+    }
   };
 
-  const handleDownloadPdf = () => {
-    onDownloadPdf();
-    setDownloadedPdf(true);
+  const handleDownloadPdf = async () => {
+    const success = await onDownloadPdf();
+    if (success !== false) {
+      setDownloadedPdf(true);
+    }
   };
 
-  const handleDownloadAllAndExit = () => {
-    onDownloadJson();
-    onDownloadPdf();
-    setDownloadedJson(true);
-    setDownloadedPdf(true);
-    setTimeout(() => {
-      onConfirmExit();
-    }, 600);
+  const handleDownloadAll = async () => {
+    setIsProcessing(true);
+    try {
+      // 1. Salva o JSON primeiro e aguarda confirmação de gravação em disco
+      const jsonSuccess = await onDownloadJson();
+      if (jsonSuccess === false) {
+        // Usuário cancelou no diálogo de salvamento do SO! Interrompe imediatamente sem deslogar.
+        setDownloadedJson(false);
+        return;
+      }
+      setDownloadedJson(true);
+
+      // 2. Dispara a emissão da folha em PDF
+      const pdfSuccess = await onDownloadPdf();
+      if (pdfSuccess !== false) {
+        setDownloadedPdf(true);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleExitClick = () => {
-    // Se baixou o JSON ou se não houve nenhuma alteração (abriu apenas para visualizar)
-    if (downloadedJson || !hasChanges) {
-      onConfirmExit();
+    // 1. Se houve alterações na folha mas o JSON não foi salvo com sucesso (ou foi cancelado)
+    if (hasChanges && !downloadedJson) {
+      window.alert(
+        'Atenção: O arquivo .json de segurança ainda NÃO foi salvo nesta sessão (ou o salvamento foi cancelado na janela do sistema).\n\nPara não perder suas alterações em outro dispositivo, clique no Passo 1 e salve seu arquivo .json antes de sair.'
+      );
       return;
     }
 
-    // Se houve alterações na folha mas não baixou o JSON, solicita confirmação
-    const proceed = window.confirm(
-      'Atenção: Você fez alterações nesta sessão, mas ainda não baixou o arquivo .json de segurança.\n\nSe sair sem baixar, essas alterações podem não ser recuperadas em outro dispositivo.\n\nDeseja realmente concluir e sair sem salvar o arquivo .json?'
-    );
-    if (proceed) {
-      onConfirmExit();
+    // 2. Se a folha em PDF ainda não foi gerada
+    if (!downloadedPdf) {
+      const proceed = window.confirm(
+        'Você ainda não baixou ou gerou a Folha de Frequência em PDF pronta para impressão.\n\nDeseja realmente concluir e sair sem a folha impressa/PDF?'
+      );
+      if (!proceed) return;
     }
+
+    // Ambos verificados ou confirmados pelo usuário
+    onConfirmExit();
   };
 
   return (
@@ -197,11 +229,12 @@ export function ExitModal({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
           <button
             type="button"
-            onClick={handleDownloadAllAndExit}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 cursor-pointer transition-all flex items-center justify-center gap-1.5"
+            disabled={isProcessing}
+            onClick={handleDownloadAll}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 cursor-pointer transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
           >
             <Download className="size-3.5" />
-            <span>Baixar Ambos e Sair</span>
+            <span>{isProcessing ? 'Processando...' : 'Baixar Ambos (JSON + PDF)'}</span>
           </button>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -216,16 +249,16 @@ export function ExitModal({
               type="button"
               onClick={handleExitClick}
               className={`px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 ${
-                downloadedJson || !hasChanges
+                (downloadedJson && downloadedPdf) || (!hasChanges && downloadedPdf)
                   ? 'bg-[#008D4C] hover:bg-[#00733E] text-white shadow-md shadow-[#008D4C]/25'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600'
               }`}
               title={
-                !hasChanges
-                  ? 'Nenhuma alteração nesta sessão. Concluir saída.'
-                  : downloadedJson
-                  ? 'Backup salvo. Concluir saída com segurança.'
-                  : 'Sair da sessão'
+                !hasChanges && downloadedPdf
+                  ? 'Nenhuma alteração e PDF gerado. Concluir saída.'
+                  : downloadedJson && downloadedPdf
+                  ? 'Arquivos salvos com sucesso. Concluir saída com segurança.'
+                  : 'Salvar arquivos antes de sair'
               }
             >
               <span>Concluir e Sair</span>
