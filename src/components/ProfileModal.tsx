@@ -73,21 +73,22 @@ export function ProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div
-        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl transition-all"
+        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6 shadow-2xl transition-all max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4">
           <div className="flex items-center gap-2">
-            <User className="size-4" style={{ color: '#10B981' }} />
-            <h3 className="text-sm font-semibold text-slate-100">
+            <User className="size-4.5" style={{ color: '#10B981' }} />
+            <h3 className="text-sm sm:text-base font-bold text-slate-100">
               Identificação do Participante
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer"
+            className="size-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+            aria-label="Fechar"
           >
             <X className="size-4" />
           </button>
@@ -95,7 +96,7 @@ export function ProfileModal({
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
               Nome Completo
             </label>
             <input
@@ -103,19 +104,19 @@ export function ProfileModal({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
                 Grupo Tutorial (GAT)
               </label>
               <select
                 value={gatNumber}
                 onChange={(e) => setGatNumber(e.target.value)}
-                className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
+                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer transition-colors"
               >
                 {Object.entries(gats).map(([num, info]) => (
                   <option key={num} value={num}>
@@ -126,13 +127,13 @@ export function ProfileModal({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
                 Função no SUS
               </label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
+                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer transition-colors"
               >
                 {roles.map((r) => (
                   <option key={r} value={r}>
@@ -143,20 +144,20 @@ export function ProfileModal({
             </div>
           </div>
 
-          <p className="text-[11px] text-slate-400 leading-tight">
+          <p className="text-xs text-slate-400 leading-relaxed">
             Seus dados são salvos exclusivamente no seu dispositivo (100% no navegador).
           </p>
 
-          <div className="flex justify-between items-center pt-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2 border-t border-slate-800/60">
             <button
               type="button"
               onClick={() => {
                 onClose();
                 onOpenAdmin();
               }}
-              className="text-[11px] text-slate-400 hover:text-[#10B981] flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-xs text-slate-400 hover:text-[#10B981] flex items-center justify-center sm:justify-start gap-1.5 py-2 cursor-pointer transition-colors"
             >
-              <Shield className="size-3" style={{ color: '#10B981' }} />
+              <Shield className="size-3.5" style={{ color: '#10B981' }} />
               <span>Painel Admin</span>
             </button>
 
@@ -164,17 +165,16 @@ export function ProfileModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 text-xs sm:text-sm font-medium rounded-xl border border-slate-800 text-slate-300 hover:bg-slate-800 cursor-pointer transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-4 py-1.5 text-xs font-semibold rounded-lg text-white hover:brightness-110 cursor-pointer flex items-center gap-1.5 transition-colors"
-                style={{ backgroundColor: '#008D4C' }}
+                className="flex-1 sm:flex-none min-h-[44px] px-5 py-2 text-xs sm:text-sm font-bold rounded-xl text-white bg-[#008D4C] hover:bg-[#00733E] cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-xs"
               >
-                <Check className="size-3.5" />
-                Salvar Alterações
+                <Check className="size-4" />
+                <span>Salvar Alterações</span>
               </button>
             </div>
           </div>

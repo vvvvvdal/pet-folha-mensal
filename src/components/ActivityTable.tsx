@@ -82,8 +82,109 @@ export function ActivityTable({
           )}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
+        {/* Mobile View: Cards ergonômicos para smartphone (sm:hidden) */}
+        <div className="block sm:hidden divide-y divide-slate-800/60">
+          {activities.length === 0 ? (
+            <div className="py-10 px-4 text-center">
+              <div className="max-w-sm mx-auto space-y-3">
+                <div className="size-11 rounded-2xl bg-[#008D4C]/10 text-[#10B981] flex items-center justify-center mx-auto border border-[#008D4C]/20">
+                  <Clock className="size-5" />
+                </div>
+                <div className="text-base font-bold text-slate-100">
+                  Nenhuma atividade em {monthLabel}
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Sua folha deste mês está com 0 horas. Registre pelo formulário acima ou use o modelo padrão do seu GAT.
+                </p>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={onLoadSamples}
+                    className="w-full inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl border border-[#008D4C]/30 bg-[#008D4C]/10 hover:bg-[#008D4C]/20 text-[#10B981] text-xs font-semibold cursor-pointer transition-all shadow-xs"
+                  >
+                    <Sparkles className="size-4 text-[#10B981]" />
+                    <span>Carregar Padrão (GAT {user.gatNumber})</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            activities.map((act) => {
+              const isEditing = editingId === act.id;
+              return (
+                <div
+                  key={act.id}
+                  className={`p-4 transition-colors space-y-3 ${
+                    isEditing ? 'bg-[#00341f]/30 border-l-4 border-[#10B981]' : ''
+                  }`}
+                >
+                  {/* Top Bar: Data, Modalidade e Horas */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2 min-w-0">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800 text-slate-200 text-xs font-semibold">
+                        <Calendar className="size-3 text-slate-400" />
+                        <span>{formatDateBR(act.date)}</span>
+                      </span>
+                      {getModalityBadge(act.modality)}
+                    </div>
+                    <span className="font-black text-base text-[#10B981] shrink-0">
+                      {act.hours}h
+                    </span>
+                  </div>
+
+                  {/* Horário */}
+                  <div className="flex items-center gap-2 text-xs text-slate-300 font-mono">
+                    <Clock className="size-3.5 text-slate-500 shrink-0" />
+                    <span>{act.start} às {act.end}</span>
+                  </div>
+
+                  {/* Descrição Completa */}
+                  <p className="text-sm text-slate-100 font-medium leading-relaxed break-words">
+                    {act.description}
+                  </p>
+
+                  {/* Ações Mobile com 44px min-height */}
+                  <div className="flex items-center gap-2 pt-1 border-t border-slate-800/50">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(act)}
+                      className="flex-1 min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      title="Editar atividade"
+                    >
+                      <Edit2 className="size-3.5 text-[#10B981]" />
+                      <span>Editar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(act.id)}
+                      className="min-h-[44px] px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      title="Excluir atividade"
+                    >
+                      <Trash2 className="size-3.5" />
+                      <span>Excluir</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+
+          {/* Rodapé Mobile: Total */}
+          {activities.length > 0 && (
+            <div className="p-4 bg-slate-950/80 flex items-center justify-between border-t border-slate-800">
+              <span className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+                Total ({monthLabel}):
+              </span>
+              <span className="text-lg font-black text-[#10B981]">
+                {totalHours}h
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop View: Tabela tabular completa (hidden sm:block) */}
+        <div className="hidden sm:block overflow-x-auto w-full">
+          <table className="w-full text-left text-sm border-collapse min-w-full">
             <thead>
               <tr className="border-b border-slate-800/80 bg-slate-950/70 text-xs font-bold text-slate-300 uppercase tracking-wider">
                 <th className="py-3.5 px-4 w-28">Data</th>

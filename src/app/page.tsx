@@ -372,9 +372,9 @@ export default function Home() {
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
         />
 
-        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 transition-all text-slate-200">
+        <main className="w-full max-w-full sm:max-w-6xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 transition-all text-slate-200 min-w-0 overflow-x-hidden">
           {/* Hero / Overview Banner */}
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800/80">
+          <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-800/80">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
                 {activeTab === 'dashboard' ? 'Painel de Frequência' : 'Folha de Frequência Oficial'}
@@ -387,13 +387,13 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs shadow-xs">
+              <div className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs shadow-xs">
                 <Calendar className="size-4 text-[#10B981]" />
                 <span className="text-slate-400 font-medium">Mês:</span>
                 <select
                   value={monthKey}
                   onChange={(e) => setMonthKey(e.target.value)}
-                  className="font-bold text-slate-100 bg-transparent outline-none cursor-pointer"
+                  className="font-bold text-slate-100 bg-transparent outline-none cursor-pointer text-sm sm:text-xs"
                 >
                   <option value="2026-08" className="bg-slate-900 text-slate-200">Agosto/2026</option>
                   <option value="2026-09" className="bg-slate-900 text-slate-200">Setembro/2026</option>
@@ -498,7 +498,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto p-4 sm:p-8 md:p-10 bg-slate-950/80 rounded-2xl border border-slate-800/80 flex justify-center shadow-inner">
+              <div className="overflow-x-auto max-w-full p-2.5 sm:p-8 md:p-10 bg-slate-950/80 rounded-2xl border border-slate-800/80 flex justify-start sm:justify-center shadow-inner">
                 <div className="shadow-2xl rounded-xs ring-1 ring-slate-800/60 overflow-hidden">
                   <OfficialSheet
                     user={activeUser}

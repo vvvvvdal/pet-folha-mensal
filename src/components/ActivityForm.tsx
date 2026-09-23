@@ -102,9 +102,9 @@ export function ActivityForm({
         </div>
 
         {/* Quick presets from dynamic templates with clear helper text */}
-        <div className="flex items-center gap-2">
+        <div className="w-full sm:w-auto flex items-center gap-2">
           {templates && templates.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="w-full sm:w-auto flex items-center gap-2">
               <span className="text-xs text-slate-400 hidden md:inline">
                 Preenchimento rápido de atividades frequentes:
               </span>
@@ -124,7 +124,7 @@ export function ActivityForm({
                   e.target.value = '';
                 }}
                 defaultValue=""
-                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-200 text-base sm:text-xs outline-none cursor-pointer focus:border-[#008D4C] hover:border-slate-600 transition-colors"
+                className="w-full sm:w-auto min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-200 text-sm sm:text-xs outline-none cursor-pointer focus:border-[#008D4C] hover:border-slate-600 transition-colors"
                 title="Selecione uma atividade para preencher o nome e a modalidade automaticamente"
               >
                 <option value="" disabled>
