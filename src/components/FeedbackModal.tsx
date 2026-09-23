@@ -9,8 +9,7 @@ import {
   Star,
   Bug,
   Lightbulb,
-  CheckCircle2,
-  Shield
+  CheckCircle2
 } from 'lucide-react';
 
 interface FeedbackModalProps {
@@ -20,7 +19,7 @@ interface FeedbackModalProps {
 }
 
 export const FEEDBACK_FORM_URL =
-  'https://docs.google.com/forms/d/e/1FAIpQLSfcrtAbMvnZmr2-gATJwkQlI_ATOsyAsPJz3EggxXPRwMLRcg/viewform';
+  'https://docs.google.com/forms/d/e/1FAIpQLSfs4yyrG2RabLc4WpaiZcplv7bFcYLLY1fiRPUjMF8kHwOz9w/viewform';
 
 export function FeedbackModal({ isOpen, onClose, user }: FeedbackModalProps) {
   if (!isOpen) return null;
@@ -108,7 +107,7 @@ export function FeedbackModal({ isOpen, onClose, user }: FeedbackModalProps) {
         </div>
 
         {/* Botão de Ação Principal */}
-        <div className="space-y-3 pt-2 border-t border-slate-800/80">
+        <div className="pt-2 border-t border-slate-800/80">
           <a
             href={FEEDBACK_FORM_URL}
             target="_blank"
@@ -118,20 +117,6 @@ export function FeedbackModal({ isOpen, onClose, user }: FeedbackModalProps) {
             <span>Preencher Formulário de Feedback</span>
             <ExternalLink className="size-4" />
           </a>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-            <div className="flex items-center gap-1.5">
-              <Shield className="size-3.5 text-[#10B981]" />
-              <span>Gerenciado pelo PET-Saúde Clima UFG</span>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-            >
-              Voltar ao sistema
-            </button>
-          </div>
         </div>
       </div>
     </div>
