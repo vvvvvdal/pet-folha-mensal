@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 import { DialogProvider } from "@/context/DialogContext";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function RootLayout({
   children,
@@ -46,6 +47,7 @@ export default function RootLayout({
         <DialogProvider>
           {children}
         </DialogProvider>
+        <Analytics />
       </body>
     </html>
   );
