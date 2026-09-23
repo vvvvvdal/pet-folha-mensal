@@ -203,3 +203,51 @@ export function saveActivitiesForMonth(profileId: string, monthKey: string, acti
   localStorage.setItem(key, JSON.stringify(activities));
 }
 
+export function exportUserData(user: UserProfile, monthKey: string): string {
+  const activities = getActivitiesForMonth(user.id, monthKey);
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    user,
+    monthKey,
+    activities
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+export function importUserData(jsonStr: string): {
+  success: boolean;
+  user?: UserProfile;
+  monthKey?: string;
+  activities?: Activity[];
+  error?: string;
+} {
+  try {
+    const data = JSON.parse(jsonStr);
+    if (!data.user || !data.user.name || !Array.isArray(data.activities)) {
+      return { success: false, error: 'Arquivo de backup inválido.' };
+    }
+    const user: UserProfile = data.user;
+    const monthKey: string = data.monthKey || '2026-09';
+    const activities: Activity[] = data.activities;
+
+    const profiles = getStoredProfiles();
+    const existingIndex = profiles.findIndex((p) => p.id === user.id);
+    let updatedProfiles: UserProfile[];
+    if (existingIndex >= 0) {
+      updatedProfiles = [...profiles];
+      updatedProfiles[existingIndex] = user;
+    } else {
+      updatedProfiles = [...profiles, user];
+    }
+    saveProfiles(updatedProfiles);
+    setActiveProfileId(user.id);
+    saveActivitiesForMonth(user.id, monthKey, activities);
+
+    return { success: true, user, monthKey, activities };
+  } catch {
+    return { success: false, error: 'Falha ao processar arquivo JSON.' };
+  }
+}
+
+

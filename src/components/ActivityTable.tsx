@@ -15,49 +15,24 @@ interface ActivityTableProps {
 
 export function ActivityTable({ activities, totalHours, editingId, onEdit, onDelete }: ActivityTableProps) {
   return (
-    <div
-      className="rounded-xl border overflow-hidden mb-6 transition-all"
-      style={{
-        backgroundColor: 'var(--bg-elevated)',
-        borderColor: 'var(--border-subtle)'
-      }}
-    >
-      <div
-        className="p-4 border-b flex justify-between items-center flex-wrap gap-2"
-        style={{ borderColor: 'var(--border-subtle)' }}
-      >
-        <h2 className="text-base font-bold" style={{ color: 'var(--text-heading)' }}>
-          Registro de Atividades do Mês
-        </h2>
-        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          Sincronizado automaticamente no dispositivo
-        </span>
-      </div>
-
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 overflow-hidden mb-6">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm border-collapse">
+        <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr
-              className="border-b text-xs uppercase tracking-wider font-semibold"
-              style={{
-                backgroundColor: 'var(--table-header-bg)',
-                borderColor: 'var(--border-subtle)',
-                color: 'var(--text-muted)'
-              }}
-            >
-              <th className="p-3 w-[110px]">Data</th>
-              <th className="p-3 w-[100px]">Chegada</th>
-              <th className="p-3 w-[140px]">Saída (Formatada)</th>
-              <th className="p-3">Atividade</th>
-              <th className="p-3 w-[100px] text-right">Horas PET</th>
-              <th className="p-3 w-[90px] text-center">Ações</th>
+            <tr className="border-b border-zinc-800/80 bg-zinc-950/40 text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+              <th className="py-2.5 px-3.5 w-24">Data</th>
+              <th className="py-2.5 px-3.5 w-20">Entrada</th>
+              <th className="py-2.5 px-3.5 w-28">Saída (PET)</th>
+              <th className="py-2.5 px-3.5">Descrição da Atividade</th>
+              <th className="py-2.5 px-3.5 w-24 text-right">Horas</th>
+              <th className="py-2.5 px-3.5 w-20 text-center">Ações</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-zinc-800/60">
             {activities.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center" style={{ color: 'var(--text-muted)' }}>
-                  Nenhuma atividade registrada para este mês. Utilize o formulário acima para adicionar.
+                <td colSpan={6} className="py-10 text-center text-xs text-zinc-500">
+                  Nenhuma atividade registrada neste mês.
                 </td>
               </tr>
             ) : (
@@ -66,44 +41,38 @@ export function ActivityTable({ activities, totalHours, editingId, onEdit, onDel
                 return (
                   <tr
                     key={act.id}
-                    className="border-b transition-colors hover:bg-[var(--table-hover)]"
-                    style={{
-                      borderColor: 'var(--border-subtle)',
-                      backgroundColor: isEditing ? 'var(--accent-sky-bg)' : 'transparent'
-                    }}
+                    className={`transition-colors hover:bg-zinc-800/30 ${
+                      isEditing ? 'bg-emerald-950/20' : ''
+                    }`}
                   >
-                    <td className="p-3 font-medium" style={{ color: 'var(--text-heading)' }}>
+                    <td className="py-2.5 px-3.5 font-medium text-zinc-300">
                       {formatDateBR(act.date)}
                     </td>
-                    <td className="p-3" style={{ color: 'var(--text-body)' }}>
-                      {act.start}
+                    <td className="py-2.5 px-3.5 text-zinc-400">{act.start}</td>
+                    <td className="py-2.5 px-3.5 text-zinc-400 font-mono text-[11px]">
+                      {act.end} <span className="text-zinc-500">({act.hours}h)</span>
                     </td>
-                    <td className="p-3" style={{ color: 'var(--text-body)' }}>
-                      {act.end} ({act.hours}h)
+                    <td className="py-2.5 px-3.5 text-zinc-200">
+                      <span>{act.description}</span>
                     </td>
-                    <td className="p-3 font-normal" style={{ color: 'var(--text-heading)' }}>
-                      {act.description}
+                    <td className="py-2.5 px-3.5 text-right font-semibold text-emerald-400">
+                      {act.hours}h
                     </td>
-                    <td className="p-3 text-right font-bold" style={{ color: 'var(--accent-sage)' }}>
-                      {act.hours} h
-                    </td>
-                    <td className="p-3 text-center">
+                    <td className="py-2.5 px-3.5 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => onEdit(act)}
-                          className="p-1.5 rounded hover:scale-110 transition-transform cursor-pointer"
-                          style={{ color: 'var(--accent-sky)' }}
+                          className="p-1 rounded text-zinc-400 hover:text-emerald-400 hover:bg-zinc-800 cursor-pointer transition-colors"
                           title="Editar atividade"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="size-3.5" />
                         </button>
                         <button
                           onClick={() => onDelete(act.id)}
-                          className="p-1.5 rounded hover:scale-110 transition-transform cursor-pointer hover:text-[var(--accent-rose)]"
-                          style={{ color: 'var(--text-muted)' }}
+                          className="p-1 rounded text-zinc-400 hover:text-red-400 hover:bg-zinc-800 cursor-pointer transition-colors"
                           title="Excluir atividade"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="size-3.5" />
                         </button>
                       </div>
                     </td>
@@ -112,23 +81,19 @@ export function ActivityTable({ activities, totalHours, editingId, onEdit, onDel
               })
             )}
           </tbody>
-          <tfoot>
-            <tr
-              className="font-bold text-sm"
-              style={{
-                backgroundColor: 'var(--table-header-bg)',
-                color: 'var(--text-heading)'
-              }}
-            >
-              <td colSpan={4} className="p-3 text-right pr-6">
-                TOTAL GERAL:
-              </td>
-              <td className="p-3 text-right" style={{ color: 'var(--accent-sage)' }}>
-                {totalHours} horas
-              </td>
-              <td></td>
-            </tr>
-          </tfoot>
+          {activities.length > 0 && (
+            <tfoot>
+              <tr className="border-t border-zinc-800 bg-zinc-950/60 font-semibold text-xs">
+                <td colSpan={4} className="py-2.5 px-3.5 text-right text-zinc-400">
+                  TOTAL DO MÊS:
+                </td>
+                <td className="py-2.5 px-3.5 text-right text-emerald-400 font-bold">
+                  {totalHours} horas
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </div>
