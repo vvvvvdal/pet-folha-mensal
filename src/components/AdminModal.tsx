@@ -377,7 +377,10 @@ export function AdminModal({
   };
 
   const handleStartEditTemplate = (tpl: ActivityTemplate) => {
-    setEditingTemplate({ ...tpl });
+    setEditingTemplate({
+      ...tpl,
+      name: tpl.name || (tpl as any).descriptionTemplate || ''
+    });
   };
 
   const handleSaveEditTemplate = (e: React.FormEvent) => {
@@ -1231,7 +1234,9 @@ export function AdminModal({
                         className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 text-xs flex items-center justify-between gap-3 hover:border-slate-700 transition-colors"
                       >
                         <div>
-                          <div className="font-medium text-slate-200">{tpl.name}</div>
+                          <div className="font-medium text-slate-200">
+                            {tpl.name || (tpl as any).descriptionTemplate || 'Modelo'}
+                          </div>
                           <div className="text-[11px] text-slate-400 mt-0.5">
                             Tipo: <span className="text-emerald-400 font-medium">{tpl.modality}</span>
                             {tpl.isGatSpecific && <span className="ml-2 text-sky-400 font-medium">• GAT Dinâmico</span>}

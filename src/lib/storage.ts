@@ -362,7 +362,38 @@ export function getStoredTemplates(): ActivityTemplate[] {
     const raw = localStorage.getItem(TEMPLATES_KEY);
     if (!raw) return DEFAULT_TEMPLATES;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_TEMPLATES;
+    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_TEMPLATES;
+
+    // Migração de schema legado caso existam templates salvos anteriormente sem 'name'
+    const migrated: ActivityTemplate[] = parsed.map((item: any, idx: number) => {
+      const name =
+        item.name ||
+        item.descriptionTemplate ||
+        item.description ||
+        `Atividade Modelo ${idx + 1}`;
+
+      const isGatSpecific =
+        Boolean(item.isGatSpecific) ||
+        name.includes('{gatNumber}') ||
+        name.includes('{gatLabel}') ||
+        name.toLowerCase().includes('reunião do gat');
+
+      return {
+        id: item.id || `tpl-${idx + 1}`,
+        name: isGatSpecific && !name.includes('{gatNumber}')
+          ? 'Reunião do GAT {gatNumber} ({gatName})'
+          : name,
+        modality: item.modality || 'Síncrona virtual',
+        isGatSpecific
+      };
+    });
+
+    const hasLegacySchema = parsed.some((p: any) => !p.name || p.day !== undefined || p.descriptionTemplate);
+    if (hasLegacySchema) {
+      localStorage.setItem(TEMPLATES_KEY, JSON.stringify(migrated));
+    }
+
+    return migrated;
   } catch {
     return DEFAULT_TEMPLATES;
   }

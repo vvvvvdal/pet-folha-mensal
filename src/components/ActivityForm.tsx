@@ -118,7 +118,8 @@ export function ActivityForm({
                   if (!tplId) return;
                   const found = templates.find((t) => t.id === tplId);
                   if (found) {
-                    const finalTitle = found.name
+                    const rawName = found.name || (found as any).descriptionTemplate || '';
+                    const finalTitle = rawName
                       .replace('{gatNumber}', defaultGatNumber)
                       .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`);
                     setDescription(finalTitle);
@@ -132,13 +133,19 @@ export function ActivityForm({
                 <option value="" disabled>
                   ⚡ Escolher a partir de um Modelo...
                 </option>
-                {templates.map((tpl) => (
-                  <option key={tpl.id} value={tpl.id}>
-                    {tpl.name.includes('{gatNumber}')
-                      ? `Reunião do GAT ${defaultGatNumber} (${tpl.modality})`
-                      : `${tpl.name} (${tpl.modality})`}
-                  </option>
-                ))}
+                {templates.map((tpl) => {
+                  const tplName = tpl?.name || (tpl as any)?.descriptionTemplate || 'Atividade';
+                  const isGat = Boolean(tpl?.isGatSpecific) || tplName.includes('{gatNumber}') || tplName.includes('{gatLabel}');
+                  const label = isGat
+                    ? `Reunião do GAT ${defaultGatNumber} (${tpl.modality})`
+                    : `${tplName} (${tpl.modality})`;
+
+                  return (
+                    <option key={tpl.id} value={tpl.id}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           ) : (
