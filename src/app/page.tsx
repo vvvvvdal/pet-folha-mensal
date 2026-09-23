@@ -220,41 +220,50 @@ export default function Home() {
 
   return (
     <>
-      <main className="min-h-screen p-4 sm:p-6 lg:p-8 screen-only transition-all bg-[var(--bg-canvas)] text-slate-200">
-        <div className="max-w-5xl mx-auto">
-          {/* Header Minimalista */}
-          <Navbar
-            user={activeUser}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onOpenProfileModal={() => setIsProfileModalOpen(true)}
-            onPrint={handlePrint}
-            hasChanges={hasChanges}
-            onExportBackup={handleExportBackup}
-            onImportBackup={handleImportBackup}
-            onOpenAdmin={() => setIsAdminModalOpen(true)}
-          />
+      <div className="screen-only">
+        {/* Header Superior Fixo com Blur */}
+        <Navbar
+          user={activeUser}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onOpenProfileModal={() => setIsProfileModalOpen(true)}
+          onPrint={handlePrint}
+          hasChanges={hasChanges}
+          onExportBackup={handleExportBackup}
+          onImportBackup={handleImportBackup}
+          onOpenAdmin={() => setIsAdminModalOpen(true)}
+        />
 
-          {/* Subheader: Mês e Total */}
-          <div className="flex items-center justify-between gap-3 mb-4 text-xs">
-            <div className="flex items-center gap-2">
-              <Calendar className="size-3.5 text-slate-400" />
-              <span className="text-slate-400 font-medium">Mês:</span>
-              <select
-                value={monthKey}
-                onChange={(e) => setMonthKey(e.target.value)}
-                className="px-2 py-1 text-xs font-semibold rounded-md bg-slate-900 border border-slate-800 text-slate-200 outline-none cursor-pointer focus:border-emerald-500"
-              >
-                <option value="2026-08">Agosto/2026</option>
-                <option value="2026-09">Setembro/2026</option>
-                <option value="2026-10">Outubro/2026</option>
-                <option value="2026-11">Novembro/2026</option>
-                <option value="2026-12">Dezembro/2026</option>
-              </select>
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 transition-all text-slate-200">
+          {/* Hero / Overview Banner */}
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800/80">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
+                {activeTab === 'dashboard' ? 'Painel de Frequência' : 'Folha de Frequência Oficial'}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+                {activeTab === 'dashboard'
+                  ? `Controle de dedicação e presença • GAT ${activeUser.gatNumber} (${activeUser.gatName || gats[activeUser.gatNumber]?.name || 'PET'})`
+                  : 'Documento impresso e assinado para validação mensal de bolsa (SGTES/MS)'}
+              </p>
             </div>
 
-            <div className="text-slate-400">
-              Total apurado: <strong className="text-emerald-400 font-bold">{totalHours} horas</strong>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs shadow-xs">
+                <Calendar className="size-4 text-emerald-400" />
+                <span className="text-slate-400 font-medium">Mês:</span>
+                <select
+                  value={monthKey}
+                  onChange={(e) => setMonthKey(e.target.value)}
+                  className="font-bold text-slate-100 bg-transparent outline-none cursor-pointer"
+                >
+                  <option value="2026-08" className="bg-slate-900 text-slate-200">Agosto/2026</option>
+                  <option value="2026-09" className="bg-slate-900 text-slate-200">Setembro/2026</option>
+                  <option value="2026-10" className="bg-slate-900 text-slate-200">Outubro/2026</option>
+                  <option value="2026-11" className="bg-slate-900 text-slate-200">Novembro/2026</option>
+                  <option value="2026-12" className="bg-slate-900 text-slate-200">Dezembro/2026</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -293,13 +302,13 @@ export default function Home() {
           {/* ABA 2: FOLHA OFICIAL (PREVIEW A4 PAISAGEM) */}
           {activeTab === 'official' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-slate-900/60 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 rounded-2xl border border-slate-800/80 bg-slate-900/60 text-xs shadow-xs">
                 {/* Seletor entre Minha Folha e Template Vazio */}
-                <div className="flex p-0.5 rounded-lg bg-slate-950 border border-slate-800 font-medium">
+                <div className="flex p-0.5 rounded-xl bg-slate-950 border border-slate-800 font-medium">
                   <button
                     type="button"
                     onClick={() => setShowBlankTemplate(false)}
-                    className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       !showBlankTemplate
                         ? 'bg-slate-800 text-slate-100 shadow-xs'
                         : 'text-slate-400 hover:text-slate-200'
@@ -310,7 +319,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setShowBlankTemplate(true)}
-                    className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       showBlankTemplate
                         ? 'bg-slate-800 text-slate-100 shadow-xs'
                         : 'text-slate-400 hover:text-slate-200'
@@ -325,7 +334,7 @@ export default function Home() {
                     <a
                       href="/templates/PET%20-%20Folha%20de%20Frequ%C3%AAncia%20-%20Modelo%20Vazio.pdf"
                       download="PET - Folha de Frequência - Modelo Vazio.pdf"
-                      className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1.5 text-xs font-medium transition-all"
+                      className="px-3 py-1.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1.5 text-xs font-medium transition-all"
                       title="Baixar arquivo PDF original em branco"
                     >
                       <Download className="size-3.5" />
@@ -334,7 +343,7 @@ export default function Home() {
                   )}
                   <button
                     onClick={handlePrint}
-                    className="px-3.5 py-1.5 rounded-lg font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all text-xs"
+                    className="px-3.5 py-1.5 rounded-xl font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all text-xs shadow-sm shadow-emerald-500/10"
                   >
                     <Printer className="size-3.5" />
                     <span>
@@ -343,7 +352,7 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => setActiveTab('dashboard')}
-                    className="px-2.5 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1 text-xs"
+                    className="px-3 py-1.5 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1 text-xs transition-colors"
                   >
                     <ArrowLeft className="size-3.5" />
                     Voltar
@@ -351,18 +360,19 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto p-4 md:p-8 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-center">
-                <OfficialSheet
-                  user={activeUser}
-                  monthLabel={monthLabel}
-                  activities={activities}
-                  totalHours={totalHours}
-                  isBlankTemplate={showBlankTemplate}
-                />
+              <div className="overflow-x-auto p-4 sm:p-8 md:p-10 bg-slate-950/80 rounded-2xl border border-slate-800/80 flex justify-center shadow-inner">
+                <div className="shadow-2xl rounded-xs ring-1 ring-slate-800/60 overflow-hidden">
+                  <OfficialSheet
+                    user={activeUser}
+                    monthLabel={monthLabel}
+                    activities={activities}
+                    totalHours={totalHours}
+                    isBlankTemplate={showBlankTemplate}
+                  />
+                </div>
               </div>
             </div>
           )}
-        </div>
 
         {/* Modal de Identificação / Troca de GAT */}
         <ProfileModal
@@ -406,6 +416,7 @@ export default function Home() {
           </div>
         )}
       </main>
+    </div>
 
       {/* ============================================================
            CONTAINER EXCLUSIVO DE IMPRESSÃO (@media print)

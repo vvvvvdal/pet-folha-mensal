@@ -1,57 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --bg-canvas: #141720;
-  --bg-surface: #1b202c;
-  --bg-elevated: #232938;
-  --bg-subtle: #2b3346;
-  --border-subtle: #2b3346;
-  --border-strong: #3d4860;
+  --background: #090d16;
+  --foreground: #f1f5f9;
+  --surface: #0f1523;
+  --surface-raised: #151d30;
+  --surface-hover: #1c2740;
+  --border: #1e293b;
+  --border-focus: #10b981;
 
-  --text-heading: #f1f5f9;
-  --text-body: #cbd5e1;
-  --text-muted: #8593a7;
-
-  --accent-primary: #10b981;
-  --accent-primary-hover: #059669;
-  --accent-primary-fg: #022c22;
-
-  --accent-sage: #34d399;
-  --accent-sage-bg: rgba(52, 211, 153, 0.1);
-  --accent-sage-border: rgba(52, 211, 153, 0.25);
-
+  --accent-emerald: #10b981;
+  --accent-emerald-glow: rgba(16, 185, 129, 0.15);
+  --accent-teal: #14b8a6;
   --accent-sky: #38bdf8;
-  --accent-sky-bg: rgba(56, 189, 248, 0.1);
-  --accent-sky-border: rgba(56, 189, 248, 0.25);
-
-  --accent-amber: #fbbf24;
-  --accent-amber-bg: rgba(251, 191, 36, 0.1);
-  --accent-amber-border: rgba(251, 191, 36, 0.25);
-
-  --accent-rose: #f87171;
-  --accent-rose-bg: rgba(248, 113, 113, 0.1);
-  --accent-rose-border: rgba(248, 113, 113, 0.25);
-
-  --input-bg: #171b26;
-  --table-header-bg: #171b26;
-  --table-stripe: rgba(255, 255, 255, 0.015);
-  --table-hover: rgba(255, 255, 255, 0.035);
+  --accent-amber: #f59e0b;
 }
 
 body {
-  background-color: var(--bg-canvas);
-  color: var(--text-body);
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  selection-background-color: #10b981;
+  selection-color: #ffffff;
 }
 
-/* UI/UX Vercel & shadcn: Accessible Focus Ring & Smooth Motion */
+::selection {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
 :focus-visible {
-  outline: 2px solid var(--accent-sky);
+  outline: 2px solid var(--accent-emerald);
   outline-offset: 2px;
 }
 
@@ -60,12 +61,12 @@ button, a, select, input {
 }
 
 /* ============================================================
-   REGRAS DE IMPRESSÃO (A4 PAISAGEM / PADRÃO IMAGEM 3)
+   REGRAS DE IMPRESSÃO (A4 PAISAGEM RIGOROSAMENTE 1 PÁGINA)
    ============================================================ */
 @media print {
   @page {
     size: A4 landscape;
-    margin: 10mm 15mm 10mm 15mm;
+    margin: 8mm 10mm 8mm 10mm;
   }
 
   html, body {
@@ -74,6 +75,8 @@ button, a, select, input {
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -86,23 +89,50 @@ button, a, select, input {
     display: block !important;
     background: transparent !important;
     padding: 0 !important;
+    margin: 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .official-sheet {
     width: 100% !important;
+    max-width: 100% !important;
     min-height: auto !important;
     padding: 0 !important;
+    margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
+  /* Tabela Oficial: garantia de que a borda inferior nunca some */
   table.official-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
     border: 1.5px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-sizing: border-box !important;
   }
 
-  table.official-table th, table.official-table td {
+  table.official-table th {
     border: 1px solid #000000 !important;
     color: #000000 !important;
+    background-color: #ffffff !important;
+    padding: 3px 5px !important;
+  }
+
+  table.official-table td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    padding: 3px 5px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Regra vital: crava a borda inferior em cada célula da última linha */
+  table.official-table tbody tr:last-child td {
+    border-bottom: 1.5px solid #000000 !important;
   }
 }
 
