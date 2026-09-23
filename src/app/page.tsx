@@ -26,6 +26,8 @@ import { StatsGrid } from '@/components/StatsGrid';
 import { ActivityForm } from '@/components/ActivityForm';
 import { ActivityTable } from '@/components/ActivityTable';
 import { OfficialSheet } from '@/components/OfficialSheet';
+import { LandingPage } from '@/components/LandingPage';
+import { ExitModal } from '@/components/ExitModal';
 import { Calendar, Download, Printer, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 export default function Home() {
@@ -33,6 +35,7 @@ export default function Home() {
   const [activeUser, setActiveUser] = useState<UserProfile | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [monthKey, setMonthKey] = useState('2026-09');
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'official'>('dashboard');
@@ -60,11 +63,13 @@ export default function Home() {
     const loadedTemplates = getStoredTemplates();
     setTemplates(loadedTemplates);
 
-    const active = getActiveProfile() || loadedProfiles[0];
+    const active = getActiveProfile();
     if (active) {
       setActiveUser(active);
       const acts = getActivitiesForMonth(active.id, monthKey);
       setActivities(acts);
+    } else {
+      setActiveUser(null);
     }
   }, [monthKey]);
 
@@ -135,16 +140,14 @@ export default function Home() {
 
   const handleDeleteActivity = (id: string) => {
     if (!activeUser) return;
-    if (confirm('Deseja excluir este lançamento?')) {
-      if (editingActivity?.id === id) {
-        setEditingActivity(null);
-      }
-      const updated = activities.filter((act) => act.id !== id);
-      setActivities(updated);
-      saveActivitiesForMonth(activeUser.id, monthKey, updated);
-      setHasChanges(true);
-      showToast('Lançamento excluído.');
+    if (editingActivity?.id === id) {
+      setEditingActivity(null);
     }
+    const updated = activities.filter((act) => act.id !== id);
+    setActivities(updated);
+    saveActivitiesForMonth(activeUser.id, monthKey, updated);
+    setHasChanges(true);
+    showToast('Lançamento excluído.');
   };
 
   const handleLoadSamples = () => {
@@ -157,19 +160,11 @@ export default function Home() {
 
   const handleClearMonth = () => {
     if (!activeUser) return;
-    if (
-      confirm(
-        `Deseja realmente apagar todos os lançamentos de ${getMonthYearLabel(
-          monthKey
-        )} para recomeçar a folha do zero?`
-      )
-    ) {
-      clearActivitiesForMonth(activeUser.id, monthKey);
-      setActivities([]);
-      setEditingActivity(null);
-      setHasChanges(true);
-      showToast(`Folha de ${getMonthYearLabel(monthKey)} zerada.`);
-    }
+    clearActivitiesForMonth(activeUser.id, monthKey);
+    setActivities([]);
+    setEditingActivity(null);
+    setHasChanges(true);
+    showToast(`Folha de ${getMonthYearLabel(monthKey)} zerada.`);
   };
 
   const handlePrint = () => {
@@ -211,8 +206,50 @@ export default function Home() {
     reader.readAsText(file);
   };
 
+  // Se não houver participante ativo, exibir Landing Page informativa e privada
   if (!activeUser) {
-    return null;
+    return (
+      <>
+        <LandingPage
+          onLoginWithJson={handleImportBackup}
+          onCreateProfile={handleCreateNewProfile}
+          gats={gats}
+          roles={roles}
+          onOpenAdmin={() => setIsAdminModalOpen(true)}
+        />
+
+        {/* Modal de Gestão & Administração (PIN 4031) */}
+        <AdminModal
+          isOpen={isAdminModalOpen}
+          onClose={() => setIsAdminModalOpen(false)}
+          profiles={profiles}
+          gats={gats}
+          roles={roles}
+          templates={templates}
+          onProfilesChange={(updated) => {
+            setProfiles(updated);
+            if (activeUser && !updated.some((p) => p.id === activeUser.id)) {
+              if (updated.length > 0) handleSelectProfile(updated[0]);
+            }
+          }}
+          onGatsChange={(updated) => setGats(updated)}
+          onRolesChange={(updated) => setRoles(updated)}
+          onTemplatesChange={(updated) => setTemplates(updated)}
+          onSelectUser={(user) => {
+            handleSelectProfile(user);
+            setIsAdminModalOpen(false);
+          }}
+        />
+
+        {/* Toast Notificação */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-emerald-500/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 className="size-3.5 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+      </>
+    );
   }
 
   const totalHours = activities.reduce((sum, act) => sum + act.hours, 0);
@@ -232,6 +269,7 @@ export default function Home() {
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
           onOpenAdmin={() => setIsAdminModalOpen(true)}
+          onOpenExitModal={() => setIsExitModalOpen(true)}
         />
 
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 transition-all text-slate-200">
@@ -374,7 +412,7 @@ export default function Home() {
             </div>
           )}
 
-        {/* Modal de Identificação / Troca de GAT */}
+        {/* Modal de Identificação do Participante */}
         <ProfileModal
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
@@ -383,8 +421,6 @@ export default function Home() {
           gats={gats}
           roles={roles}
           onSaveProfile={handleSaveProfile}
-          onSwitchProfile={handleSelectProfile}
-          onCreateNew={handleCreateNewProfile}
           onOpenAdmin={() => setIsAdminModalOpen(true)}
         />
 
@@ -406,6 +442,22 @@ export default function Home() {
           onRolesChange={(updated) => setRoles(updated)}
           onTemplatesChange={(updated) => setTemplates(updated)}
           onSelectUser={(user) => handleSelectProfile(user)}
+        />
+
+        {/* Modal de Saída / Backup Obrigatório */}
+        <ExitModal
+          isOpen={isExitModalOpen}
+          onClose={() => setIsExitModalOpen(false)}
+          onConfirmExit={() => {
+            setIsExitModalOpen(false);
+            setActiveProfileId(null);
+            setActiveUser(null);
+            setActivities([]);
+            showToast('Sessão encerrada com sucesso.');
+          }}
+          onDownloadJson={handleExportBackup}
+          onDownloadPdf={handlePrint}
+          userName={activeUser.name}
         />
 
         {/* Toast Notificação Minimalista */}

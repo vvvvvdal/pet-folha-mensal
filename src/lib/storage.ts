@@ -167,11 +167,11 @@ export function saveProfiles(profiles: UserProfile[]): void {
 }
 
 export function getActiveProfile(): UserProfile | null {
-  if (typeof window === 'undefined') return DEFAULT_PROFILES[0];
+  if (typeof window === 'undefined') return null;
   const profiles = getStoredProfiles();
   const activeId = localStorage.getItem(ACTIVE_PROFILE_ID_KEY);
-  if (!activeId) return profiles[0] || null;
-  return profiles.find((p) => p.id === activeId) || profiles[0] || null;
+  if (!activeId) return null;
+  return profiles.find((p) => p.id === activeId) || null;
 }
 
 export function setActiveProfileId(profileId: string | null): void {
