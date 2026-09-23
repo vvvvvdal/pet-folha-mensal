@@ -8,7 +8,7 @@ import {
   ModalityType
 } from '@/types';
 import {
-  ADMIN_PASSWORD,
+  verifyAdminPin,
   saveGats,
   saveRoles,
   saveTemplates,
@@ -101,9 +101,10 @@ export function AdminModal({
 
   if (!isOpen) return null;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput.trim() === ADMIN_PASSWORD) {
+    const isValid = await verifyAdminPin(pinInput);
+    if (isValid) {
       setIsAuthenticated(true);
       setPinError(false);
       setPinInput('');
@@ -383,7 +384,7 @@ export function AdminModal({
 
         {/* Content Area */}
         {!isAuthenticated ? (
-          /* TELA DE AUTENTICAÇÃO COM PIN 4031 */
+          /* TELA DE AUTENTICAÇÃO COM PIN SECRETO */
           <div className="p-8 flex flex-col items-center justify-center text-center space-y-4">
             <div className="size-12 rounded-full bg-[#008D4C]/10 border border-[#008D4C]/20 flex items-center justify-center text-[#10B981]">
               <Lock className="size-5" />
@@ -391,7 +392,7 @@ export function AdminModal({
             <div>
               <h4 className="text-base font-semibold text-slate-100">Área de Acesso Restrito</h4>
               <p className="text-xs text-slate-400 mt-1 max-w-sm">
-                Digite o PIN de administrador para acessar o gerenciamento de participantes, templates, GATs e funções.
+                Digite o PIN de administrador para acessar as configurações de templates, GATs e funções.
               </p>
             </div>
 
@@ -400,7 +401,7 @@ export function AdminModal({
                 <input
                   type="password"
                   autoFocus
-                  placeholder="PIN mestre (4031)"
+                  placeholder="Digite o PIN de acesso"
                   value={pinInput}
                   onChange={(e) => {
                     setPinInput(e.target.value);

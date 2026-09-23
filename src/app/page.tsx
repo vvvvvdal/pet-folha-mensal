@@ -267,7 +267,7 @@ export default function Home() {
           onOpenAdmin={() => setIsAdminModalOpen(true)}
         />
 
-        {/* Modal de Gestão & Administração (PIN 4031) */}
+        {/* Modal de Gestão & Administração */}
         <AdminModal
           isOpen={isAdminModalOpen}
           onClose={() => setIsAdminModalOpen(false)}
@@ -470,7 +470,7 @@ export default function Home() {
           onOpenAdmin={() => setIsAdminModalOpen(true)}
         />
 
-        {/* Modal de Gestão & Administração (PIN 4031) */}
+        {/* Modal de Gestão & Administração */}
         <AdminModal
           isOpen={isAdminModalOpen}
           onClose={() => setIsAdminModalOpen(false)}

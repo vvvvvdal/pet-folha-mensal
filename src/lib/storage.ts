@@ -9,7 +9,24 @@ import {
 } from '@/types';
 import { calcPetHours } from './pet-calculator';
 
-export const ADMIN_PASSWORD = '4031';
+// Hash SHA-256 do PIN administrativo (padrão ou configurado via .env)
+export const ADMIN_PIN_HASH =
+  process.env.NEXT_PUBLIC_ADMIN_PIN_HASH ||
+  '2559813bc6529f6938ba78a2fc60a6b4e8ccdc67cd41a2c4acf159a14304ce0c';
+
+export async function verifyAdminPin(inputPin: string): Promise<boolean> {
+  const clean = inputPin.trim();
+  if (!clean) return false;
+  if (typeof window !== 'undefined' && window.crypto?.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(clean);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+    return hashHex === ADMIN_PIN_HASH;
+  }
+  return false;
+}
 
 const PROFILES_KEY = 'pet_folha_profiles_v2';
 const ACTIVE_PROFILE_ID_KEY = 'pet_folha_active_profile_id_v2';

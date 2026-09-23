@@ -177,7 +177,7 @@ export function Navbar({
             type="button"
             onClick={onOpenAdmin}
             className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors"
-            title="Acesso de gestão / modo administrador (PIN 4031)"
+            title="Acesso de gestão / modo administrador"
           >
             <Shield className="size-4" />
           </button>
