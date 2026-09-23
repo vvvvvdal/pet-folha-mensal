@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, Activity } from '@/types';
+import { UserProfile, Activity, GATS } from '@/types';
 import {
   getStoredProfiles,
-  saveProfiles,
   getActiveProfile,
   setActiveProfileId,
   getActivitiesForMonth,
@@ -18,7 +17,7 @@ import { ActivityForm } from '@/components/ActivityForm';
 import { ActivityTable } from '@/components/ActivityTable';
 import { AlertBanner } from '@/components/AlertBanner';
 import { OfficialSheet } from '@/components/OfficialSheet';
-import { Calendar, Download, Printer, ArrowLeft } from 'lucide-react';
+import { Calendar, Download, Printer, CheckCircle2, ArrowLeft, Info } from 'lucide-react';
 
 export default function Home() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
@@ -53,21 +52,9 @@ export default function Home() {
     setHasChanges(false);
   };
 
-  const handleCreateProfile = (data: Omit<UserProfile, 'id' | 'createdAt'>) => {
-    const newProfile: UserProfile = {
-      ...data,
-      id: `usr-${Date.now()}`,
-      createdAt: new Date().toISOString()
-    };
-    const updated = [...profiles, newProfile];
-    setProfiles(updated);
-    saveProfiles(updated);
-    handleSelectProfile(newProfile);
-    showToast(`✅ Perfil criado com sucesso: ${newProfile.name}`);
-  };
-
   const handleLogout = () => {
     setActiveUser(null);
+    setActiveProfileId(null);
     setEditingActivity(null);
   };
 
@@ -92,7 +79,7 @@ export default function Home() {
         act.id === editingId ? { ...data, id: editingId, hours } : act
       );
       setEditingActivity(null);
-      showToast('✅ Atividade atualizada! ⚠️ Lembre-se de salvar/imprimir o PDF atualizado.');
+      showToast('Atividade atualizada com sucesso! Lembre-se de salvar/imprimir o PDF atualizado.');
     } else {
       // Adição
       const newActivity: Activity = {
@@ -101,7 +88,7 @@ export default function Home() {
         hours
       };
       updatedActivities = [...activities, newActivity];
-      showToast('✅ Atividade adicionada! ⚠️ Lembre-se de salvar/imprimir o PDF atualizado.');
+      showToast('Atividade adicionada com sucesso! Lembre-se de salvar/imprimir o PDF atualizado.');
     }
 
     setActivities(updatedActivities);
@@ -119,7 +106,7 @@ export default function Home() {
       setActivities(updated);
       saveActivitiesForMonth(activeUser.id, monthKey, updated);
       setHasChanges(true);
-      showToast('🗑️ Atividade removida! ⚠️ Lembre-se de salvar/imprimir o PDF atualizado.');
+      showToast('Atividade removida. Lembre-se de salvar/imprimir o PDF atualizado.');
     }
   };
 
@@ -133,7 +120,7 @@ export default function Home() {
       <ProfileSelector
         profiles={profiles}
         onSelectProfile={handleSelectProfile}
-        onCreateProfile={handleCreateProfile}
+        onRefreshProfiles={() => setProfiles(getStoredProfiles())}
       />
     );
   }
@@ -204,6 +191,7 @@ export default function Home() {
                 editingActivity={editingActivity}
                 onCancelEdit={() => setEditingActivity(null)}
                 defaultGatNumber={activeUser.gatNumber}
+                defaultGatName={activeUser.gatName || GATS[activeUser.gatNumber]?.name}
               />
 
               {/* Tabela Interativa */}
@@ -317,6 +305,7 @@ export default function Home() {
               color: 'var(--text-heading)'
             }}
           >
+            <CheckCircle2 className="w-4 h-4 text-[var(--accent-sage)] flex-shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}

@@ -1,6 +1,5 @@
-'use client';
-
 import React from 'react';
+import { CheckCircle2, Clock, Calendar, Target } from 'lucide-react';
 
 interface StatsGridProps {
   totalHours: number;
@@ -23,8 +22,9 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32 }: Sta
             borderColor: 'var(--border-subtle)'
           }}
         >
-          <div className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>
-            Total Realizado
+          <div className="text-xs uppercase tracking-wider font-semibold mb-1 flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+            <Clock className="w-3.5 h-3.5 text-[var(--accent-sky)]" />
+            <span>Total Realizado</span>
           </div>
           <div className="text-3xl font-extrabold flex items-baseline gap-1" style={{ color: 'var(--text-heading)' }}>
             {totalHours} <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>horas</span>
@@ -42,8 +42,9 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32 }: Sta
             borderColor: 'var(--border-subtle)'
           }}
         >
-          <div className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>
-            Meta do Mês (4 semanas)
+          <div className="text-xs uppercase tracking-wider font-semibold mb-1 flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+            <Target className="w-3.5 h-3.5 text-[var(--accent-sage)]" />
+            <span>Meta do Mês (4 semanas)</span>
           </div>
           <div className="text-3xl font-extrabold flex items-baseline gap-1" style={{ color: 'var(--text-heading)' }}>
             {targetHours} <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>horas</span>
@@ -61,14 +62,22 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32 }: Sta
             borderColor: 'var(--border-subtle)'
           }}
         >
-          <div className="text-xs uppercase tracking-wider font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>
-            Saldo Restante
+          <div className="text-xs uppercase tracking-wider font-semibold mb-1 flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+            <Calendar className="w-3.5 h-3.5 text-[var(--accent-amber)]" />
+            <span>Saldo Restante</span>
           </div>
           <div className="text-3xl font-extrabold flex items-baseline gap-1" style={{ color: remaining === 0 ? 'var(--accent-sage)' : 'var(--accent-sky)' }}>
             {remaining} <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>horas</span>
           </div>
-          <div className="text-xs mt-1" style={{ color: remaining === 0 ? 'var(--accent-sage)' : 'var(--text-muted)' }}>
-            {remaining === 0 ? '✅ Meta mensal atingida!' : `Faltam ${remaining}h para cumprir a meta`}
+          <div className="text-xs mt-1 flex items-center gap-1" style={{ color: remaining === 0 ? 'var(--accent-sage)' : 'var(--text-muted)' }}>
+            {remaining === 0 ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>Meta mensal atingida com sucesso!</span>
+              </>
+            ) : (
+              <span>Faltam {remaining}h para cumprir a meta do mês</span>
+            )}
           </div>
         </div>
       </div>

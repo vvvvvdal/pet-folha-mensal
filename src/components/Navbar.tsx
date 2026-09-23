@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { UserProfile } from '@/types';
+import { UserProfile, GATS } from '@/types';
 import { ThemeToggle } from './ThemeToggle';
 import { LayoutDashboard, FileText, UserCheck, LogOut, Printer } from 'lucide-react';
 
@@ -14,6 +14,8 @@ interface NavbarProps {
 }
 
 export function Navbar({ user, activeTab, onTabChange, onLogout, onPrint }: NavbarProps) {
+  const gatName = user.gatName || GATS[user.gatNumber]?.name || 'PET';
+
   return (
     <nav
       className="p-3.5 sm:p-4 rounded-xl border mb-6 transition-all flex flex-col md:flex-row items-center justify-between gap-4"
@@ -26,7 +28,7 @@ export function Navbar({ user, activeTab, onTabChange, onLogout, onPrint }: Navb
       <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm border"
+            className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm border flex-shrink-0"
             style={{
               backgroundColor: 'var(--bg-elevated)',
               borderColor: 'var(--border-subtle)',
@@ -38,10 +40,10 @@ export function Navbar({ user, activeTab, onTabChange, onLogout, onPrint }: Navb
           <div>
             <div className="text-sm font-bold flex items-center gap-1.5" style={{ color: 'var(--text-heading)' }}>
               <span>{user.name}</span>
-              <UserCheck className="w-3.5 h-3.5" style={{ color: 'var(--accent-sage)' }} />
+              <UserCheck className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent-sage)' }} />
             </div>
             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {user.role} • GAT {user.gatNumber} • SMS Goiânia / SES Goiás / UFG
+              {user.role} • GAT {user.gatNumber} ({gatName}) • SMS Goiânia / SES Goiás / UFG
             </div>
           </div>
         </div>
