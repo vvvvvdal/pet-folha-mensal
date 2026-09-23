@@ -22,15 +22,13 @@ export function ExitModal({
   userName,
   hasChanges = false
 }: ExitModalProps) {
-  const [downloadedJson, setDownloadedJson] = useState(false);
-  const [downloadedPdf, setDownloadedPdf] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [jsonTriggered, setJsonTriggered] = useState(false);
+  const [pdfTriggered, setPdfTriggered] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setDownloadedJson(false);
-      setDownloadedPdf(false);
-      setIsProcessing(false);
+      setJsonTriggered(false);
+      setPdfTriggered(false);
     }
   }, [isOpen]);
 
@@ -39,60 +37,32 @@ export function ExitModal({
   const handleDownloadJson = async () => {
     const success = await onDownloadJson();
     if (success !== false) {
-      setDownloadedJson(true);
-    } else {
-      setDownloadedJson(false);
+      setJsonTriggered(true);
     }
   };
 
   const handleDownloadPdf = async () => {
     const success = await onDownloadPdf();
     if (success !== false) {
-      setDownloadedPdf(true);
-    }
-  };
-
-  const handleDownloadAll = async () => {
-    setIsProcessing(true);
-    try {
-      // 1. Salva o JSON primeiro e aguarda confirmação de gravação em disco
-      const jsonSuccess = await onDownloadJson();
-      if (jsonSuccess === false) {
-        // Usuário cancelou no diálogo de salvamento do SO! Interrompe imediatamente sem deslogar.
-        setDownloadedJson(false);
-        return;
-      }
-      setDownloadedJson(true);
-
-      // 2. Dispara a emissão da folha em PDF
-      const pdfSuccess = await onDownloadPdf();
-      if (pdfSuccess !== false) {
-        setDownloadedPdf(true);
-      }
-    } finally {
-      setIsProcessing(false);
+      setPdfTriggered(true);
     }
   };
 
   const handleExitClick = () => {
-    // 1. Se houve alterações na folha mas o JSON não foi salvo com sucesso (ou foi cancelado)
-    if (hasChanges && !downloadedJson) {
-      window.alert(
-        'Atenção: O arquivo .json de segurança ainda NÃO foi salvo nesta sessão (ou o salvamento foi cancelado na janela do sistema).\n\nPara não perder suas alterações em outro dispositivo, clique no Passo 1 e salve seu arquivo .json antes de sair.'
-      );
+    // 1. Se não houve nenhuma alteração nesta sessão, conclui diretamente sem barreiras
+    if (!hasChanges) {
+      onConfirmExit();
       return;
     }
 
-    // 2. Se a folha em PDF ainda não foi gerada
-    if (!downloadedPdf) {
-      const proceed = window.confirm(
-        'Você ainda não baixou ou gerou a Folha de Frequência em PDF pronta para impressão.\n\nDeseja realmente concluir e sair sem a folha impressa/PDF?'
-      );
-      if (!proceed) return;
-    }
+    // 2. Se houve alterações, solicita confirmação consciente ao usuário
+    const confirmed = window.confirm(
+      'Atenção: Suas alterações nesta folha só ficam salvas se você salvou o arquivo .json no seu computador ou celular.\n\nVocê já salvou seu arquivo .json e deseja realmente concluir a sessão?'
+    );
 
-    // Ambos verificados ou confirmados pelo usuário
-    onConfirmExit();
+    if (confirmed) {
+      onConfirmExit();
+    }
   };
 
   return (
@@ -148,123 +118,91 @@ export function ExitModal({
           </div>
         </div>
 
-        {/* Status de alteração da sessão */}
-        {!hasChanges && (
-          <div className="mb-4 px-3.5 py-2 rounded-xl bg-[#003d5c]/20 border border-[#00A3E0]/20 text-[#7DD3FC] text-xs flex items-center gap-2">
-            <CheckCircle2 className="size-3.5 text-[#00A3E0] shrink-0" />
+        {/* Status da sessão */}
+        {!hasChanges ? (
+          <div className="mb-4 px-3.5 py-2.5 rounded-xl bg-[#003d5c]/20 border border-[#00A3E0]/20 text-[#7DD3FC] text-xs flex items-center gap-2">
+            <CheckCircle2 className="size-4 text-[#00A3E0] shrink-0" />
             <span>Nenhuma alteração foi realizada nesta sessão. Você pode sair livremente.</span>
+          </div>
+        ) : (
+          <div className="mb-4 px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+            <AlertTriangle className="size-4 text-amber-400 shrink-0" />
+            <span>Você realizou alterações nesta sessão. Lembre-se de baixar seu arquivo .json.</span>
           </div>
         )}
 
-        {/* Step-by-step Downloads */}
-        <div className="space-y-2.5 mb-6">
-          <button
-            type="button"
-            onClick={handleDownloadJson}
-            className={`w-full p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
-              downloadedJson
-                ? 'bg-[#00341f]/20 border-[#008D4C]/40 text-[#10B981]'
-                : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-200 hover:bg-slate-950'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`size-8 rounded-xl flex items-center justify-center ${
-                downloadedJson ? 'bg-[#008D4C]/20 text-[#10B981]' : 'bg-slate-800 text-slate-400'
-              }`}>
+        {/* Ações de Download / Exportação */}
+        <div className="space-y-3 mb-6">
+          {/* Card 1: JSON */}
+          <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-9 rounded-xl bg-[#00A3E0]/10 border border-[#00A3E0]/20 flex items-center justify-center text-[#00A3E0] shrink-0">
                 <Download className="size-4" />
               </div>
-              <div>
-                <div className="text-xs sm:text-sm font-semibold">
-                  1. Baixar Arquivo de Acesso (.json)
+              <div className="min-w-0">
+                <div className="text-xs sm:text-sm font-semibold text-slate-100 truncate">
+                  1. Arquivo de Acesso (.json)
                 </div>
-                <div className="text-[11px] text-slate-400">
-                  {downloadedJson ? '✓ Arquivo baixado com sucesso!' : 'Necessário para entrar novamente depois'}
+                <div className="text-[11px] text-slate-400 truncate">
+                  {jsonTriggered ? 'Download acionado • guarde em local seguro' : 'Necessário para continuar preenchendo depois'}
                 </div>
               </div>
             </div>
-            {downloadedJson ? (
-              <CheckCircle2 className="size-5 text-[#10B981] shrink-0" />
-            ) : (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#008D4C]/10 text-[#10B981] border border-[#008D4C]/20">
-                Baixar
-              </span>
-            )}
-          </button>
+            <button
+              type="button"
+              onClick={handleDownloadJson}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-700 hover:border-slate-600 text-xs font-semibold cursor-pointer transition-all flex items-center gap-1.5 shrink-0 shadow-xs"
+            >
+              <Download className="size-3.5 text-[#00A3E0]" />
+              <span>{jsonTriggered ? 'Baixar Novamente' : 'Baixar JSON'}</span>
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleDownloadPdf}
-            className={`w-full p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
-              downloadedPdf
-                ? 'bg-[#00341f]/20 border-[#008D4C]/40 text-[#10B981]'
-                : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-200 hover:bg-slate-950'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`size-8 rounded-xl flex items-center justify-center ${
-                downloadedPdf ? 'bg-[#008D4C]/20 text-[#10B981]' : 'bg-slate-800 text-slate-400'
-              }`}>
+          {/* Card 2: PDF */}
+          <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-9 rounded-xl bg-[#008D4C]/10 border border-[#008D4C]/20 flex items-center justify-center text-[#008D4C] dark:text-[#10B981] shrink-0">
                 <FileText className="size-4" />
               </div>
-              <div>
-                <div className="text-xs sm:text-sm font-semibold">
-                  2. Baixar Folha de Frequência em PDF
+              <div className="min-w-0">
+                <div className="text-xs sm:text-sm font-semibold text-slate-100 truncate">
+                  2. Folha Oficial em PDF
                 </div>
-                <div className="text-[11px] text-slate-400">
-                  {downloadedPdf ? '✓ PDF gerado com sucesso!' : 'Folha oficial pronta para assinar'}
+                <div className="text-[11px] text-slate-400 truncate">
+                  {pdfTriggered ? 'Impressão/PDF acionada • salve ou imprima' : 'Documento oficial pronto para assinar'}
                 </div>
               </div>
             </div>
-            {downloadedPdf ? (
-              <CheckCircle2 className="size-5 text-[#10B981] shrink-0" />
-            ) : (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">
-                Gerar PDF
-              </span>
-            )}
-          </button>
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-700 hover:border-slate-600 text-xs font-semibold cursor-pointer transition-all flex items-center gap-1.5 shrink-0 shadow-xs"
+            >
+              <FileText className="size-3.5 text-[#008D4C] dark:text-[#10B981]" />
+              <span>{pdfTriggered ? 'Gerar Novamente' : 'Gerar PDF'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
+        <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
           <button
             type="button"
-            disabled={isProcessing}
-            onClick={handleDownloadAll}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 cursor-pointer transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 cursor-pointer transition-colors"
           >
-            <Download className="size-3.5" />
-            <span>{isProcessing ? 'Processando...' : 'Baixar Ambos (JSON + PDF)'}</span>
+            Continuar Editando
           </button>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 cursor-pointer transition-colors"
-            >
-              Continuar Editando
-            </button>
-            <button
-              type="button"
-              onClick={handleExitClick}
-              className={`px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 ${
-                (downloadedJson && downloadedPdf) || (!hasChanges && downloadedPdf)
-                  ? 'bg-[#008D4C] hover:bg-[#00733E] text-white shadow-md shadow-[#008D4C]/25'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600'
-              }`}
-              title={
-                !hasChanges && downloadedPdf
-                  ? 'Nenhuma alteração e PDF gerado. Concluir saída.'
-                  : downloadedJson && downloadedPdf
-                  ? 'Arquivos salvos com sucesso. Concluir saída com segurança.'
-                  : 'Salvar arquivos antes de sair'
-              }
-            >
-              <span>Concluir e Sair</span>
-              <ArrowRight className="size-3.5" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleExitClick}
+            className="px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 bg-[#008D4C] hover:bg-[#00733E] text-white shadow-md shadow-[#008D4C]/25"
+            title="Concluir a sessão"
+          >
+            <span>Concluir e Sair</span>
+            <ArrowRight className="size-3.5" />
+          </button>
         </div>
       </div>
     </div>

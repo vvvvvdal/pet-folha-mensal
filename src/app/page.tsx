@@ -217,36 +217,18 @@ export default function Home() {
   };
 
   const handlePrint = async (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      let resolved = false;
-      const onAfterPrint = () => {
-        if (!resolved) {
-          resolved = true;
-          window.removeEventListener('afterprint', onAfterPrint);
-          resolve(true);
-        }
-      };
-      window.addEventListener('afterprint', onAfterPrint);
-      // Timeout de segurança caso afterprint não dispare no navegador
-      setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          window.removeEventListener('afterprint', onAfterPrint);
-          resolve(true);
-        }
-      }, 5000);
-      window.print();
-    });
+    window.print();
+    return true;
   };
 
-  // Exportar Backup Local em JSON com detecção real de cancelamento
+  // Exportar Backup Local em JSON
   const handleExportBackup = async (): Promise<boolean> => {
     if (!activeUser) return false;
     const jsonString = exportUserData(activeUser, monthKey);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const filename = `backup-frequencia-${activeUser.name.toLowerCase().replace(/\s+/g, '-')}-${monthKey}.json`;
 
-    // 1. Tenta API moderna showSaveFilePicker (Chrome/Edge): detecta com precisão se o usuário clicou em Cancelar
+    // 1. Tenta API moderna showSaveFilePicker (Chromium/Edge) se suportada
     if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
       try {
         const fileHandle = await (window as any).showSaveFilePicker({
@@ -266,15 +248,14 @@ export default function Home() {
         return true;
       } catch (err: any) {
         if (err.name === 'AbortError') {
-          // O usuário clicou explicitamente em Cancelar na caixa de download do sistema!
-          showToast('Salvamento do arquivo .json cancelado.');
+          showToast('Salvamento cancelado.');
           return false;
         }
         console.warn('showSaveFilePicker falhou, tentando fallback:', err);
       }
     }
 
-    // 2. Fallback para navegadores sem showSaveFilePicker
+    // 2. Download direto padrão (Brave, Firefox, Safari, Mobile)
     try {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -282,7 +263,6 @@ export default function Home() {
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      setHasChanges(false);
       showToast('Download do backup iniciado.');
       return true;
     } catch {
