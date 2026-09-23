@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { UserProfile, UserRole, GATInfo } from '@/types';
 import { normalizeName } from '@/lib/storage';
 import { X, Check, User, Shield } from 'lucide-react';
+import { useDialog } from '@/context/DialogContext';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function ProfileModal({
   onSaveProfile,
   onOpenAdmin
 }: ProfileModalProps) {
+  const { alert } = useDialog();
   const [name, setName] = useState(currentUser.name);
   const [role, setRole] = useState<UserRole>(currentUser.role);
   const [gatNumber, setGatNumber] = useState(currentUser.gatNumber);
@@ -40,7 +42,7 @@ export function ProfileModal({
 
   if (!isOpen) return null;
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -51,7 +53,11 @@ export function ProfileModal({
         (p) => p.id !== currentUser.id && normalizeName(p.name) === normalizedNew
       )
     ) {
-      alert(`Já existe outro participante cadastrado com o nome "${name.trim()}".`);
+      await alert({
+        title: 'Nome Duplicado',
+        message: `Já existe outro participante cadastrado com o nome "${name.trim()}".`,
+        variant: 'warning'
+      });
       return;
     }
 

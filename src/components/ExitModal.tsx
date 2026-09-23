@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Download, FileText, CheckCircle2, ShieldCheck, X, HardDrive, Smartphone, Cloud, ArrowRight, AlertTriangle } from 'lucide-react';
+import { useDialog } from '@/context/DialogContext';
 
 interface ExitModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export function ExitModal({
   userName,
   hasChanges = false
 }: ExitModalProps) {
+  const { confirm } = useDialog();
   const [jsonTriggered, setJsonTriggered] = useState(false);
   const [pdfTriggered, setPdfTriggered] = useState(false);
 
@@ -48,7 +50,7 @@ export function ExitModal({
     }
   };
 
-  const handleExitClick = () => {
+  const handleExitClick = async () => {
     // 1. Se não houve nenhuma alteração nesta sessão, conclui diretamente sem barreiras
     if (!hasChanges) {
       onConfirmExit();
@@ -56,9 +58,13 @@ export function ExitModal({
     }
 
     // 2. Se houve alterações, solicita confirmação consciente ao usuário
-    const confirmed = window.confirm(
-      'Atenção: Suas alterações nesta folha só ficam salvas se você salvou o arquivo .json no seu computador ou celular.\n\nVocê já salvou seu arquivo .json e deseja realmente concluir a sessão?'
-    );
+    const confirmed = await confirm({
+      title: 'Atenção aos Dados',
+      message: 'Suas alterações nesta folha só ficam preservadas se você salvou o arquivo .json no seu computador ou celular.\n\nVocê já salvou seu arquivo .json e deseja realmente concluir a sessão?',
+      confirmText: 'Sim, Concluir e Sair',
+      cancelText: 'Voltar e Salvar',
+      variant: 'warning'
+    });
 
     if (confirmed) {
       onConfirmExit();

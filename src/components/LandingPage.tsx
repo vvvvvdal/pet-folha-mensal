@@ -18,6 +18,7 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
+import { useDialog } from '@/context/DialogContext';
 
 interface LandingPageProps {
   onLoginWithJson: (file: File) => void;
@@ -35,6 +36,7 @@ export function LandingPage({
   onOpenAdmin
 }: LandingPageProps) {
   const { theme, toggleTheme } = useTheme();
+  const { alert } = useDialog();
   const [tab, setTab] = useState<'upload' | 'create'>('upload');
   const [name, setName] = useState('');
   const [selectedGat, setSelectedGat] = useState(Object.keys(gats)[0] || '04');
@@ -42,22 +44,30 @@ export function LandingPage({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert('Por favor, digite seu nome completo.');
+      await alert({
+        title: 'Nome Obrigatório',
+        message: 'Por favor, digite seu nome completo para continuar.',
+        variant: 'warning'
+      });
       return;
     }
     onCreateProfile(name.trim(), selectedGat, selectedRole);
   };
 
-  const handleFileDrop = (e: React.DragEvent) => {
+  const handleFileDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) {
       if (!file.name.endsWith('.json')) {
-        alert('Por favor, selecione um arquivo com formato .json.');
+        await alert({
+          title: 'Formato Inválido',
+          message: 'Por favor, selecione um arquivo de backup com formato .json.',
+          variant: 'warning'
+        });
         return;
       }
       onLoginWithJson(file);
@@ -362,7 +372,7 @@ export function LandingPage({
       {/* Footer com Créditos */}
       <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-400">
         <p>
-          PET-Saúde Clima &copy; {new Date().getFullYear()} • Desenvolvido por{' '}
+          PET-Saúde Clima: Folha de Frequência Mensal &copy; {new Date().getFullYear()} • Desenvolvido por{' '}
           <a
             href="https://www.linkedin.com/in/vvvvvdal/"
             target="_blank"

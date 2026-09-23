@@ -29,8 +29,10 @@ import { OfficialSheet } from '@/components/OfficialSheet';
 import { LandingPage } from '@/components/LandingPage';
 import { ExitModal } from '@/components/ExitModal';
 import { Calendar, Download, Printer, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { useDialog } from '@/context/DialogContext';
 
 export default function Home() {
+  const { alert } = useDialog();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeUser, setActiveUser] = useState<UserProfile | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -144,10 +146,14 @@ export default function Home() {
     showToast('Identificação atualizada.');
   };
 
-  const handleCreateNewProfile = (name: string, gatNumber: string, role: UserRole) => {
+  const handleCreateNewProfile = async (name: string, gatNumber: string, role: UserRole) => {
     const res = registerProfile({ name, role, gatNumber });
     if (!res.success) {
-      alert(res.error || 'Erro ao cadastrar participante.');
+      await alert({
+        title: 'Cadastro Não Realizado',
+        message: res.error || 'Erro ao cadastrar participante.',
+        variant: 'warning'
+      });
       return;
     }
 
@@ -273,7 +279,7 @@ export default function Home() {
   // Importar Backup Local em JSON
   const handleImportBackup = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const content = e.target?.result as string;
       if (!content) return;
       const result = importUserData(content);
@@ -284,7 +290,11 @@ export default function Home() {
         setActivities(result.activities);
         showToast('Backup da folha restaurado com sucesso!');
       } else {
-        alert(result.error || 'Erro ao carregar arquivo de backup.');
+        await alert({
+          title: 'Erro no Arquivo',
+          message: result.error || 'Erro ao carregar arquivo de backup.',
+          variant: 'warning'
+        });
       }
     };
     reader.readAsText(file);
@@ -555,7 +565,7 @@ export default function Home() {
       {/* Footer com Créditos */}
       <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-400 mt-12">
         <p>
-          PET-Saúde Clima &copy; {new Date().getFullYear()} • Desenvolvido por{' '}
+          PET-Saúde Clima: Folha de Frequência Mensal &copy; {new Date().getFullYear()} • Desenvolvido por{' '}
           <a
             href="https://www.linkedin.com/in/vvvvvdal/"
             target="_blank"

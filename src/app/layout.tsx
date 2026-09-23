@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   }
 };
 
+import { DialogProvider } from "@/context/DialogContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,7 +37,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen antialiased">
-        {children}
+        <DialogProvider>
+          {children}
+        </DialogProvider>
       </body>
     </html>
   );

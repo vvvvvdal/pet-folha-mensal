@@ -31,6 +31,7 @@ import {
   LogOut,
   RotateCcw
 } from 'lucide-react';
+import { useDialog } from '@/context/DialogContext';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -63,6 +64,7 @@ export function AdminModal({
   defaultAuthenticated = false,
   defaultTab = 'roles'
 }: AdminModalProps) {
+  const { confirm, alert } = useDialog();
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     if (defaultAuthenticated) return true;
     if (typeof window !== 'undefined') {
@@ -123,12 +125,12 @@ export function AdminModal({
   // AÇÕES: FUNÇÕES / TIPOS DE PESSOAS (ROLES) - COM EDIÇÃO
   // ============================================================
 
-  const handleAddRole = (e: React.FormEvent) => {
+  const handleAddRole = async (e: React.FormEvent) => {
     e.preventDefault();
     const clean = newRoleName.trim();
     if (!clean) return;
     if (roles.some((r) => r.toLowerCase() === clean.toLowerCase())) {
-      alert('Esta função já está cadastrada.');
+      await alert({ title: 'Função Existente', message: 'Esta função já está cadastrada.', variant: 'warning' });
       return;
     }
     const updated = [...roles, clean];
@@ -142,7 +144,7 @@ export function AdminModal({
     setEditingRoleNewName(role);
   };
 
-  const handleSaveEditRole = (e: React.FormEvent) => {
+  const handleSaveEditRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRoleOriginal) return;
     const clean = editingRoleNewName.trim();
@@ -152,7 +154,7 @@ export function AdminModal({
       clean.toLowerCase() !== editingRoleOriginal.toLowerCase() &&
       roles.some((r) => r.toLowerCase() === clean.toLowerCase())
     ) {
-      alert('Já existe outra função com este nome.');
+      await alert({ title: 'Nome Existente', message: 'Já existe outra função com este nome.', variant: 'warning' });
       return;
     }
 
@@ -170,8 +172,14 @@ export function AdminModal({
     setEditingRoleNewName('');
   };
 
-  const handleDeleteRole = (roleToDelete: string) => {
-    if (confirm(`Excluir a função "${roleToDelete}"?`)) {
+  const handleDeleteRole = async (roleToDelete: string) => {
+    const ok = await confirm({
+      title: 'Excluir Função',
+      message: `Deseja realmente excluir a função "${roleToDelete}"?`,
+      confirmText: 'Excluir',
+      variant: 'danger'
+    });
+    if (ok) {
       const updated = roles.filter((r) => r !== roleToDelete);
       saveRoles(updated);
       onRolesChange?.(updated);
@@ -182,14 +190,14 @@ export function AdminModal({
   // AÇÕES: GRUPOS TUTORIAIS (GATS) - COM EDIÇÃO
   // ============================================================
 
-  const handleAddGat = (e: React.FormEvent) => {
+  const handleAddGat = async (e: React.FormEvent) => {
     e.preventDefault();
     const num = newGatNumber.trim().padStart(2, '0');
     const name = newGatName.trim();
     if (!num || !name) return;
 
     if (gats[num]) {
-      alert(`O GAT ${num} já existe.`);
+      await alert({ title: 'GAT Existente', message: `O GAT ${num} já existe.`, variant: 'warning' });
       return;
     }
 
@@ -217,7 +225,7 @@ export function AdminModal({
     setEditingGat({ ...info });
   };
 
-  const handleSaveEditGat = (e: React.FormEvent) => {
+  const handleSaveEditGat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGatOriginalNumber || !editingGat) return;
 
@@ -227,7 +235,7 @@ export function AdminModal({
 
     // Se mudou o número e o novo número já existe em outro GAT
     if (num !== editingGatOriginalNumber && gats[num]) {
-      alert(`O GAT ${num} já existe.`);
+      await alert({ title: 'GAT Existente', message: `O GAT ${num} já existe.`, variant: 'warning' });
       return;
     }
 
@@ -264,8 +272,14 @@ export function AdminModal({
     setEditingGat(null);
   };
 
-  const handleDeleteGat = (gatNum: string) => {
-    if (confirm(`Excluir o GAT ${gatNum}?`)) {
+  const handleDeleteGat = async (gatNum: string) => {
+    const ok = await confirm({
+      title: 'Excluir GAT',
+      message: `Deseja realmente excluir o GAT ${gatNum}?`,
+      confirmText: 'Excluir',
+      variant: 'danger'
+    });
+    if (ok) {
       const updated = { ...gats };
       delete updated[gatNum];
       saveGats(updated);
@@ -328,17 +342,28 @@ export function AdminModal({
     setEditingTemplate(null);
   };
 
-  const handleDeleteTemplate = (id: string, name?: string) => {
-    if (!confirm(`Deseja realmente excluir o modelo de atividade "${name || 'selecionado'}"?`)) {
-      return;
-    }
+  const handleDeleteTemplate = async (id: string, name?: string) => {
+    const ok = await confirm({
+      title: 'Excluir Modelo',
+      message: `Deseja realmente excluir o modelo de atividade "${name || 'selecionado'}"?`,
+      confirmText: 'Excluir',
+      variant: 'danger'
+    });
+    if (!ok) return;
+
     const updated = templates.filter((t) => t.id !== id);
     saveTemplates(updated);
     onTemplatesChange(updated);
   };
 
-  const handleResetTemplates = () => {
-    if (confirm('Deseja restaurar os templates padrão do Ministério da Saúde?')) {
+  const handleResetTemplates = async () => {
+    const ok = await confirm({
+      title: 'Restaurar Modelos',
+      message: 'Deseja restaurar os templates padrão do Ministério da Saúde?',
+      confirmText: 'Restaurar',
+      variant: 'warning'
+    });
+    if (ok) {
       saveTemplates(DEFAULT_TEMPLATES);
       onTemplatesChange(DEFAULT_TEMPLATES);
     }

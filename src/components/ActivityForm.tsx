@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Activity, ModalityType, ActivityTemplate } from '@/types';
 import { calcPetHours } from '@/lib/pet-calculator';
 import { Plus, Check } from 'lucide-react';
+import { useDialog } from '@/context/DialogContext';
 
 interface ActivityFormProps {
   onSave: (data: Omit<Activity, 'id' | 'hours'>, editingId?: string) => void;
@@ -22,6 +23,7 @@ export function ActivityForm({
   defaultGatName = 'Mangaba',
   templates = []
 }: ActivityFormProps) {
+  const { alert } = useDialog();
   const [date, setDate] = useState('2026-09-23');
   const [start, setStart] = useState('19:00');
   const [end, setEnd] = useState('20:40');
@@ -54,10 +56,14 @@ export function ActivityForm({
 
   const previewHours = calcPetHours(start, end);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !start || !end || !description.trim()) {
-      alert('Por favor, preencha todos os campos da atividade.');
+      await alert({
+        title: 'Campos Incompletos',
+        message: 'Por favor, preencha a data, horários e a descrição da atividade.',
+        variant: 'warning'
+      });
       return;
     }
 
