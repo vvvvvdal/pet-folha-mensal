@@ -94,10 +94,10 @@ export function ActivityForm({
   };
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl border border-zinc-800 bg-zinc-900/30 mb-6 transition-all">
+    <div className="p-4 sm:p-5 rounded-xl border border-slate-800/80 bg-slate-900/40 mb-6 transition-all">
       {/* Top Header: Title & Quick Presets */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3.5">
-        <div className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+        <div className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
           {editingActivity ? (
             <span className="text-emerald-400 font-medium">Editando Lançamento</span>
           ) : (
@@ -110,7 +110,7 @@ export function ActivityForm({
           <button
             type="button"
             onClick={() => applyPreset('gat')}
-            className="px-2 py-1 rounded-md bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 hover:text-zinc-100 text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer"
+            className="px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-slate-100 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Sparkles className="size-3 text-emerald-400" />
             <span>Reunião GAT {defaultGatNumber}</span>
@@ -118,7 +118,7 @@ export function ActivityForm({
           <button
             type="button"
             onClick={() => applyPreset('geral')}
-            className="px-2 py-1 rounded-md bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 hover:text-zinc-100 text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer"
+            className="px-2.5 py-1 rounded-md bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-slate-100 text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Sparkles className="size-3 text-sky-400" />
             <span>Reunião Geral PET</span>
@@ -130,47 +130,47 @@ export function ActivityForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
           {/* Data */}
           <div className="lg:col-span-2">
-            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Data</label>
+            <label className="block text-[11px] font-medium text-slate-400 mb-1">Data</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 outline-none focus:border-emerald-500"
+              className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500"
             />
           </div>
 
           {/* Horários */}
           <div className="lg:col-span-3 grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[11px] font-medium text-zinc-400 mb-1">Entrada</label>
+              <label className="block text-[11px] font-medium text-slate-400 mb-1">Entrada</label>
               <input
                 type="time"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
                 required
-                className="w-full px-2 py-1.5 text-xs rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 outline-none focus:border-emerald-500"
+                className="w-full px-2 py-1.5 text-xs rounded-lg bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-zinc-400 mb-1">Saída</label>
+              <label className="block text-[11px] font-medium text-slate-400 mb-1">Saída</label>
               <input
                 type="time"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
                 required
-                className="w-full px-2 py-1.5 text-xs rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 outline-none focus:border-emerald-500"
+                className="w-full px-2 py-1.5 text-xs rounded-lg bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500"
               />
             </div>
           </div>
 
           {/* Modalidade */}
           <div className="lg:col-span-2">
-            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Modalidade</label>
+            <label className="block text-[11px] font-medium text-slate-400 mb-1">Modalidade</label>
             <select
               value={modality}
               onChange={(e) => setModality(e.target.value as ModalityType)}
-              className="w-full px-2 py-1.5 text-xs rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 outline-none focus:border-emerald-500 cursor-pointer"
+              className="w-full px-2 py-1.5 text-xs rounded-lg bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500 cursor-pointer"
             >
               <option value="Síncrona virtual">Síncrona virtual</option>
               <option value="Síncrona presencial">Síncrona presencial</option>
@@ -180,14 +180,14 @@ export function ActivityForm({
 
           {/* Descrição */}
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="block text-[11px] font-medium text-zinc-400 mb-1">Atividade</label>
+            <label className="block text-[11px] font-medium text-slate-400 mb-1">Atividade</label>
             <input
               type="text"
               placeholder="Ex: Reunião do GAT, Síntese..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="w-full px-3 py-1.5 text-xs rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-200 outline-none focus:border-emerald-500"
+              className="w-full px-3 py-1.5 text-xs rounded-lg bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500"
             />
           </div>
 
@@ -195,7 +195,7 @@ export function ActivityForm({
           <div className="lg:col-span-2 flex items-center gap-1.5">
             <button
               type="submit"
-              className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 cursor-pointer transition-all flex items-center justify-center gap-1"
+              className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer transition-all flex items-center justify-center gap-1"
             >
               {editingActivity ? (
                 <>
@@ -213,7 +213,7 @@ export function ActivityForm({
               <button
                 type="button"
                 onClick={onCancelEdit}
-                className="p-1.5 rounded-lg border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 cursor-pointer"
+                className="p-1.5 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer"
                 title="Cancelar edição"
               >
                 <X className="size-3.5" />
@@ -223,9 +223,9 @@ export function ActivityForm({
         </div>
 
         {/* Calculated Hours Tag */}
-        <div className="text-[11px] text-zinc-500 flex items-center justify-between pt-1">
+        <div className="text-[11px] text-slate-400 flex items-center justify-between pt-1">
           <span>
-            Duração apurada: <strong className="text-zinc-300">{previewHours} hora{previewHours === 1 ? '' : 's'} PET</strong> ({start} às {end}, regra da hora cheia iniciada)
+            Duração apurada: <strong className="text-slate-200">{previewHours} hora{previewHours === 1 ? '' : 's'} PET</strong> ({start} às {end}, regra da hora cheia iniciada)
           </span>
         </div>
       </form>

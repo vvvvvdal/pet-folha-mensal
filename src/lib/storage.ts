@@ -178,14 +178,9 @@ export function getActivitiesForMonth(profileId: string, monthKey: string): Acti
   try {
     const raw = localStorage.getItem(key);
     if (!raw) {
-      // Se for Setembro/2026 e primeira vez do usuário, popula com as atividades semente contextualizadas com seu GAT
-      if (monthKey === '2026-09') {
-        const profiles = getStoredProfiles();
-        const user = profiles.find(p => p.id === profileId);
-        const gatNumber = user?.gatNumber || '04';
-        const gatName = user?.gatName || GATS[gatNumber]?.name || 'Mangaba';
-        
-        const initialActs = generateSeedActivities(gatNumber, gatName);
+      // Apenas o perfil inicial de demonstração (felipe-vidal) recebe atividades semente automaticamente
+      if (monthKey === '2026-09' && profileId === 'felipe-vidal') {
+        const initialActs = generateSeedActivities('04', 'Mangaba');
         saveActivitiesForMonth(profileId, monthKey, initialActs);
         return initialActs;
       }
@@ -195,6 +190,22 @@ export function getActivitiesForMonth(profileId: string, monthKey: string): Acti
   } catch {
     return [];
   }
+}
+
+export function loadSampleActivitiesForUser(profileId: string, monthKey: string): Activity[] {
+  const profiles = getStoredProfiles();
+  const user = profiles.find((p) => p.id === profileId);
+  const gatNumber = user?.gatNumber || '04';
+  const gatName = user?.gatName || GATS[gatNumber]?.name || 'PET';
+  const samples = generateSeedActivities(gatNumber, gatName);
+  saveActivitiesForMonth(profileId, monthKey, samples);
+  return samples;
+}
+
+export function clearActivitiesForMonth(profileId: string, monthKey: string): void {
+  if (typeof window === 'undefined') return;
+  const key = `${ACTIVITIES_PREFIX}${profileId}_${monthKey}`;
+  localStorage.setItem(key, JSON.stringify([]));
 }
 
 export function saveActivitiesForMonth(profileId: string, monthKey: string, activities: Activity[]): void {

@@ -57,32 +57,32 @@ export function ProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div
-        className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl transition-all"
+        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl transition-all"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80 mb-4">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-semibold text-zinc-100">
+            <h3 className="text-sm font-semibold text-slate-100">
               {mode === 'edit' ? 'Identificação do Participante' : 'Alternar Participante'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60 cursor-pointer"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex p-0.5 rounded-lg bg-zinc-900 border border-zinc-800/80 mb-4 text-xs font-medium">
+        <div className="flex p-0.5 rounded-lg bg-slate-950/60 border border-slate-800 mb-4 text-xs font-medium">
           <button
             onClick={() => setMode('edit')}
             className={`flex-1 py-1.5 rounded-md transition-all cursor-pointer ${
-              mode === 'edit' ? 'bg-zinc-800 text-zinc-100 shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
+              mode === 'edit' ? 'bg-slate-800 text-slate-100 shadow-xs' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Editar Meus Dados
@@ -90,7 +90,7 @@ export function ProfileModal({
           <button
             onClick={() => setMode('switch')}
             className={`flex-1 py-1.5 rounded-md transition-all cursor-pointer ${
-              mode === 'switch' ? 'bg-zinc-800 text-zinc-100 shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
+              mode === 'switch' ? 'bg-slate-800 text-slate-100 shadow-xs' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Trocar / Novo ({allProfiles.length})
@@ -100,23 +100,23 @@ export function ProfileModal({
         {mode === 'edit' ? (
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1.5">Nome Completo</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Nome Completo</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 text-sm rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">Grupo Tutorial (GAT)</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Grupo Tutorial (GAT)</label>
                 <select
                   value={gatNumber}
                   onChange={(e) => setGatNumber(e.target.value)}
-                  className="w-full px-2.5 py-2 text-xs rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 outline-none focus:border-emerald-500 cursor-pointer"
+                  className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
                 >
                   <option value="01">GAT 01 (Araticum)</option>
                   <option value="02">GAT 02 (Buriti)</option>
@@ -127,11 +127,11 @@ export function ProfileModal({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">Função no SUS</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Função no SUS</label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full px-2.5 py-2 text-xs rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 outline-none focus:border-emerald-500 cursor-pointer"
+                  className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
                 >
                   <option value="Estudante">Estudante</option>
                   <option value="Preceptor">Preceptor</option>
@@ -142,7 +142,7 @@ export function ProfileModal({
               </div>
             </div>
 
-            <p className="text-[11px] text-zinc-500 leading-tight">
+            <p className="text-[11px] text-slate-400 leading-tight">
               Os dados ficam armazenados exclusivamente no seu navegador (Local-First).
             </p>
 
@@ -150,13 +150,13 @@ export function ProfileModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-400 hover:bg-zinc-900 cursor-pointer"
+                className="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500 text-zinc-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5"
               >
                 <Check className="w-3.5 h-3.5" />
                 Salvar Alterações
@@ -178,12 +178,12 @@ export function ProfileModal({
                     className={`w-full p-2.5 rounded-lg border text-left flex items-center justify-between text-xs transition-all cursor-pointer ${
                       isActive
                         ? 'border-emerald-500/50 bg-emerald-950/20 text-emerald-300'
-                        : 'border-zinc-800/80 bg-zinc-900/60 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900'
+                        : 'border-slate-800 bg-slate-950/50 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80'
                     }`}
                   >
                     <div>
                       <div className="font-semibold">{p.name}</div>
-                      <div className="text-[11px] text-zinc-500">
+                      <div className="text-[11px] text-slate-400">
                         {p.role} • GAT {p.gatNumber} ({p.gatName || GATS[p.gatNumber]?.name})
                       </div>
                     </div>
@@ -193,8 +193,8 @@ export function ProfileModal({
               })}
             </div>
 
-            <div className="pt-2 border-t border-zinc-800/80">
-              <div className="text-xs font-semibold text-zinc-300 mb-2">Cadastrar Outro Participante</div>
+            <div className="pt-2 border-t border-slate-800">
+              <div className="text-xs font-semibold text-slate-300 mb-2">Cadastrar Outro Participante</div>
               <form onSubmit={handleCreate} className="space-y-2.5">
                 <input
                   type="text"
@@ -202,13 +202,13 @@ export function ProfileModal({
                   placeholder="Nome do novo participante..."
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-1.5 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <select
                     value={newGat}
                     onChange={(e) => setNewGat(e.target.value)}
-                    className="w-full px-2 py-1.5 text-xs rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 outline-none focus:border-emerald-500 cursor-pointer"
+                    className="w-full px-2 py-1.5 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="01">GAT 01 (Araticum)</option>
                     <option value="02">GAT 02 (Buriti)</option>
@@ -219,7 +219,7 @@ export function ProfileModal({
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value as UserRole)}
-                    className="w-full px-2 py-1.5 text-xs rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 outline-none focus:border-emerald-500 cursor-pointer"
+                    className="w-full px-2 py-1.5 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="Estudante">Estudante</option>
                     <option value="Preceptor">Preceptor</option>
@@ -230,7 +230,7 @@ export function ProfileModal({
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-1.5 text-xs font-semibold rounded-lg bg-zinc-800 text-zinc-200 hover:bg-zinc-700 cursor-pointer transition-colors"
+                  className="w-full py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer transition-colors"
                 >
                   Adicionar e Ativar
                 </button>

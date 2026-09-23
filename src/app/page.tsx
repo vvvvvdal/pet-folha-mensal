@@ -9,6 +9,8 @@ import {
   setActiveProfileId,
   getActivitiesForMonth,
   saveActivitiesForMonth,
+  loadSampleActivitiesForUser,
+  clearActivitiesForMonth,
   exportUserData,
   importUserData
 } from '@/lib/storage';
@@ -126,6 +128,25 @@ export default function Home() {
     }
   };
 
+  const handleLoadSamples = () => {
+    if (!activeUser) return;
+    const samples = loadSampleActivitiesForUser(activeUser.id, monthKey);
+    setActivities(samples);
+    setHasChanges(true);
+    showToast(`Atividades de exemplo do GAT ${activeUser.gatNumber} carregadas.`);
+  };
+
+  const handleClearMonth = () => {
+    if (!activeUser) return;
+    if (confirm(`Deseja realmente apagar todos os lançamentos de ${getMonthYearLabel(monthKey)} para recomeçar a folha do zero?`)) {
+      clearActivitiesForMonth(activeUser.id, monthKey);
+      setActivities([]);
+      setEditingActivity(null);
+      setHasChanges(true);
+      showToast(`Folha de ${getMonthYearLabel(monthKey)} zerada.`);
+    }
+  };
+
   const handlePrint = () => {
     setHasChanges(false);
     window.print();
@@ -174,7 +195,7 @@ export default function Home() {
 
   return (
     <>
-      <main className="min-h-screen p-4 sm:p-6 lg:p-8 screen-only transition-all bg-zinc-950 text-zinc-200">
+      <main className="min-h-screen p-4 sm:p-6 lg:p-8 screen-only transition-all bg-[var(--bg-canvas)] text-slate-200">
         <div className="max-w-5xl mx-auto">
           {/* Header Minimalista */}
           <Navbar
@@ -191,12 +212,12 @@ export default function Home() {
           {/* Subheader: Mês e Total */}
           <div className="flex items-center justify-between gap-3 mb-4 text-xs">
             <div className="flex items-center gap-2">
-              <Calendar className="size-3.5 text-zinc-400" />
-              <span className="text-zinc-400 font-medium">Mês:</span>
+              <Calendar className="size-3.5 text-slate-400" />
+              <span className="text-slate-400 font-medium">Mês:</span>
               <select
                 value={monthKey}
                 onChange={(e) => setMonthKey(e.target.value)}
-                className="px-2 py-1 text-xs font-semibold rounded-md bg-zinc-900 border border-zinc-800 text-zinc-200 outline-none cursor-pointer focus:border-emerald-500"
+                className="px-2 py-1 text-xs font-semibold rounded-md bg-slate-900 border border-slate-800 text-slate-200 outline-none cursor-pointer focus:border-emerald-500"
               >
                 <option value="2026-08">Agosto/2026</option>
                 <option value="2026-09">Setembro/2026</option>
@@ -206,8 +227,8 @@ export default function Home() {
               </select>
             </div>
 
-            <div className="text-zinc-400">
-              Total apurado: <strong className="text-emerald-400">{totalHours} horas</strong>
+            <div className="text-slate-400">
+              Total apurado: <strong className="text-emerald-400 font-bold">{totalHours} horas</strong>
             </div>
           </div>
 
@@ -234,6 +255,10 @@ export default function Home() {
                 editingId={editingActivity ? editingActivity.id : null}
                 onEdit={(act) => setEditingActivity(act)}
                 onDelete={handleDeleteActivity}
+                user={activeUser}
+                monthLabel={monthLabel}
+                onLoadSamples={handleLoadSamples}
+                onClearMonth={handleClearMonth}
               />
             </div>
           )}
@@ -241,21 +266,21 @@ export default function Home() {
           {/* ABA 2: FOLHA OFICIAL (PREVIEW A4 PAISAGEM) */}
           {activeTab === 'official' && (
             <div className="space-y-4 animate-fade-in">
-              <div className="flex justify-between items-center p-3 rounded-xl border border-zinc-800 bg-zinc-900/40 text-xs">
-                <span className="text-zinc-400">
+              <div className="flex justify-between items-center p-3 rounded-xl border border-slate-800 bg-slate-900/60 text-xs">
+                <span className="text-slate-400">
                   Pré-visualização do modelo oficial em A4 Paisagem (Ministério da Saúde).
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePrint}
-                    className="px-3 py-1.5 rounded-lg font-semibold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all"
+                    className="px-3.5 py-1.5 rounded-lg font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all"
                   >
                     <Printer className="size-3.5" />
                     Imprimir / Gerar PDF
                   </button>
                   <button
                     onClick={() => setActiveTab('dashboard')}
-                    className="px-2.5 py-1.5 rounded-lg border border-zinc-800 hover:bg-zinc-800 text-zinc-300 cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1"
                   >
                     <ArrowLeft className="size-3.5" />
                     Voltar
@@ -263,7 +288,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto p-4 md:p-8 bg-zinc-900/60 rounded-xl border border-zinc-800 flex justify-center">
+              <div className="overflow-x-auto p-4 md:p-8 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-center">
                 <OfficialSheet
                   user={activeUser}
                   monthLabel={monthLabel}
@@ -288,7 +313,7 @@ export default function Home() {
 
         {/* Toast Notificação Minimalista */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-emerald-500/20 bg-zinc-900 shadow-xl text-xs font-medium text-zinc-200 z-50 flex items-center gap-2 animate-fade-in">
+          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-emerald-500/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
             <CheckCircle2 className="size-3.5 text-emerald-400 shrink-0" />
             <span>{toastMessage}</span>
           </div>

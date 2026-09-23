@@ -2,41 +2,41 @@
 @import "tailwindcss";
 
 :root {
-  --bg-canvas: #09090b;
-  --bg-surface: #121215;
-  --bg-elevated: #18181b;
-  --bg-subtle: #27272a;
-  --border-subtle: #27272a;
-  --border-strong: #3f3f46;
+  --bg-canvas: #141720;
+  --bg-surface: #1b202c;
+  --bg-elevated: #232938;
+  --bg-subtle: #2b3346;
+  --border-subtle: #2b3346;
+  --border-strong: #3d4860;
 
-  --text-heading: #fafafa;
-  --text-body: #d4d4d8;
-  --text-muted: #71717a;
+  --text-heading: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-muted: #8593a7;
 
   --accent-primary: #10b981;
   --accent-primary-hover: #059669;
   --accent-primary-fg: #022c22;
 
   --accent-sage: #34d399;
-  --accent-sage-bg: rgba(52, 211, 153, 0.08);
-  --accent-sage-border: rgba(52, 211, 153, 0.2);
+  --accent-sage-bg: rgba(52, 211, 153, 0.1);
+  --accent-sage-border: rgba(52, 211, 153, 0.25);
 
   --accent-sky: #38bdf8;
-  --accent-sky-bg: rgba(56, 189, 248, 0.08);
-  --accent-sky-border: rgba(56, 189, 248, 0.2);
+  --accent-sky-bg: rgba(56, 189, 248, 0.1);
+  --accent-sky-border: rgba(56, 189, 248, 0.25);
 
   --accent-amber: #fbbf24;
-  --accent-amber-bg: rgba(251, 191, 36, 0.08);
-  --accent-amber-border: rgba(251, 191, 36, 0.2);
+  --accent-amber-bg: rgba(251, 191, 36, 0.1);
+  --accent-amber-border: rgba(251, 191, 36, 0.25);
 
   --accent-rose: #f87171;
-  --accent-rose-bg: rgba(248, 113, 113, 0.08);
-  --accent-rose-border: rgba(248, 113, 113, 0.2);
+  --accent-rose-bg: rgba(248, 113, 113, 0.1);
+  --accent-rose-border: rgba(248, 113, 113, 0.25);
 
-  --input-bg: #0e0e11;
-  --table-header-bg: #121215;
-  --table-stripe: rgba(255, 255, 255, 0.01);
-  --table-hover: rgba(255, 255, 255, 0.025);
+  --input-bg: #171b26;
+  --table-header-bg: #171b26;
+  --table-stripe: rgba(255, 255, 255, 0.015);
+  --table-hover: rgba(255, 255, 255, 0.035);
 }
 
 body {
