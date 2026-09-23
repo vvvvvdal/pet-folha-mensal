@@ -555,7 +555,7 @@ export default function Home() {
       {/* Footer com Créditos */}
       <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-400 mt-12">
         <p>
-          Desenvolvido por{' '}
+          PET-Saúde Clima &copy; {new Date().getFullYear()} • Desenvolvido por{' '}
           <a
             href="https://www.linkedin.com/in/vvvvvdal/"
             target="_blank"
