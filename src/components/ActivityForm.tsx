@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, ModalityType, ActivityTemplate } from '@/types';
 import { calcPetHours } from '@/lib/pet-calculator';
-import { Plus, Check, X, Sparkles } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 
 interface ActivityFormProps {
   onSave: (data: Omit<Activity, 'id' | 'hours'>, editingId?: string) => void;
@@ -54,19 +54,6 @@ export function ActivityForm({
 
   const previewHours = calcPetHours(start, end);
 
-  const applyPreset = (type: 'gat' | 'geral') => {
-    if (type === 'gat') {
-      const label = defaultGatName
-        ? `Reunião do GAT ${defaultGatNumber} (${defaultGatName})`
-        : `Reunião do GAT ${defaultGatNumber}`;
-      setDescription(label);
-      setModality('Síncrona virtual');
-    } else {
-      setDescription('Reunião geral do PET');
-      setModality('Síncrona presencial');
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !start || !end || !description.trim()) {
@@ -108,11 +95,13 @@ export function ActivityForm({
           </span>
         </div>
 
-        {/* Quick presets from dynamic templates */}
+        {/* Quick presets from dynamic templates with clear helper text */}
         <div className="flex items-center gap-2">
           {templates && templates.length > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="size-3.5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 hidden md:inline">
+                Preenchimento rápido de atividades frequentes:
+              </span>
               <select
                 onChange={(e) => {
                   const tplId = e.target.value;
@@ -130,9 +119,10 @@ export function ActivityForm({
                 }}
                 defaultValue=""
                 className="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-300 text-xs outline-none cursor-pointer focus:border-emerald-500 hover:border-slate-600 transition-colors"
+                title="Selecione uma atividade para preencher o nome e a modalidade automaticamente"
               >
                 <option value="" disabled>
-                  ⚡ Selecionar modelo pré-configurado...
+                  Selecionar modelo pré-configurado...
                 </option>
                 {templates.map((tpl) => {
                   const tplName = tpl?.name || (tpl as any)?.descriptionTemplate || 'Atividade';
@@ -154,7 +144,7 @@ export function ActivityForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Row 1: Data + Entrada + Saída + Duração */}
+        {/* Row 1: Data + Entrada + Saída + Duração Calculada */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
           {/* Data */}
           <div>
@@ -192,53 +182,58 @@ export function ActivityForm({
             />
           </div>
 
-          {/* Duração Computada */}
+          {/* Duração Calculada */}
           <div className="p-2 sm:p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-400">Cômputo PET:</span>
+            <span className="text-[11px] font-medium text-slate-400">Duração calculada:</span>
             <span className="text-sm font-bold text-emerald-400">
               {previewHours}h {previewHours === 1 ? 'hora' : 'horas'}
             </span>
           </div>
         </div>
 
-        {/* Row 2: Modalidade da Atividade */}
+        {/* Row 2: Modalidade da Atividade - Tons equilibrados de Azul */}
         <div>
           <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">Modalidade</label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* Síncrona Virtual: Azul Celeste / Sky */}
             <button
               type="button"
               onClick={() => setModality('Síncrona virtual')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Síncrona virtual'
-                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 shadow-xs'
+                  ? 'bg-sky-500/15 border-sky-500/50 text-sky-300 shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Síncrona virtual' ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+              <span className={`size-2 rounded-full ${modality === 'Síncrona virtual' ? 'bg-sky-400' : 'bg-slate-600'}`} />
               <span>Síncrona Virtual</span>
             </button>
+
+            {/* Síncrona Presencial: Azul Real / Ocean */}
             <button
               type="button"
               onClick={() => setModality('Síncrona presencial')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Síncrona presencial'
-                  ? 'bg-sky-500/15 border-sky-500/40 text-sky-300 shadow-xs'
+                  ? 'bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Síncrona presencial' ? 'bg-sky-400' : 'bg-slate-600'}`} />
+              <span className={`size-2 rounded-full ${modality === 'Síncrona presencial' ? 'bg-blue-400' : 'bg-slate-600'}`} />
               <span>Síncrona Presencial</span>
             </button>
+
+            {/* Assíncrona Virtual: Azul Índigo / Slate */}
             <button
               type="button"
               onClick={() => setModality('Assíncrona virtual')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Assíncrona virtual'
-                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-xs'
+                  ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300 shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-amber-400' : 'bg-slate-600'}`} />
+              <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-indigo-400' : 'bg-slate-600'}`} />
               <span>Assíncrona Virtual</span>
             </button>
           </div>
@@ -256,23 +251,23 @@ export function ActivityForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500 transition-colors"
             />
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-500/15"
+              className="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-500/15"
             >
               {editingActivity ? (
                 <>
-                  <Check className="size-3.5" />
+                  <Check className="size-4" />
                   <span>Salvar Alterações</span>
                 </>
               ) : (
                 <>
-                  <Plus className="size-3.5" />
+                  <Plus className="size-4" />
                   <span>Adicionar à Folha</span>
                 </>
               )}
@@ -281,7 +276,7 @@ export function ActivityForm({
               <button
                 type="button"
                 onClick={onCancelEdit}
-                className="px-3.5 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs font-medium cursor-pointer transition-all"
+                className="px-3.5 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs sm:text-sm font-medium cursor-pointer transition-all"
               >
                 Cancelar
               </button>

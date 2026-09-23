@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, FileText, CheckCircle2, ShieldCheck, X, HardDrive, Smartphone, Cloud, ArrowRight } from 'lucide-react';
+import { Download, FileText, CheckCircle2, ShieldCheck, X, HardDrive, Smartphone, Cloud, ArrowRight, AlertTriangle } from 'lucide-react';
 
 interface ExitModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface ExitModalProps {
   onDownloadJson: () => void;
   onDownloadPdf: () => void;
   userName: string;
+  hasChanges?: boolean;
 }
 
 export function ExitModal({
@@ -18,7 +19,8 @@ export function ExitModal({
   onConfirmExit,
   onDownloadJson,
   onDownloadPdf,
-  userName
+  userName,
+  hasChanges = false
 }: ExitModalProps) {
   const [downloadedJson, setDownloadedJson] = useState(false);
   const [downloadedPdf, setDownloadedPdf] = useState(false);
@@ -43,6 +45,22 @@ export function ExitModal({
     setTimeout(() => {
       onConfirmExit();
     }, 600);
+  };
+
+  const handleExitClick = () => {
+    // Se baixou o JSON ou se não houve nenhuma alteração (abriu apenas para visualizar)
+    if (downloadedJson || !hasChanges) {
+      onConfirmExit();
+      return;
+    }
+
+    // Se houve alterações na folha mas não baixou o JSON, solicita confirmação
+    const proceed = window.confirm(
+      'Atenção: Você fez alterações nesta sessão, mas ainda não baixou o arquivo .json de segurança.\n\nSe sair sem baixar, essas alterações podem não ser recuperadas em outro dispositivo.\n\nDeseja realmente concluir e sair sem salvar o arquivo .json?'
+    );
+    if (proceed) {
+      onConfirmExit();
+    }
   };
 
   return (
@@ -97,6 +115,14 @@ export function ExitModal({
             </div>
           </div>
         </div>
+
+        {/* Status de alteração da sessão */}
+        {!hasChanges && (
+          <div className="mb-4 px-3.5 py-2 rounded-xl bg-sky-950/20 border border-sky-500/20 text-sky-300 text-xs flex items-center gap-2">
+            <CheckCircle2 className="size-3.5 text-sky-400 shrink-0" />
+            <span>Nenhuma alteração foi realizada nesta sessão. Você pode sair livremente.</span>
+          </div>
+        )}
 
         {/* Step-by-step Downloads */}
         <div className="space-y-2.5 mb-6">
@@ -188,13 +214,19 @@ export function ExitModal({
             </button>
             <button
               type="button"
-              disabled={!downloadedJson}
-              onClick={onConfirmExit}
+              onClick={handleExitClick}
               className={`px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 ${
-                downloadedJson
+                downloadedJson || !hasChanges
                   ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600'
               }`}
+              title={
+                !hasChanges
+                  ? 'Nenhuma alteração nesta sessão. Concluir saída.'
+                  : downloadedJson
+                  ? 'Backup salvo. Concluir saída com segurança.'
+                  : 'Sair da sessão'
+              }
             >
               <span>Concluir e Sair</span>
               <ArrowRight className="size-3.5" />

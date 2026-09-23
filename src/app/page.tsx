@@ -453,11 +453,13 @@ export default function Home() {
             setActiveProfileId(null);
             setActiveUser(null);
             setActivities([]);
+            setHasChanges(false);
             showToast('Sessão encerrada com sucesso.');
           }}
           onDownloadJson={handleExportBackup}
           onDownloadPdf={handlePrint}
           userName={activeUser.name}
+          hasChanges={hasChanges}
         />
 
         {/* Toast Notificação Minimalista */}

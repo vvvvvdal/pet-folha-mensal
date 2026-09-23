@@ -29,25 +29,26 @@ export function ActivityTable({
 }: ActivityTableProps) {
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
 
+  // Modalidades em tons harmônicos de azul, com texto por extenso
   const getModalityBadge = (modality: string) => {
     switch (modality) {
       case 'Síncrona presencial':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-500/15 text-sky-300 border border-sky-500/30 whitespace-nowrap">
-            Presencial
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-600/20 text-blue-300 border border-blue-500/30 whitespace-nowrap">
+            Síncrona presencial
           </span>
         );
       case 'Assíncrona virtual':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 whitespace-nowrap">
-            Assíncrona
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">
+            Assíncrona virtual
           </span>
         );
       case 'Síncrona virtual':
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
-            Síncrona
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-500/15 text-sky-300 border border-sky-500/30 whitespace-nowrap">
+            Síncrona virtual
           </span>
         );
     }
@@ -85,9 +86,10 @@ export function ActivityTable({
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-slate-800/80 bg-slate-950/70 text-xs font-bold text-slate-300 uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-32">Data</th>
-                <th className="py-3.5 px-4 w-36">Horário</th>
-                <th className="py-3.5 px-4 w-28">Tipo</th>
+                <th className="py-3.5 px-4 w-28">Data</th>
+                <th className="py-3.5 px-3 w-24">Entrada</th>
+                <th className="py-3.5 px-3 w-24">Saída</th>
+                <th className="py-3.5 px-4 w-40">Tipo</th>
                 <th className="py-3.5 px-4">Descrição da Atividade</th>
                 <th className="py-3.5 px-4 w-24 text-right">Horas</th>
                 <th className="py-3.5 px-4 w-24 text-center">Ações</th>
@@ -96,7 +98,7 @@ export function ActivityTable({
             <tbody className="divide-y divide-slate-800/60">
               {activities.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-16 px-4 text-center">
+                  <td colSpan={7} className="py-16 px-4 text-center">
                     <div className="max-w-md mx-auto space-y-3.5">
                       <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
                         <Clock className="size-6" />
@@ -136,10 +138,11 @@ export function ActivityTable({
                           <span>{formatDateBR(act.date)}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300 font-mono text-xs sm:text-sm whitespace-nowrap">
-                        <span>{act.start}</span>
-                        <span className="text-slate-500 mx-1.5">→</span>
-                        <span>{act.end}</span>
+                      <td className="py-3.5 px-3 text-slate-300 font-mono text-xs sm:text-sm whitespace-nowrap font-medium">
+                        {act.start}
+                      </td>
+                      <td className="py-3.5 px-3 text-slate-300 font-mono text-xs sm:text-sm whitespace-nowrap font-medium">
+                        {act.end}
                       </td>
                       <td className="py-3.5 px-4">
                         {getModalityBadge(act.modality)}
@@ -176,7 +179,7 @@ export function ActivityTable({
             {activities.length > 0 && (
               <tfoot>
                 <tr className="border-t border-slate-800 bg-slate-950/70 font-semibold text-sm">
-                  <td colSpan={4} className="py-4 px-4 text-right text-slate-300 uppercase tracking-wider text-xs">
+                  <td colSpan={5} className="py-4 px-4 text-right text-slate-300 uppercase tracking-wider text-xs">
                     Total do Mês ({monthLabel}):
                   </td>
                   <td className="py-4 px-4 text-right text-emerald-400 font-extrabold text-lg">

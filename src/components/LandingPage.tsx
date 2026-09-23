@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { UserProfile, UserRole, GATInfo } from '@/types';
+import { UserRole, GATInfo } from '@/types';
 import {
   Leaf,
   Upload,
@@ -78,9 +78,9 @@ export function LandingPage({
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="text-xs text-slate-400 hover:text-emerald-400 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-emerald-500/30 bg-slate-900/60 cursor-pointer transition-colors"
+            className="text-xs sm:text-sm text-slate-400 hover:text-emerald-400 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-emerald-500/30 bg-slate-900/60 cursor-pointer transition-colors"
           >
-            <ShieldCheck className="size-3.5 text-emerald-400" />
+            <ShieldCheck className="size-4 text-emerald-400" />
             <span>Acesso Gestão</span>
           </button>
         </div>
@@ -90,59 +90,59 @@ export function LandingPage({
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-12">
         {/* Hero Section */}
         <section className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold">
-            <Sparkles className="size-3.5" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm sm:text-base font-bold shadow-xs">
+            <Sparkles className="size-4" />
             <span>Folha de Frequência Mensal</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
             Controle de presença simples, rápido e 100% privado.
           </h1>
-          <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            Lance suas 8 horas semanais de dedicação, acompanhe o cômputo oficial do edital e emita sua folha em A4 pronta para impressão e validação da bolsa.
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto">
+            Lance suas 8 horas semanais de forma simples, acompanhe o total de horas calculadas automaticamente e gere sua folha em A4 pronta para imprimir e assinar.
           </p>
         </section>
 
         {/* Bloco Explicativo Amigável: O que é o arquivo .json? */}
-        <section className="p-6 sm:p-7 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-4 relative overflow-hidden">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center shrink-0">
-              <HelpCircle className="size-5" />
+        <section className="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-5 relative overflow-hidden">
+          <div className="flex items-center gap-3.5">
+            <div className="size-12 rounded-2xl bg-sky-500/15 text-sky-400 border border-sky-500/25 flex items-center justify-center shrink-0">
+              <HelpCircle className="size-6" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-100">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-100">
                 Como funciona o seu acesso? O que é o arquivo .json?
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Entenda em 1 minuto como seus dados ficam seguros sem necessidade de senha.
               </p>
             </div>
           </div>
 
-          <div className="text-xs sm:text-sm text-slate-300 leading-relaxed space-y-2">
+          <div className="text-sm sm:text-base text-slate-200 leading-relaxed space-y-3">
             <p>
               O arquivo <strong>.json</strong> funciona como o seu <strong>crachá e cofre digital pessoal</strong>. Ele é apenas um arquivo de texto muito leve que guarda o seu nome, seu GAT e as atividades que você já cadastrou.
             </p>
-            <p className="text-slate-400">
+            <p className="text-slate-300">
               Para respeitar rigorosamente a sua <strong>privacidade (LGPD)</strong>, este sistema não armazena os dados de ninguém em um servidor central na internet. As suas informações ficam estritamente com você.
             </p>
           </div>
 
           {/* Dicas de onde salvar */}
-          <div className="pt-2 border-t border-slate-800/80">
-            <span className="text-xs font-semibold text-slate-200 block mb-2">
+          <div className="pt-3 border-t border-slate-800/80">
+            <span className="text-sm font-semibold text-slate-200 block mb-2.5">
               💡 Recomendação: Onde guardar seu arquivo .json após baixar?
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-400">
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center gap-2.5">
-                <Cloud className="size-4 text-sky-400 shrink-0" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs sm:text-sm text-slate-300">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
+                <Cloud className="size-5 text-sky-400 shrink-0" />
                 <span><strong>Google Drive:</strong> Salve em uma pasta na nuvem.</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center gap-2.5">
-                <Smartphone className="size-4 text-emerald-400 shrink-0" />
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
+                <Smartphone className="size-5 text-emerald-400 shrink-0" />
                 <span><strong>WhatsApp:</strong> Envie em conversa consigo mesmo.</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center gap-2.5">
-                <HardDrive className="size-4 text-amber-400 shrink-0" />
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
+                <HardDrive className="size-5 text-amber-400 shrink-0" />
                 <span><strong>Documentos:</strong> Na pasta do computador ou celular.</span>
               </div>
             </div>
@@ -203,11 +203,11 @@ export function LandingPage({
                   <h3 className="text-sm sm:text-base font-bold text-slate-100">
                     Carregar meu arquivo .json de folha
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-sm">
                     Arraste o seu arquivo aqui ou clique para selecionar do seu dispositivo.
                   </p>
                 </div>
-                <span className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors mt-2">
+                <span className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors mt-2 shadow-xs">
                   Selecionar Arquivo .json
                 </span>
                 <input
@@ -224,7 +224,7 @@ export function LandingPage({
                   }}
                 />
               </div>
-              <p className="text-center text-[11px] text-slate-400">
+              <p className="text-center text-xs sm:text-sm text-slate-300 font-medium">
                 Seus dados serão abertos exclusivamente no seu navegador sem expor suas informações.
               </p>
             </div>
@@ -234,7 +234,7 @@ export function LandingPage({
           {tab === 'create' && (
             <form onSubmit={handleCreateSubmit} className="space-y-4 animate-fade-in">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs sm:text-sm font-semibold text-slate-300 mb-1.5">
                   Seu Nome Completo
                 </label>
                 <input
@@ -250,7 +250,7 @@ export function LandingPage({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-300 mb-1.5">
                     Sua Função no PET
                   </label>
                   <select
@@ -267,7 +267,7 @@ export function LandingPage({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-300 mb-1.5">
                     Seu Grupo (GAT)
                   </label>
                   <select
@@ -292,41 +292,41 @@ export function LandingPage({
                 <ArrowRight className="size-4" />
               </button>
 
-              <p className="text-center text-[11px] text-slate-400">
+              <p className="text-center text-xs sm:text-sm text-slate-300 font-medium">
                 Ao criar, você começará sua folha vazia e ao final poderá salvar seu arquivo .json.
               </p>
             </form>
           )}
         </section>
 
-        {/* 3 Pilares do Sistema */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-          <div className="p-5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-2">
-            <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <Clock className="size-4" />
+        {/* 3 Pilares do Sistema - Ampliados */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-4">
+          <div className="p-6 sm:p-7 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div className="size-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+              <Clock className="size-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">Cálculo Preciso das 8h</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-base sm:text-lg font-bold text-slate-100">Cálculo Preciso das 8h</h3>
+            <p className="text-sm text-slate-300 leading-relaxed">
               Calcula os intervalos obedecendo à regra oficial de horas inteiras iniciadas para validação do Ministério da Saúde.
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-2">
-            <div className="size-9 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
-              <FileCheck className="size-4" />
+          <div className="p-6 sm:p-7 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div className="size-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
+              <FileCheck className="size-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">Folha Oficial A4</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-base sm:text-lg font-bold text-slate-100">Folha Oficial A4</h3>
+            <p className="text-sm text-slate-300 leading-relaxed">
               Exatamente no modelo exigido pela SGTES/MS, pronta para visualização, impressão em página única e assinatura.
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-2">
-            <div className="size-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <ShieldCheck className="size-4" />
+          <div className="p-6 sm:p-7 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div className="size-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+              <ShieldCheck className="size-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">Privacidade Garantida</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-base sm:text-lg font-bold text-slate-100">Privacidade Garantida</h3>
+            <p className="text-sm text-slate-300 leading-relaxed">
               Nenhum dado é salvo em servidor central. Você não vê o nome dos outros participantes e ninguém vê o seu.
             </p>
           </div>
