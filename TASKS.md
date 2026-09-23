@@ -5,13 +5,11 @@
 - [x] Configuração da porta de desenvolvimento padrão para 5000 (`next dev -p 5000`).
 - [x] Migração dos assets, templates oficiais (`.docx`, `.pdf`, `.xlsx`) e logo do PET.
 - [x] Implementação dos tokens de conforto óptico e anti-fadiga visual (`frontend-design-ultimate`).
-- [x] **Sistema de Autenticação Eficiente e Multi-usuário**: Sistema com abas (Acesso Rápido com PIN, E-mail & PIN, e Cadastro Completo com perfis SUS e GAT 01 a 05).
-- [x] **Isolamento de dados por usuário**: Particionamento estrito de atividades por `userId` com sementes para todos os 5 GATs.
+- [x] **Redesign Minimalista e Despoluição Visual (`shadcn` + `vercel-web-design-guidelines`)**: Eliminação de barreiras de login, remoção de banners e ruído visual, bloqueio exclusivo em Dark Mode (`#09090b`), formulário compacto e barra de progresso em linha.
+- [x] **Arquitetura Local-First & Conformidade LGPD (Privacy by Design)**: Dados 100% no navegador (`localStorage`), zero custos com nuvem e sem risco de vazamento de dados de terceiros, com suporte a Exportação/Importação de backup em JSON.
 - [x] **Generalização Dinâmica por GAT**: Botão de atalho e formulário injetam dinamicamente o número e tema do GAT ativo (`Reunião do GAT ${user.gatNumber} (${user.gatName})`).
-- [x] **Refatoração Visual de UI/UX (`ui-ux-pro-max`)**: Tipografia *Plus Jakarta Sans*, substituição de emojis por SVGs Lucide, cards Bento, contraste WCAG AAA e anel de foco acessível.
 - [x] Implementação da regra canônica de cálculo de horas PET (`CEILING - FLOOR`).
 - [x] Componente `OfficialSheet.tsx` e regras de impressão `@media print` gerando folha A4 Paisagem idêntica ao modelo do Ministério da Saúde.
-- [x] Alerta dinâmico na tela lembrando o usuário de salvar/imprimir o PDF após modificações.
 - [x] Criação da documentação canônica em `docs/` (`architecture.md`, `regimento-pet.md`, `deployment-vercel.md`).
 
 ## Modo de Execução Atual: Localhost
