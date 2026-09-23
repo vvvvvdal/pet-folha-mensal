@@ -102,7 +102,7 @@ export function ExitModal({
           </p>
           <div className="grid grid-cols-3 gap-2 pt-1 text-[11px] text-slate-400">
             <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col items-center text-center gap-1">
-              <Cloud className="size-4 text-sky-400" />
+              <Cloud className="size-4 text-[#00A3E0]" />
               <span>Google Drive / Nuvem</span>
             </div>
             <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col items-center text-center gap-1">
@@ -118,8 +118,8 @@ export function ExitModal({
 
         {/* Status de alteração da sessão */}
         {!hasChanges && (
-          <div className="mb-4 px-3.5 py-2 rounded-xl bg-sky-950/20 border border-sky-500/20 text-sky-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="size-3.5 text-sky-400 shrink-0" />
+          <div className="mb-4 px-3.5 py-2 rounded-xl bg-[#003d5c]/20 border border-[#00A3E0]/20 text-[#7DD3FC] text-xs flex items-center gap-2">
+            <CheckCircle2 className="size-3.5 text-[#00A3E0] shrink-0" />
             <span>Nenhuma alteração foi realizada nesta sessão. Você pode sair livremente.</span>
           </div>
         )}

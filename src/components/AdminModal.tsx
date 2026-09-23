@@ -1235,7 +1235,7 @@ export function AdminModal({
                           </div>
                           <div className="text-[11px] text-slate-400 mt-0.5">
                             Tipo: <span className="text-[#10B981] font-medium">{tpl.modality}</span>
-                            {tpl.isGatSpecific && <span className="ml-2 text-sky-400 font-medium">• GAT Dinâmico</span>}
+                            {tpl.isGatSpecific && <span className="ml-2 text-[#00A3E0] font-medium">• GAT Dinâmico</span>}
                           </div>
                         </div>
                         <div className="flex items-center gap-1">

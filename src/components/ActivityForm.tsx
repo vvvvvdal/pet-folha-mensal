@@ -201,11 +201,11 @@ export function ActivityForm({
               onClick={() => setModality('Síncrona virtual')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Síncrona virtual'
-                  ? 'bg-sky-500/15 border-sky-500/50 text-sky-300 shadow-xs font-semibold'
+                  ? 'bg-[#00A3E0]/15 border-[#00A3E0]/50 text-[#7DD3FC] shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Síncrona virtual' ? 'bg-sky-400' : 'bg-slate-600'}`} />
+              <span className={`size-2 rounded-full ${modality === 'Síncrona virtual' ? 'bg-[#00A3E0]' : 'bg-slate-600'}`} />
               <span>Síncrona Virtual</span>
             </button>
 
@@ -229,11 +229,11 @@ export function ActivityForm({
               onClick={() => setModality('Assíncrona virtual')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Assíncrona virtual'
-                  ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300 shadow-xs font-semibold'
+                  ? 'bg-[#F9BD47]/20 border-[#F9BD47]/50 text-[#F9BD47] shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-indigo-400' : 'bg-slate-600'}`} />
+              <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-[#F9BD47]' : 'bg-slate-600'}`} />
               <span>Assíncrona Virtual</span>
             </button>
           </div>

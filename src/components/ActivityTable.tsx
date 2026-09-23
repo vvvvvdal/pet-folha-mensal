@@ -47,7 +47,7 @@ export function ActivityTable({
       case 'Síncrona virtual':
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#00A3E0]/15 text-[#0284C7] dark:text-sky-300 border border-[#00A3E0]/30 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#00A3E0]/15 text-[#0284C7] dark:text-[#7DD3FC] border border-[#00A3E0]/30 whitespace-nowrap">
             Síncrona virtual
           </span>
         );
