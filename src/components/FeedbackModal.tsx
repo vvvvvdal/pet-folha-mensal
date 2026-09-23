@@ -1,30 +1,24 @@
 'use client';
 
-import React from 'react';
-import { UserProfile, GATS } from '@/types';
 import {
   MessageSquareHeart,
   X,
   ExternalLink,
   Star,
   Bug,
-  Lightbulb,
-  CheckCircle2
+  Lightbulb
 } from 'lucide-react';
 
 interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user?: UserProfile | null;
 }
 
 export const FEEDBACK_FORM_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSfIxvavW_gq0xCUb6qx7VKK-I9tYino158tsCrNCO6IZ1Wf-A/viewform';
 
-export function FeedbackModal({ isOpen, onClose, user }: FeedbackModalProps) {
+export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   if (!isOpen) return null;
-
-  const gatName = user ? (user.gatName || GATS[user.gatNumber]?.name || `GAT ${user.gatNumber}`) : null;
 
   return (
     <div
@@ -59,28 +53,6 @@ export function FeedbackModal({ isOpen, onClose, user }: FeedbackModalProps) {
             <X className="size-5 sm:size-6" />
           </button>
         </div>
-
-        {/* Identificação ativa do participante (se logado) */}
-        {user && (
-          <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-9 sm:size-10 rounded-xl bg-[#008D4C]/10 text-[#008D4C] dark:text-[#10B981] flex items-center justify-center text-sm sm:text-base font-bold shrink-0">
-                {user.gatNumber}
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm sm:text-base font-semibold text-slate-100 truncate">
-                  {user.name}
-                </div>
-                <div className="text-xs sm:text-sm text-slate-300 truncate mt-0.5">
-                  {user.role} • GAT {user.gatNumber} ({gatName})
-                </div>
-              </div>
-            </div>
-            <span className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-[#008D4C]/10 text-[#10B981] border border-[#008D4C]/20 shrink-0">
-              Identificado
-            </span>
-          </div>
-        )}
 
         {/* O que pode ser enviado */}
         <div className="space-y-3 mb-6">

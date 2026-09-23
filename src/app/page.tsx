@@ -339,7 +339,6 @@ export default function Home() {
         <FeedbackModal
           isOpen={isFeedbackModalOpen}
           onClose={() => setIsFeedbackModalOpen(false)}
-          user={null}
         />
 
         {/* Toast Notificação */}
@@ -567,7 +566,6 @@ export default function Home() {
         <FeedbackModal
           isOpen={isFeedbackModalOpen}
           onClose={() => setIsFeedbackModalOpen(false)}
-          user={activeUser}
         />
 
         {/* Toast Notificação Minimalista */}

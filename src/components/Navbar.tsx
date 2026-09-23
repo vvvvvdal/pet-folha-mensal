@@ -67,17 +67,17 @@ export function Navbar({
         <button
           type="button"
           onClick={onOpenProfileModal}
-          className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-slate-700 text-left transition-all cursor-pointer group shadow-xs"
+          className="hidden md:flex items-center gap-2.5 h-10 px-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-slate-700 text-left transition-all cursor-pointer group shadow-xs shrink-0"
           title="Clique para editar seus dados de identificação"
         >
-          <div className="size-7 rounded-lg bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/30 flex items-center justify-center font-bold text-xs">
+          <div className="size-7 rounded-lg bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/30 flex items-center justify-center font-bold text-xs shrink-0">
             {user.gatNumber}
           </div>
-          <div className="flex flex-col text-xs leading-tight">
-            <div className="flex items-center gap-1.5 font-semibold text-slate-200 group-hover:text-[#00A3E0] transition-colors">
-              <span className="truncate max-w-[150px]">{user.name}</span>
-            </div>
-            <span className="text-[10px] text-slate-400">
+          <div className="flex flex-col justify-center leading-tight min-w-0">
+            <span className="text-sm font-semibold text-slate-100 group-hover:text-[#00A3E0] transition-colors truncate max-w-[170px]">
+              {user.name}
+            </span>
+            <span className="text-xs text-slate-400 truncate">
               {user.role} • GAT {user.gatNumber} ({gatName})
             </span>
           </div>
@@ -89,36 +89,36 @@ export function Navbar({
           <button
             type="button"
             onClick={onOpenProfileModal}
-            className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 text-xs text-slate-200 font-medium"
+            className="md:hidden flex items-center gap-2 h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/80 text-xs sm:text-sm text-slate-100 font-semibold cursor-pointer"
           >
-            <span className="size-5 rounded bg-[#008D4C]/20 text-[#008D4C] dark:text-[#10B981] font-bold text-[10px] flex items-center justify-center">
+            <span className="size-6 rounded-lg bg-[#008D4C]/20 text-[#008D4C] dark:text-[#10B981] font-bold text-xs flex items-center justify-center">
               {user.gatNumber}
             </span>
-            <span className="truncate max-w-[90px]">{user.name.split(' ')[0]}</span>
+            <span className="truncate max-w-[100px]">{user.name.split(' ')[0]}</span>
           </button>
 
           {/* Navigation Segmented Control */}
-          <div className="flex p-0.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm">
+          <div className="h-10 p-1 flex items-center gap-1 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm">
             <button
               onClick={() => onTabChange('dashboard')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`h-8 px-3 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'dashboard'
                   ? 'bg-slate-800 text-slate-100 shadow-xs font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <LayoutDashboard className="size-3.5" />
+              <LayoutDashboard className="size-4" />
               <span className="hidden sm:inline">Lançamentos</span>
             </button>
             <button
               onClick={() => onTabChange('official')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`h-8 px-3 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'official'
                   ? 'bg-slate-800 text-slate-100 shadow-xs font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <FileText className="size-3.5" />
+              <FileText className="size-4" />
               <span className="hidden sm:inline">Folha Oficial</span>
             </button>
           </div>
@@ -128,19 +128,19 @@ export function Navbar({
             <button
               type="button"
               onClick={onExportBackup}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-medium"
+              className="h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors flex items-center gap-1.5 text-xs sm:text-sm font-medium"
               title="Salvar cópia de segurança (.json) no seu dispositivo"
             >
-              <Download className="size-3.5" />
+              <Download className="size-4" />
               <span>Baixar</span>
             </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-medium"
+              className="h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors flex items-center gap-1.5 text-xs sm:text-sm font-medium"
               title="Carregar outro arquivo .json salvo"
             >
-              <Upload className="size-3.5" />
+              <Upload className="size-4" />
               <span>Carregar</span>
             </button>
             <input
@@ -162,8 +162,9 @@ export function Navbar({
           <button
             type="button"
             onClick={toggleTheme}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-slate-100 cursor-pointer transition-colors"
+            className="size-10 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-slate-100 cursor-pointer transition-colors flex items-center justify-center shrink-0"
             title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+            aria-label={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
           >
             {theme === 'dark' ? (
               <Sun className="size-4.5" />
@@ -176,8 +177,9 @@ export function Navbar({
           <button
             type="button"
             onClick={onOpenFeedback}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#00A3E0]/40 text-slate-400 hover:text-[#00A3E0] cursor-pointer transition-colors"
+            className="size-10 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#00A3E0]/40 text-slate-400 hover:text-[#00A3E0] cursor-pointer transition-colors flex items-center justify-center shrink-0"
             title="Avaliação do sistema, sugestões e relato de bugs"
+            aria-label="Avaliação do sistema, sugestões e relato de bugs"
           >
             <MessageSquareHeart className="size-4.5" />
           </button>
@@ -186,8 +188,9 @@ export function Navbar({
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors"
+            className="size-10 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors flex items-center justify-center shrink-0"
             title="Acesso de gestão / modo administrador"
+            aria-label="Acesso de gestão / modo administrador"
           >
             <Shield className="size-4.5" />
           </button>
@@ -196,7 +199,7 @@ export function Navbar({
           <button
             type="button"
             onClick={onOpenExitModal}
-            className="min-h-[44px] px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs sm:text-sm font-semibold cursor-pointer transition-colors relative flex items-center"
+            className="h-10 px-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold cursor-pointer transition-colors relative flex items-center gap-1.5 shrink-0"
             title="Salvar arquivo de backup e sair"
           >
             {hasChanges && (
