@@ -202,11 +202,11 @@ export function LandingPage({
         {/* Card Interativo de Acesso (Login via JSON ou Primeiro Acesso) */}
         <section className="p-6 sm:p-8 rounded-3xl bg-slate-900/60 border border-slate-800 shadow-2xl max-w-2xl mx-auto">
           {/* Alternador de Ação */}
-          <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs sm:text-sm font-semibold mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs sm:text-sm font-semibold mb-6">
             <button
               type="button"
               onClick={() => setTab('upload')}
-              className={`py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              className={`min-h-[44px] py-2.5 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 tab === 'upload'
                   ? 'bg-slate-800 text-white shadow-xs font-bold'
                   : 'text-slate-400 hover:text-slate-200'
@@ -218,7 +218,7 @@ export function LandingPage({
             <button
               type="button"
               onClick={() => setTab('create')}
-              className={`py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              className={`min-h-[44px] py-2.5 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 tab === 'create'
                   ? 'bg-slate-800 text-white shadow-xs font-bold'
                   : 'text-slate-400 hover:text-slate-200'
@@ -240,24 +240,24 @@ export function LandingPage({
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleFileDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`p-8 sm:p-10 rounded-2xl border-2 border-dashed text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
+                className={`p-8 sm:p-10 rounded-2xl border-2 border-dashed text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3.5 ${
                   isDragging
                     ? 'border-[#008D4C] bg-[#008D4C]/10'
                     : 'border-slate-700/80 bg-slate-950/50 hover:border-[#008D4C]/50 hover:bg-slate-950'
                 }`}
               >
-                <div className="size-12 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/20 flex items-center justify-center">
-                  <Upload className="size-6" />
+                <div className="size-14 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/20 flex items-center justify-center">
+                  <Upload className="size-7" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-100">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-100">
                     Carregar meu arquivo .json de folha
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-sm">
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-sm">
                     Arraste o seu arquivo aqui ou clique para selecionar do seu dispositivo.
                   </p>
                 </div>
-                <span className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#008D4C] text-white hover:bg-[#00733E] transition-colors mt-2 shadow-sm shadow-[#008D4C]/25">
+                <span className="min-h-[44px] px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#008D4C] text-white hover:bg-[#00733E] transition-colors mt-2 shadow-sm shadow-[#008D4C]/25 flex items-center justify-center">
                   Selecionar Arquivo .json
                 </span>
                 <input
@@ -294,11 +294,11 @@ export function LandingPage({
                   onChange={(e) => setName(e.target.value)}
                   required
                   autoFocus
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-sm outline-none focus:border-[#008D4C] transition-colors"
+                  className="w-full min-h-[46px] px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-base sm:text-sm outline-none focus:border-[#008D4C] transition-colors"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-slate-300 mb-1.5">
                     Sua Função no PET
@@ -306,7 +306,7 @@ export function LandingPage({
                   <select
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value)}
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-xs sm:text-sm outline-none focus:border-[#008D4C] cursor-pointer"
+                    className="w-full min-h-[46px] px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-base sm:text-sm outline-none focus:border-[#008D4C] cursor-pointer"
                   >
                     {roles.map((r) => (
                       <option key={r} value={r} className="bg-slate-900 text-slate-100">
@@ -323,7 +323,7 @@ export function LandingPage({
                   <select
                     value={selectedGat}
                     onChange={(e) => setSelectedGat(e.target.value)}
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-xs sm:text-sm outline-none focus:border-[#008D4C] cursor-pointer"
+                    className="w-full min-h-[46px] px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-base sm:text-sm outline-none focus:border-[#008D4C] cursor-pointer"
                   >
                     {Object.values(gats).map((gat) => (
                       <option key={gat.number} value={gat.number} className="bg-slate-900 text-slate-100">
@@ -336,7 +336,7 @@ export function LandingPage({
 
               <button
                 type="submit"
-                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold bg-[#008D4C] text-white hover:bg-[#00733E] cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#008D4C]/25 mt-2"
+                className="w-full min-h-[48px] py-3.5 px-5 rounded-xl text-sm sm:text-base font-bold bg-[#008D4C] text-white hover:bg-[#00733E] cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#008D4C]/25 mt-2"
               >
                 <span>Criar Minha Folha e Começar</span>
                 <ArrowRight className="size-4" />

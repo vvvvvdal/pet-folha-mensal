@@ -370,39 +370,40 @@ export function AdminModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-xs animate-fade-in">
       <div
-        className="w-full max-w-3xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+        className="w-full max-w-4xl rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col max-h-[92dvh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/40">
-          <div className="flex items-center gap-2">
-            <Shield className="size-4 text-[#10B981]" />
-            <h3 className="text-sm font-semibold text-slate-100">Painel de Gestão & Administração</h3>
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950/60">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <Shield className="size-5 sm:size-6 text-[#10B981] shrink-0" />
+            <h3 className="text-base sm:text-lg font-bold text-slate-100">Painel de Gestão e Administração</h3>
             {isAuthenticated && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#008D4C]/10 text-[#10B981] border border-[#008D4C]/20 font-medium">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#008D4C]/10 text-[#10B981] border border-[#008D4C]/20 font-semibold hidden sm:inline-block">
                 Admin Autenticado
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isAuthenticated && (
               <button
                 type="button"
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                className="min-h-[40px] px-3 rounded-xl text-slate-300 hover:text-red-400 hover:bg-slate-800 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer transition-colors"
                 title="Sair do modo administrador"
               >
-                <LogOut className="size-3.5" />
-                <span className="hidden sm:inline">Sair</span>
+                <LogOut className="size-4" />
+                <span>Sair</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer transition-colors"
+              title="Fechar painel"
             >
-              <X className="size-4" />
+              <X className="size-5 sm:size-6" />
             </button>
           </div>
         </div>
@@ -410,18 +411,18 @@ export function AdminModal({
         {/* Content Area */}
         {!isAuthenticated ? (
           /* TELA DE AUTENTICAÇÃO COM PIN SECRETO */
-          <div className="p-8 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="size-12 rounded-full bg-[#008D4C]/10 border border-[#008D4C]/20 flex items-center justify-center text-[#10B981]">
-              <Lock className="size-5" />
+          <div className="p-6 sm:p-10 flex flex-col items-center justify-center text-center space-y-5">
+            <div className="size-14 sm:size-16 rounded-2xl bg-[#008D4C]/10 border border-[#008D4C]/20 flex items-center justify-center text-[#10B981]">
+              <Lock className="size-6 sm:size-7" />
             </div>
             <div>
-              <h4 className="text-base font-semibold text-slate-100">Área de Acesso Restrito</h4>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm">
+              <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-100">Área de Acesso Restrito</h4>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-md">
                 Digite o PIN de administrador para acessar as configurações de templates, GATs e funções.
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="w-full max-w-xs space-y-3 pt-2">
+            <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 pt-2">
               <div>
                 <input
                   type="password"
@@ -432,20 +433,20 @@ export function AdminModal({
                     setPinInput(e.target.value);
                     if (pinError) setPinError(false);
                   }}
-                  className={`w-full text-center px-4 py-2.5 text-sm tracking-widest font-mono rounded-lg bg-slate-950 border ${
+                  className={`w-full text-center px-4 py-3 min-h-[48px] text-base sm:text-lg tracking-widest font-mono rounded-xl bg-slate-950 border ${
                     pinError ? 'border-red-500 text-red-300' : 'border-slate-800 text-slate-100'
-                  } outline-none focus:border-[#008D4C]`}
+                  } outline-none focus:border-[#008D4C] transition-colors`}
                 />
                 {pinError && (
-                  <p className="text-[11px] text-red-400 mt-1.5 flex items-center justify-center gap-1">
-                    <AlertTriangle className="size-3" />
+                  <p className="text-xs text-red-400 mt-2 flex items-center justify-center gap-1.5">
+                    <AlertTriangle className="size-3.5" />
                     PIN incorreto. Tente novamente.
                   </p>
                 )}
               </div>
               <button
                 type="submit"
-                className="w-full py-2 text-xs font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] transition-all cursor-pointer shadow-sm"
+                className="w-full min-h-[48px] py-3 px-6 text-sm sm:text-base font-bold rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] transition-all cursor-pointer shadow-md shadow-[#008D4C]/20"
               >
                 Acessar Painel
               </button>
@@ -455,38 +456,38 @@ export function AdminModal({
           /* PAINEL COMPLETO COM ABAS */
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Navegação de Abas */}
-            <div className="flex border-b border-slate-800 bg-slate-950/60 text-xs font-medium px-4 overflow-x-auto">
+            <div className="flex border-b border-slate-800 bg-slate-950/60 text-xs sm:text-sm font-semibold px-3 sm:px-6 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('roles')}
-                className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+                className={`min-h-[48px] py-3 px-3.5 sm:px-4 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'roles'
                     ? 'border-[#008D4C] text-[#10B981]'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Briefcase className="size-3.5" />
+                <Briefcase className="size-4" />
                 <span>Tipos / Funções ({roles.length})</span>
               </button>
               <button
                 onClick={() => setActiveTab('gats')}
-                className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+                className={`min-h-[48px] py-3 px-3.5 sm:px-4 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'gats'
                     ? 'border-[#008D4C] text-[#10B981]'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Layers className="size-3.5" />
+                <Layers className="size-4" />
                 <span>Grupos Tutoriais ({Object.keys(gats).length})</span>
               </button>
               <button
                 onClick={() => setActiveTab('templates')}
-                className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+                className={`min-h-[48px] py-3 px-3.5 sm:px-4 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'templates'
                     ? 'border-[#008D4C] text-[#10B981]'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <CalendarDays className="size-3.5" />
+                <CalendarDays className="size-4" />
                 <span>Templates de Atividades ({templates.length})</span>
               </button>
             </div>
@@ -497,33 +498,33 @@ export function AdminModal({
                   ABA 1: FUNÇÕES / TIPOS DE PESSOAS (ROLES) - COM EDIÇÃO
                   ============================================================ */}
               {activeTab === 'roles' && (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs sm:text-sm text-slate-300">
                       Configure os tipos de participantes e vínculos permitidos no projeto (SUS/UFG).
                     </span>
                   </div>
 
-                  <form onSubmit={handleAddRole} className="flex gap-2">
+                  <form onSubmit={handleAddRole} className="flex flex-col sm:flex-row gap-2.5">
                     <input
                       type="text"
                       required
                       placeholder="Ex: Pesquisador, Bolsista de Extensão, Coordenador de Eixo..."
                       value={newRoleName}
                       onChange={(e) => setNewRoleName(e.target.value)}
-                      className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-slate-950 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+                      className="flex-1 min-h-[46px] px-4 py-2.5 text-sm sm:text-base rounded-xl bg-slate-950 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] transition-colors"
                     />
                     <button
                       type="submit"
-                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1"
+                      className="min-h-[46px] px-5 py-2.5 text-sm sm:text-base font-semibold rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center justify-center gap-2 transition-all shadow-sm"
                     >
-                      <Plus className="size-3.5" />
+                      <Plus className="size-4" />
                       <span>Adicionar Função</span>
                     </button>
                   </form>
 
                   {/* Lista de Funções com Edição */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     {roles.map((r) => {
                       const isEditing = editingRoleOriginal === r;
 
@@ -532,7 +533,7 @@ export function AdminModal({
                           <form
                             key={r}
                             onSubmit={handleSaveEditRole}
-                            className="p-2.5 rounded-lg border border-[#008D4C]/40 bg-[#00341f]/20 flex items-center gap-2"
+                            className="p-3 rounded-xl border border-[#008D4C]/40 bg-[#00341f]/20 flex items-center gap-2"
                           >
                             <input
                               type="text"
@@ -540,22 +541,22 @@ export function AdminModal({
                               autoFocus
                               value={editingRoleNewName}
                               onChange={(e) => setEditingRoleNewName(e.target.value)}
-                              className="flex-1 px-2 py-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-100 outline-none focus:border-[#008D4C]"
+                              className="flex-1 min-h-[40px] px-3 py-1.5 text-sm rounded-lg bg-slate-900 border border-slate-700 text-slate-100 outline-none focus:border-[#008D4C]"
                             />
                             <button
                               type="submit"
-                              className="p-1.5 rounded bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
+                              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
                               title="Salvar alteração"
                             >
-                              <Check className="size-3.5" />
+                              <Check className="size-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => setEditingRoleOriginal(null)}
-                              className="p-1.5 rounded text-slate-400 hover:bg-slate-800 cursor-pointer"
+                              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
                               title="Cancelar"
                             >
-                              <X className="size-3.5" />
+                              <X className="size-4" />
                             </button>
                           </form>
                         );
@@ -564,27 +565,27 @@ export function AdminModal({
                       return (
                         <div
                           key={r}
-                          className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 flex items-center justify-between text-xs hover:border-slate-700 transition-colors"
+                          className="p-3.5 sm:p-4 rounded-xl border border-slate-800 bg-slate-950/40 flex items-center justify-between hover:border-slate-700 transition-colors"
                         >
                           <div>
-                            <div className="font-semibold text-slate-200">{r}</div>
+                            <div className="text-sm sm:text-base font-semibold text-slate-200">{r}</div>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             <button
                               type="button"
                               onClick={() => handleStartEditRole(r)}
-                              className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
+                              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                               title="Editar nome da função"
                             >
-                              <Edit2 className="size-3.5" />
+                              <Edit2 className="size-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteRole(r)}
-                              className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                              className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
                               title="Excluir função"
                             >
-                              <Trash2 className="size-3.5" />
+                              <Trash2 className="size-4" />
                             </button>
                           </div>
                         </div>
@@ -595,49 +596,49 @@ export function AdminModal({
               )}
 
               {/* ============================================================
-                  ABA 3: GRUPOS TUTORIAIS (GATS) - COM EDIÇÃO
+                  ABA 2: GRUPOS TUTORIAIS (GATS) - COM EDIÇÃO
                   ============================================================ */}
               {activeTab === 'gats' && (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs sm:text-sm text-slate-300">
                       Cadastre novos GATs ou ajuste a estrutura temática territorial.
                     </span>
                   </div>
 
                   {/* Edição de GAT Selecionado */}
                   {editingGat && (
-                    <form onSubmit={handleSaveEditGat} className="p-4 rounded-xl border border-[#008D4C]/40 bg-[#00341f]/20 space-y-3 text-xs animate-fade-in">
-                      <div className="font-semibold text-[#10B981]">
+                    <form onSubmit={handleSaveEditGat} className="p-4 sm:p-5 rounded-2xl border border-[#008D4C]/40 bg-[#00341f]/20 space-y-4 animate-fade-in">
+                      <div className="font-bold text-base text-[#10B981]">
                         Editando GAT {editingGatOriginalNumber}: {editingGat.name}
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Número</label>
+                          <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Número</label>
                           <input
                             type="text"
                             required
                             value={editingGat.number}
                             onChange={(e) => setEditingGat({ ...editingGat, number: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+                            className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Nome / Bioma</label>
+                          <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Nome / Bioma</label>
                           <input
                             type="text"
                             required
                             value={editingGat.name}
                             onChange={(e) => setEditingGat({ ...editingGat, name: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+                            className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Eixo Temático</label>
+                          <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Eixo Temático</label>
                           <select
                             value={editingGat.axis}
                             onChange={(e) => setEditingGat({ ...editingGat, axis: e.target.value })}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
+                            className="w-full min-h-[44px] px-3 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             <option value="Eixo I">Eixo I (Atenção Primária e SAN)</option>
                             <option value="Eixo II">Eixo II (Atenção Especializada)</option>
@@ -646,28 +647,28 @@ export function AdminModal({
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Descrição do Território / Foco</label>
+                        <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Descrição do Território / Foco</label>
                         <input
                           type="text"
                           value={editingGat.description}
                           onChange={(e) => setEditingGat({ ...editingGat, description: e.target.value })}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+                          className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                         />
                       </div>
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2.5 pt-1">
                         <button
                           type="button"
                           onClick={() => {
                             setEditingGatOriginalNumber(null);
                             setEditingGat(null);
                           }}
-                          className="px-3 py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-800 text-sm font-semibold cursor-pointer transition-colors"
                         >
                           Cancelar
                         </button>
                         <button
                           type="submit"
-                          className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
+                          className="min-h-[44px] px-5 py-2 font-semibold text-sm rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer transition-all"
                         >
                           Salvar GAT
                         </button>
@@ -676,37 +677,37 @@ export function AdminModal({
                   )}
 
                   {/* Adicionar Novo GAT */}
-                  <form onSubmit={handleAddGat} className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3 text-xs">
-                    <div className="font-semibold text-slate-200">Adicionar Novo GAT</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <form onSubmit={handleAddGat} className="p-4 sm:p-5 rounded-2xl border border-slate-800 bg-slate-950/60 space-y-4">
+                    <div className="font-bold text-base text-slate-100">Adicionar Novo GAT</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                       <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Número (ex: 06)</label>
+                        <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Número (ex: 06)</label>
                         <input
                           type="text"
                           required
                           placeholder="06"
                           value={newGatNumber}
                           onChange={(e) => setNewGatNumber(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+                          className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Nome / Bioma (ex: Guariroba)</label>
+                        <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Nome / Bioma (ex: Guariroba)</label>
                         <input
                           type="text"
                           required
-                          placeholder="Nome do fruto/árvore..."
+                          placeholder="Nome do fruto ou árvore..."
                           value={newGatName}
                           onChange={(e) => setNewGatName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+                          className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Eixo Temático</label>
+                        <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Eixo Temático</label>
                         <select
                           value={newGatAxis}
                           onChange={(e) => setNewGatAxis(e.target.value)}
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
+                          className="w-full min-h-[44px] px-3 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                         >
                           <option value="Eixo I">Eixo I (Atenção Primária e SAN)</option>
                           <option value="Eixo II">Eixo II (Atenção Especializada)</option>
@@ -715,64 +716,64 @@ export function AdminModal({
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[11px] text-slate-400 mb-1">Descrição do Território / Foco</label>
+                      <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Descrição do Território / Foco</label>
                       <input
                         type="text"
                         placeholder="Ex: Vigilância de arboviroses na Região Norte..."
                         value={newGatDesc}
                         onChange={(e) => setNewGatDesc(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
+                        className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                       />
                     </div>
-                    <div className="flex justify-end">
+                    <div className="flex justify-end pt-1">
                       <button
                         type="submit"
-                        className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5"
+                        className="min-h-[44px] px-5 py-2.5 font-semibold text-sm rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-2 transition-all shadow-sm"
                       >
-                        <Plus className="size-3.5" />
+                        <Plus className="size-4" />
                         <span>Adicionar GAT</span>
                       </button>
                     </div>
                   </form>
 
                   {/* Cards de GATs Atuais com Edição */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
                     {Object.entries(gats).map(([num, info]) => {
                       return (
                         <div
                           key={num}
-                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/40 text-xs flex flex-col justify-between hover:border-slate-700 transition-colors"
+                          className="p-4 sm:p-5 rounded-2xl border border-slate-800 bg-slate-950/40 flex flex-col justify-between hover:border-slate-700 transition-colors"
                         >
                           <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span className="font-semibold text-[#10B981]">
-                                GAT {num} — {info.name}
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm sm:text-base font-bold text-[#10B981]">
+                                GAT {num}: {info.name}
                               </span>
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                              <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 font-medium">
                                 {info.axis}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+                            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3">
                               {info.description}
                             </p>
                           </div>
-                          <div className="flex items-center justify-end pt-2 border-t border-slate-800/80">
-                            <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-end pt-2.5 border-t border-slate-800/80">
+                            <div className="flex items-center gap-1.5">
                               <button
                                 type="button"
                                 onClick={() => handleStartEditGat(num, info)}
-                                className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
+                                className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                                 title="Editar GAT"
                               >
-                                <Edit2 className="size-3.5" />
+                                <Edit2 className="size-4" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteGat(num)}
-                                className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                                className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
                                 title="Excluir GAT"
                               >
-                                <Trash2 className="size-3.5" />
+                                <Trash2 className="size-4" />
                               </button>
                             </div>
                           </div>
@@ -784,46 +785,46 @@ export function AdminModal({
               )}
 
               {/* ============================================================
-                  ABA 4: TEMPLATES DE ATIVIDADES (SEM DATAS NEM HORÁRIOS)
+                  ABA 3: TEMPLATES DE ATIVIDADES (SEM DATAS NEM HORÁRIOS)
                   ============================================================ */}
               {activeTab === 'templates' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">
+                <div className="space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <span className="text-xs sm:text-sm text-slate-300">
                       Configure os modelos de atividades (nomes e modalidades) usados para preenchimento rápido.
                     </span>
                     <button
                       type="button"
                       onClick={handleResetTemplates}
-                      className="px-2.5 py-1 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                      className="min-h-[40px] px-3.5 py-2 rounded-xl border border-slate-800 text-slate-300 hover:text-slate-100 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
                     >
-                      <RotateCcw className="size-3" />
+                      <RotateCcw className="size-3.5" />
                       <span>Restaurar Padrão</span>
                     </button>
                   </div>
 
                   {/* Edição de Template */}
                   {editingTemplate && (
-                    <form onSubmit={handleSaveEditTemplate} className="p-4 rounded-xl border border-[#008D4C]/40 bg-[#00341f]/20 space-y-3 text-xs animate-fade-in">
-                      <div className="font-semibold text-[#10B981]">Editando Modelo de Atividade</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <form onSubmit={handleSaveEditTemplate} className="p-4 sm:p-5 rounded-2xl border border-[#008D4C]/40 bg-[#00341f]/20 space-y-4 animate-fade-in">
+                      <div className="font-bold text-base text-[#10B981]">Editando Modelo de Atividade</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                         <div className="sm:col-span-2">
-                          <label className="block text-[11px] text-slate-400 mb-1">Nome / Descrição da Atividade</label>
+                          <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Nome / Descrição da Atividade</label>
                           <input
                             type="text"
                             required
                             disabled={editingTemplate.isGatSpecific}
                             value={editingTemplate.isGatSpecific ? 'Reunião do GAT {gatNumber} ({gatName})' : editingTemplate.name}
                             onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] disabled:opacity-50"
+                            className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] disabled:opacity-50"
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Modalidade</label>
+                          <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Modalidade</label>
                           <select
                             value={editingTemplate.modality}
                             onChange={(e) => setEditingTemplate({ ...editingTemplate, modality: e.target.value as ModalityType })}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
+                            className="w-full min-h-[44px] px-3 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             <option value="Síncrona virtual">Síncrona virtual</option>
                             <option value="Síncrona presencial">Síncrona presencial</option>
@@ -831,27 +832,27 @@ export function AdminModal({
                           </select>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center pt-1">
-                        <label className="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                        <label className="flex items-center gap-2 text-xs sm:text-sm text-slate-300 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={editingTemplate.isGatSpecific || false}
                             onChange={(e) => setEditingTemplate({ ...editingTemplate, isGatSpecific: e.target.checked })}
-                            className="rounded accent-[#008D4C]"
+                            className="size-4 rounded accent-[#008D4C]"
                           />
                           <span>Atividade própria do GAT (dinâmica)</span>
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2.5">
                           <button
                             type="button"
                             onClick={() => setEditingTemplate(null)}
-                            className="px-3 py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
+                            className="min-h-[44px] px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-800 text-sm font-semibold cursor-pointer transition-colors"
                           >
                             Cancelar
                           </button>
                           <button
                             type="submit"
-                            className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
+                            className="min-h-[44px] px-5 py-2 font-semibold text-sm rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer transition-all"
                           >
                             Salvar Modelo
                           </button>
@@ -861,11 +862,11 @@ export function AdminModal({
                   )}
 
                   {/* Adicionar Novo Template (Sem Dia, Sem Entrada, Sem Saída) */}
-                  <form onSubmit={handleAddTemplate} className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3 text-xs">
-                    <div className="font-semibold text-slate-200">Adicionar Novo Modelo de Atividade</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <form onSubmit={handleAddTemplate} className="p-4 sm:p-5 rounded-2xl border border-slate-800 bg-slate-950/60 space-y-4">
+                    <div className="font-bold text-base text-slate-100">Adicionar Novo Modelo de Atividade</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                       <div className="sm:col-span-2">
-                        <label className="block text-[11px] text-slate-400 mb-1">Nome da Atividade</label>
+                        <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Nome da Atividade</label>
                         <input
                           type="text"
                           required={!newTplGatSpecific}
@@ -873,15 +874,15 @@ export function AdminModal({
                           placeholder={newTplGatSpecific ? 'Reunião do GAT (automática)' : 'Ex: Oficina de Indicadores SISVAN, Seminário...'}
                           value={newTplGatSpecific ? 'Reunião do GAT {gatNumber} ({gatName})' : newTplName}
                           onChange={(e) => setNewTplName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] disabled:opacity-50"
+                          className="w-full min-h-[44px] px-3.5 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] disabled:opacity-50"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Modalidade</label>
+                        <label className="block text-xs sm:text-sm text-slate-300 font-medium mb-1.5">Modalidade</label>
                         <select
                           value={newTplModality}
                           onChange={(e) => setNewTplModality(e.target.value as ModalityType)}
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
+                          className="w-full min-h-[44px] px-3 py-2 text-sm sm:text-base rounded-xl bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                         >
                           <option value="Síncrona virtual">Síncrona virtual</option>
                           <option value="Síncrona presencial">Síncrona presencial</option>
@@ -890,59 +891,59 @@ export function AdminModal({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1">
-                      <label className="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                      <label className="flex items-center gap-2 text-xs sm:text-sm text-slate-300 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={newTplGatSpecific}
                           onChange={(e) => setNewTplGatSpecific(e.target.checked)}
-                          className="rounded accent-[#008D4C]"
+                          className="size-4 rounded accent-[#008D4C]"
                         />
                         <span>Atividade própria do GAT (injeta número e nome automaticamente)</span>
                       </label>
 
                       <button
                         type="submit"
-                        className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5"
+                        className="min-h-[44px] px-5 py-2.5 font-semibold text-sm rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center justify-center gap-2 transition-all shadow-sm"
                       >
-                        <Plus className="size-3.5" />
+                        <Plus className="size-4" />
                         <span>Adicionar Modelo</span>
                       </button>
                     </div>
                   </form>
 
                   {/* Lista de Modelos de Atividades com Edição e Exclusão */}
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {templates.map((tpl, i) => (
                       <div
                         key={tpl.id || i}
-                        className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 text-xs flex items-center justify-between gap-3 hover:border-slate-700 transition-colors"
+                        className="p-3.5 sm:p-4 rounded-xl border border-slate-800 bg-slate-950/40 flex items-center justify-between gap-3 hover:border-slate-700 transition-colors"
                       >
                         <div>
-                          <div className="font-medium text-slate-200">
+                          <div className="text-sm sm:text-base font-semibold text-slate-200">
                             {tpl.name || (tpl as any).descriptionTemplate || 'Modelo'}
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">
+                          <div className="text-xs sm:text-sm text-slate-300 mt-1">
                             Tipo: <span className="text-[#10B981] font-medium">{tpl.modality}</span>
                             {tpl.isGatSpecific && <span className="ml-2 text-[#00A3E0] font-medium">• GAT Dinâmico</span>}
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
                             onClick={() => handleStartEditTemplate(tpl)}
-                            className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
+                            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                             title="Editar modelo"
                           >
-                            <Edit2 className="size-3.5" />
+                            <Edit2 className="size-4" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
-                            className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
                             title="Excluir modelo"
                           >
-                            <Trash2 className="size-3.5" />
+                            <Trash2 className="size-4" />
                           </button>
                         </div>
                       </div>

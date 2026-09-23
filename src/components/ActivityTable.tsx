@@ -157,14 +157,14 @@ export function ActivityTable({
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => onEdit(act)}
-                            className="p-2 rounded-xl text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                             title="Editar atividade"
                           >
                             <Edit2 className="size-4" />
                           </button>
                           <button
                             onClick={() => onDelete(act.id)}
-                            className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
                             title="Excluir atividade"
                           >
                             <Trash2 className="size-4" />

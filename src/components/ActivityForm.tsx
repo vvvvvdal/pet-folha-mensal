@@ -124,7 +124,7 @@ export function ActivityForm({
                   e.target.value = '';
                 }}
                 defaultValue=""
-                className="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-300 text-xs outline-none cursor-pointer focus:border-[#008D4C] hover:border-slate-600 transition-colors"
+                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-200 text-base sm:text-xs outline-none cursor-pointer focus:border-[#008D4C] hover:border-slate-600 transition-colors"
                 title="Selecione uma atividade para preencher o nome e a modalidade automaticamente"
               >
                 <option value="" disabled>
@@ -154,44 +154,44 @@ export function ActivityForm({
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
           {/* Data */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">Data</label>
+            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Data</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
+              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
           {/* Horário Entrada */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">Horário Entrada</label>
+            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Horário Entrada</label>
             <input
               type="time"
               value={start}
               onChange={(e) => setStart(e.target.value)}
               required
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
+              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
           {/* Horário Saída */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">Horário Saída</label>
+            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Horário Saída</label>
             <input
               type="time"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
               required
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
+              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
           {/* Duração Calculada */}
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-400">Duração calculada:</span>
-            <span className="text-sm font-bold text-[#10B981]">
+          <div className="min-h-[44px] p-2.5 sm:p-3 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between">
+            <span className="text-xs sm:text-sm font-medium text-slate-400">Duração:</span>
+            <span className="text-sm sm:text-base font-bold text-[#10B981]">
               {previewHours}h {previewHours === 1 ? 'hora' : 'horas'}
             </span>
           </div>
@@ -199,13 +199,13 @@ export function ActivityForm({
 
         {/* Row 2: Modalidade da Atividade - Tons equilibrados de Azul */}
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">Modalidade</label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Modalidade</label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* Síncrona Virtual: Azul Turquesa / Cyan */}
             <button
               type="button"
               onClick={() => setModality('Síncrona virtual')}
-              className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Síncrona virtual'
                   ? 'bg-[#00A3E0]/15 border-[#00A3E0]/50 text-[#00A3E0] dark:text-[#7DD3FC] shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
@@ -219,7 +219,7 @@ export function ActivityForm({
             <button
               type="button"
               onClick={() => setModality('Síncrona presencial')}
-              className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Síncrona presencial'
                   ? 'bg-blue-600/20 border-blue-500/50 text-blue-600 dark:text-blue-300 shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
@@ -233,7 +233,7 @@ export function ActivityForm({
             <button
               type="button"
               onClick={() => setModality('Assíncrona virtual')}
-              className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Assíncrona virtual'
                   ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-300 shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
@@ -248,7 +248,7 @@ export function ActivityForm({
         {/* Row 3: Descrição e Ações */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 pt-1">
           <div className="flex-1">
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
+            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
               Descrição da Atividade
             </label>
             <input
@@ -257,14 +257,14 @@ export function ActivityForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
+              className="w-full min-h-[44px] px-4 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pt-1 sm:pt-0">
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#008D4C] text-white hover:bg-[#00733E] cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-[#008D4C]/25"
+              className="flex-1 sm:flex-none min-h-[44px] px-6 py-2.5 rounded-xl text-sm sm:text-base font-bold bg-[#008D4C] text-white hover:bg-[#00733E] cursor-pointer transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#008D4C]/25"
             >
               {editingActivity ? (
                 <>
@@ -282,7 +282,7 @@ export function ActivityForm({
               <button
                 type="button"
                 onClick={onCancelEdit}
-                className="px-3.5 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs sm:text-sm font-medium cursor-pointer transition-all"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 text-sm font-semibold cursor-pointer transition-all"
               >
                 Cancelar
               </button>

@@ -162,13 +162,13 @@ export function Navbar({
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-slate-100 cursor-pointer transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-slate-100 cursor-pointer transition-colors"
             title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
           >
             {theme === 'dark' ? (
-              <Sun className="size-4" />
+              <Sun className="size-4.5" />
             ) : (
-              <Moon className="size-4 text-slate-400" />
+              <Moon className="size-4.5 text-slate-400" />
             )}
           </button>
 
@@ -176,27 +176,27 @@ export function Navbar({
           <button
             type="button"
             onClick={onOpenFeedback}
-            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#00A3E0]/40 text-slate-400 hover:text-[#00A3E0] cursor-pointer transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#00A3E0]/40 text-slate-400 hover:text-[#00A3E0] cursor-pointer transition-colors"
             title="Avaliação do sistema, sugestões e relato de bugs"
           >
-            <MessageSquareHeart className="size-4" />
+            <MessageSquareHeart className="size-4.5" />
           </button>
 
           {/* Admin Shield */}
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors"
             title="Acesso de gestão / modo administrador"
           >
-            <Shield className="size-4" />
+            <Shield className="size-4.5" />
           </button>
 
           {/* Salvar e Sair */}
           <button
             type="button"
             onClick={onOpenExitModal}
-            className="px-3.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-semibold cursor-pointer transition-colors relative"
+            className="min-h-[44px] px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs sm:text-sm font-semibold cursor-pointer transition-colors relative flex items-center"
             title="Salvar arquivo de backup e sair"
           >
             {hasChanges && (
