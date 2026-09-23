@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/* ============================================================
+   PALETA DE CONFORTO ÓPTICO & ANTI-FADIGA VISUAL
+   Baseada na skill 'frontend-design-ultimate'
+   ============================================================ */
+
+:root[data-theme="gentle-dark"] {
+  --bg-canvas: #131418;
+  --bg-surface: #1a1c24;
+  --bg-elevated: #222530;
+  --bg-subtle: #292d3a;
+  --border-subtle: #2d3240;
+  --border-strong: #3f4557;
+
+  --text-heading: #f1f3f7;
+  --text-body: #caced8;
+  --text-muted: #8890a0;
+
+  --accent-sage: #86efac;
+  --accent-sage-bg: rgba(134, 239, 172, 0.09);
+  --accent-sage-border: rgba(134, 239, 172, 0.25);
+
+  --accent-sky: #93c5fd;
+  --accent-sky-bg: rgba(147, 197, 253, 0.09);
+  --accent-sky-border: rgba(147, 197, 253, 0.25);
+
+  --accent-amber: #fde047;
+  --accent-amber-bg: rgba(253, 224, 71, 0.08);
+  --accent-amber-border: rgba(253, 224, 71, 0.22);
+
+  --accent-rose: #fca5a5;
+  --accent-rose-bg: rgba(252, 165, 165, 0.09);
+  --accent-rose-border: rgba(252, 165, 165, 0.25);
+
+  --input-bg: #161820;
+  --table-header-bg: #1e212b;
+  --table-stripe: rgba(255, 255, 255, 0.015);
+  --table-hover: rgba(147, 197, 253, 0.04);
+}
+
+:root[data-theme="sepia"] {
+  --bg-canvas: #fcf8f0;
+  --bg-surface: #f4ecdf;
+  --bg-elevated: #ebdcc9;
+  --bg-subtle: #e2d2bd;
+  --border-subtle: #dbcaa8;
+  --border-strong: #c2af8c;
+
+  --text-heading: #2d261e;
+  --text-body: #473d31;
+  --text-muted: #786a58;
+
+  --accent-sage: #2d6a4f;
+  --accent-sage-bg: rgba(45, 106, 79, 0.1);
+  --accent-sage-border: rgba(45, 106, 79, 0.25);
+
+  --accent-sky: #1d4ed8;
+  --accent-sky-bg: rgba(29, 78, 216, 0.08);
+  --accent-sky-border: rgba(29, 78, 216, 0.22);
+
+  --accent-amber: #b45309;
+  --accent-amber-bg: rgba(180, 83, 9, 0.09);
+  --accent-amber-border: rgba(180, 83, 9, 0.22);
+
+  --accent-rose: #b91c1c;
+  --accent-rose-bg: rgba(185, 28, 28, 0.08);
+  --accent-rose-border: rgba(185, 28, 28, 0.22);
+
+  --input-bg: #ffffff;
+  --table-header-bg: #ebdcc9;
+  --table-stripe: rgba(0, 0, 0, 0.02);
+  --table-hover: rgba(45, 106, 79, 0.04);
+}
+
+:root[data-theme="soft-light"] {
+  --bg-canvas: #f6f8fb;
+  --bg-surface: #ffffff;
+  --bg-elevated: #edf1f7;
+  --bg-subtle: #e2e8f0;
+  --border-subtle: #e1e4ea;
+  --border-strong: #cbd5e1;
+
+  --text-heading: #1e293b;
+  --text-body: #334155;
+  --text-muted: #64748b;
+
+  --accent-sage: #15803d;
+  --accent-sage-bg: rgba(21, 128, 61, 0.08);
+  --accent-sage-border: rgba(21, 128, 61, 0.2);
+
+  --accent-sky: #0369a1;
+  --accent-sky-bg: rgba(3, 105, 161, 0.08);
+  --accent-sky-border: rgba(3, 105, 161, 0.2);
+
+  --accent-amber: #b45309;
+  --accent-amber-bg: rgba(180, 83, 9, 0.08);
+  --accent-amber-border: rgba(180, 83, 9, 0.2);
+
+  --accent-rose: #b91c1c;
+  --accent-rose-bg: rgba(185, 28, 28, 0.08);
+  --accent-rose-border: rgba(185, 28, 28, 0.2);
+
+  --input-bg: #f8fafc;
+  --table-header-bg: #edf1f7;
+  --table-stripe: rgba(0, 0, 0, 0.015);
+  --table-hover: rgba(3, 105, 161, 0.03);
+}
+
+body {
+  background-color: var(--bg-canvas, #131418);
+  color: var(--text-body, #caced8);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   REGRAS DE IMPRESSÃO (A4 PAISAGEM / PADRÃO IMAGEM 3)
+   ============================================================ */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm 15mm 10mm 15mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-only-wrapper {
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .official-sheet {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  table.official-table {
+    border: 1.5px solid #000000 !important;
+  }
+
+  table.official-table th, table.official-table td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+}
+
+@media screen {
+  .print-only-wrapper {
+    display: none;
+  }
+}
