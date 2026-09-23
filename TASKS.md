@@ -5,8 +5,11 @@
 - [x] Configuração da porta de desenvolvimento padrão para 5000 (`next dev -p 5000`).
 - [x] Migração dos assets, templates oficiais (`.docx`, `.pdf`, `.xlsx`) e logo do PET.
 - [x] Implementação dos tokens de conforto óptico e anti-fadiga visual (`frontend-design-ultimate`).
-- [x] **Redesign Minimalista e Despoluição Visual (`shadcn` + `vercel-web-design-guidelines`)**: Eliminação de barreiras de login, remoção de banners e ruído visual, bloqueio exclusivo em Dark Mode (`#09090b`), formulário compacto e barra de progresso em linha.
-- [x] **Arquitetura Local-First & Conformidade LGPD (Privacy by Design)**: Dados 100% no navegador (`localStorage`), zero custos com nuvem e sem risco de vazamento de dados de terceiros, com suporte a Exportação/Importação de backup em JSON.
+- [x] **Ajuste de Conforto Óptico (Dark Slate Suave)**: Transição do preto absoluto (`#09090b`) para uma paleta carvão/slate balanceada (`#141720` canvas, `#1b202c` surface, `#232938` elevated, bordas `#2b3346`), garantindo descanso visual e contraste confortável.
+- [x] **Isolamento Transparente de Dados de Perfis**: Remoção do auto-povoamento acidental de atividades de exemplo para novos usuários. Novos participantes começam com a folha zerada (0h), com botão opcional de carregar exemplos do GAT e ação de zerar folha.
+- [x] **UX Simplificada de Backup (Sem Jargão Técnico)**: Substituição de termos como "Exportar JSON" por ações claras e acessíveis como "Salvar Cópia" e "Restaurar", protegendo os dados do bolsista contra limpezas de histórico.
+- [x] **Redesign Minimalista e Despoluição Visual (`shadcn` + `vercel-web-design-guidelines`)**: Eliminação de barreiras de login, remoção de banners e ruído visual, bloqueio exclusivo em Dark Mode, formulário compacto e barra de progresso em linha.
+- [x] **Arquitetura Local-First & Conformidade LGPD (Privacy by Design)**: Dados 100% no navegador (`localStorage`), zero custos com nuvem e sem risco de vazamento de dados de terceiros.
 - [x] **Generalização Dinâmica por GAT**: Botão de atalho e formulário injetam dinamicamente o número e tema do GAT ativo (`Reunião do GAT ${user.gatNumber} (${user.gatName})`).
 - [x] Implementação da regra canônica de cálculo de horas PET (`CEILING - FLOOR`).
 - [x] Componente `OfficialSheet.tsx` e regras de impressão `@media print` gerando folha A4 Paisagem idêntica ao modelo do Ministério da Saúde.
