@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Activity, UserProfile } from '@/types';
 import { formatDateBR } from '@/lib/pet-calculator';
-import { Edit2, Trash2, Sparkles, RotateCcw, Calendar, Clock, ListChecks } from 'lucide-react';
+import { Edit2, Trash2, Sparkles, RotateCcw, Calendar, Clock, ListChecks, LogOut } from 'lucide-react';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
 interface ActivityTableProps {
@@ -14,6 +14,7 @@ interface ActivityTableProps {
   monthLabel: string;
   onLoadSamples: () => void;
   onClearMonth: () => void;
+  onOpenExitModal?: () => void;
 }
 
 export function ActivityTable({
@@ -25,7 +26,8 @@ export function ActivityTable({
   user,
   monthLabel,
   onLoadSamples,
-  onClearMonth
+  onClearMonth,
+  onOpenExitModal
 }: ActivityTableProps) {
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
 
@@ -169,15 +171,27 @@ export function ActivityTable({
             })
           )}
 
-          {/* Rodapé Mobile: Total */}
+          {/* Rodapé Mobile: Total e Ação Rápida de Saída */}
           {activities.length > 0 && (
-            <div className="p-4 bg-slate-950/80 flex items-center justify-between border-t border-slate-800">
-              <span className="text-xs uppercase font-bold text-slate-400 tracking-wider">
-                Total ({monthLabel}):
-              </span>
-              <span className="text-lg font-black text-[#10B981]">
-                {totalHours}h
-              </span>
+            <div className="p-3.5 bg-slate-950/90 flex items-center justify-between border-t border-slate-800 gap-2">
+              <div className="flex flex-col">
+                <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">
+                  Total ({monthLabel}):
+                </span>
+                <span className="text-lg font-black text-[#10B981]">
+                  {totalHours}h
+                </span>
+              </div>
+              {onOpenExitModal && (
+                <button
+                  type="button"
+                  onClick={onOpenExitModal}
+                  className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-bold border border-slate-700 flex items-center gap-1.5 shadow-xs cursor-pointer transition-colors"
+                >
+                  <LogOut className="size-3.5 text-emerald-400" />
+                  <span>Salvar e Sair</span>
+                </button>
+              )}
             </div>
           )}
         </div>

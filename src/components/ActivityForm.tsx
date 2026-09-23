@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, ModalityType, ActivityTemplate } from '@/types';
 import { calcPetHours } from '@/lib/pet-calculator';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Calendar, Clock } from 'lucide-react';
 import { useDialog } from '@/context/DialogContext';
 import { useTheme } from '@/lib/theme';
 
 interface ActivityFormProps {
   onSave: (data: Omit<Activity, 'id' | 'hours'>, editingId?: string) => void;
-  editingActivity: Activity | null;
-  onCancelEdit: () => void;
+  editingActivity?: Activity | null;
+  onCancelEdit?: () => void;
   defaultGatNumber?: string;
   defaultGatName?: string;
   templates?: ActivityTemplate[];
@@ -18,7 +18,7 @@ interface ActivityFormProps {
 
 export function ActivityForm({
   onSave,
-  editingActivity,
+  editingActivity = null,
   onCancelEdit,
   defaultGatNumber = '04',
   defaultGatName = 'Mangaba',
@@ -157,40 +157,64 @@ export function ActivityForm({
           {/* Data */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Data</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
-            />
+            <div className="relative flex items-center">
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    (e.target as any).showPicker?.();
+                  } catch {}
+                }}
+                required
+                style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
+                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+              />
+              <Calendar className="absolute right-3.5 size-4 text-slate-200 pointer-events-none z-1" />
+            </div>
           </div>
 
           {/* Horário Entrada */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Horário Entrada</label>
-            <input
-              type="time"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              required
-              style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
-            />
+            <div className="relative flex items-center">
+              <input
+                type="time"
+                value={start}
+                onChange={(e) => setStart(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    (e.target as any).showPicker?.();
+                  } catch {}
+                }}
+                required
+                style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
+                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+              />
+              <Clock className="absolute right-3.5 size-4 text-slate-200 pointer-events-none z-1" />
+            </div>
           </div>
 
           {/* Horário Saída */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Horário Saída</label>
-            <input
-              type="time"
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              required
-              style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
-            />
+            <div className="relative flex items-center">
+              <input
+                type="time"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    (e.target as any).showPicker?.();
+                  } catch {}
+                }}
+                required
+                style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
+                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+              />
+              <Clock className="absolute right-3.5 size-4 text-slate-200 pointer-events-none z-1" />
+            </div>
           </div>
 
           {/* Duração Calculada */}

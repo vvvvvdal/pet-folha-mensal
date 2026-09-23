@@ -18,13 +18,14 @@ import {
   getStoredTemplates,
   registerProfile
 } from '@/lib/storage';
-import { calcPetHours, getMonthYearLabel } from '@/lib/pet-calculator';
+import { calcPetHours, getMonthYearLabel, formatDateBR } from '@/lib/pet-calculator';
 import { Navbar } from '@/components/Navbar';
 import { ProfileModal } from '@/components/ProfileModal';
 import { AdminModal } from '@/components/AdminModal';
 import { StatsGrid } from '@/components/StatsGrid';
 import { ActivityForm } from '@/components/ActivityForm';
 import { ActivityTable } from '@/components/ActivityTable';
+import { EditActivityModal } from '@/components/EditActivityModal';
 import { OfficialSheet } from '@/components/OfficialSheet';
 import { LandingPage } from '@/components/LandingPage';
 import { ExitModal } from '@/components/ExitModal';
@@ -33,7 +34,7 @@ import { Calendar, Download, Printer, CheckCircle2, ArrowLeft, MessageSquareHear
 import { useDialog } from '@/context/DialogContext';
 
 export default function Home() {
-  const { alert } = useDialog();
+  const { alert, confirm } = useDialog();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeUser, setActiveUser] = useState<UserProfile | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -195,8 +196,20 @@ export default function Home() {
     setHasChanges(true);
   };
 
-  const handleDeleteActivity = (id: string) => {
+  const handleDeleteActivity = async (id: string) => {
     if (!activeUser) return;
+    const act = activities.find((a) => a.id === id);
+    const confirmed = await confirm({
+      title: 'Excluir Atividade?',
+      message: act
+        ? `Deseja realmente remover o registro "${act.description}" de ${formatDateBR(act.date)} (${act.hours}h)?`
+        : 'Deseja realmente remover esta atividade da sua folha mensal?',
+      confirmText: 'Sim, excluir',
+      cancelText: 'Cancelar',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
     if (editingActivity?.id === id) {
       setEditingActivity(null);
     }
@@ -416,8 +429,6 @@ export default function Home() {
 
               <ActivityForm
                 onSave={handleSaveActivity}
-                editingActivity={editingActivity}
-                onCancelEdit={() => setEditingActivity(null)}
                 defaultGatNumber={activeUser.gatNumber}
                 defaultGatName={activeUser.gatName || gats[activeUser.gatNumber]?.name}
                 templates={templates}
@@ -433,6 +444,7 @@ export default function Home() {
                 monthLabel={monthLabel}
                 onLoadSamples={handleLoadSamples}
                 onClearMonth={handleClearMonth}
+                onOpenExitModal={() => setIsExitModalOpen(true)}
               />
             </div>
           )}
@@ -521,6 +533,17 @@ export default function Home() {
           gats={gats}
           roles={roles}
           onSaveProfile={handleSaveProfile}
+        />
+
+        {/* Modal Dedicado de Edição de Atividade */}
+        <EditActivityModal
+          isOpen={Boolean(editingActivity)}
+          onClose={() => setEditingActivity(null)}
+          activity={editingActivity}
+          onSave={handleSaveActivity}
+          defaultGatNumber={activeUser.gatNumber}
+          defaultGatName={activeUser.gatName || gats[activeUser.gatNumber]?.name}
+          templates={templates}
         />
 
         {/* Modal de Gestão & Administração */}

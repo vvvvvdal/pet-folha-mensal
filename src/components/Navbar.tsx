@@ -11,7 +11,8 @@ import {
   Shield,
   Sun,
   Moon,
-  MessageSquareHeart
+  MessageSquareHeart,
+  LogOut
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -185,24 +186,25 @@ export function Navbar({
             <MessageSquareHeart className="size-4 sm:size-4.5" />
           </button>
 
-          {/* Admin Shield */}
+          {/* Admin Shield: Desktop */}
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="size-9 sm:size-10 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors flex items-center justify-center shrink-0"
+            className="hidden sm:flex size-9 sm:size-10 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors items-center justify-center shrink-0"
             title="Acesso de gestão / modo administrador"
             aria-label="Acesso de gestão / modo administrador"
           >
             <Shield className="size-4 sm:size-4.5" />
           </button>
 
-          {/* Salvar e Sair */}
+          {/* Salvar e Sair (Header) */}
           <button
             type="button"
             onClick={onOpenExitModal}
-            className="h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 text-slate-200 hover:text-white text-xs sm:text-sm font-semibold cursor-pointer transition-colors relative flex items-center gap-1.5 shrink-0"
+            className="h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl border border-slate-700/80 bg-slate-800/90 hover:bg-slate-700 text-slate-100 hover:text-white text-xs sm:text-sm font-bold cursor-pointer transition-all relative flex items-center gap-1.5 shrink-0 shadow-xs"
             title="Salvar arquivo de backup e sair"
           >
+            <LogOut className="size-3.5 text-emerald-400" />
             {hasChanges && (
               <span className="size-2 rounded-full bg-amber-400 animate-pulse absolute -top-0.5 -right-0.5 ring-2 ring-slate-950" />
             )}
@@ -214,30 +216,42 @@ export function Navbar({
 
       {/* Navigation Segmented Control: Mobile Row */}
       <div className="md:hidden px-3.5 pb-2.5 pt-0.5 border-t border-slate-800/40">
-        <div className="w-full grid grid-cols-2 p-1 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold">
+        <div className="w-full flex items-center gap-2">
+          <div className="flex-1 grid grid-cols-2 p-1 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => onTabChange('dashboard')}
+              className={`min-h-[38px] rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'dashboard'
+                  ? 'bg-slate-800 text-slate-100 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <LayoutDashboard className="size-3.5" />
+              <span>Lançamentos</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onTabChange('official')}
+              className={`min-h-[38px] rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeTab === 'official'
+                  ? 'bg-slate-800 text-slate-100 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <FileText className="size-3.5" />
+              <span>Folha Oficial</span>
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={() => onTabChange('dashboard')}
-            className={`min-h-[38px] rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'dashboard'
-                ? 'bg-slate-800 text-slate-100 shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
+            onClick={onOpenExitModal}
+            className="min-h-[46px] px-3.5 rounded-xl border border-slate-700 bg-slate-800/90 hover:bg-slate-700 text-slate-100 text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+            title="Salvar cópia e sair"
           >
-            <LayoutDashboard className="size-3.5" />
-            <span>Lançamentos</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onTabChange('official')}
-            className={`min-h-[38px] rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'official'
-                ? 'bg-slate-800 text-slate-100 shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <FileText className="size-3.5" />
-            <span>Folha Oficial</span>
+            <LogOut className="size-3.5 text-emerald-400" />
+            <span>Sair</span>
           </button>
         </div>
       </div>

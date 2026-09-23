@@ -101,30 +101,36 @@ button, a, select, input {
 }
 
 /* ============================================================
-   ÍCONES NATIVOS DE ENTRADA (DATA E HORA)
+   SELETORES NATIVOS DE DATA E HORA (COM ICONES SVG PERSONALIZADOS)
    ============================================================ */
-html[data-theme="dark"] input[type="date"],
-html[data-theme="dark"] input[type="time"] {
-  color-scheme: dark !important;
+input[type="date"],
+input[type="time"] {
+  position: relative;
 }
 
-html[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
-html[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.99) brightness(1.2) !important;
-  cursor: pointer;
-  opacity: 0.95;
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="time"] {
+  color-scheme: dark;
 }
 
 html[data-theme="light"] input[type="date"],
 html[data-theme="light"] input[type="time"] {
-  color-scheme: light !important;
+  color-scheme: light;
 }
 
-html[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
-html[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: none !important;
+/* Oculta o glifo nativo do navegador para usar icones SVG nitidos e padronizados */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0 !important;
   cursor: pointer;
-  opacity: 0.85;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 2.75rem;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 2;
 }
 
 /* ============================================================
