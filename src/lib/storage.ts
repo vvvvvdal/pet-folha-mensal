@@ -12,7 +12,7 @@ import { calcPetHours } from './pet-calculator';
 // Hash SHA-256 do PIN administrativo (padrão ou configurado via .env)
 export const ADMIN_PIN_HASH =
   process.env.NEXT_PUBLIC_ADMIN_PIN_HASH ||
-  '2559813bc6529f6938ba78a2fc60a6b4e8ccdc67cd41a2c4acf159a14304ce0c';
+  '683a9e878af26dfcbfb2b70bc63214acfd3614519ead8c1912c7d1907061d1a2';
 
 export async function verifyAdminPin(inputPin: string): Promise<boolean> {
   const clean = inputPin.trim();
