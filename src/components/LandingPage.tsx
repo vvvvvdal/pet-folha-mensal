@@ -359,12 +359,27 @@ export function LandingPage({
         </section>
       </main>
 
-      {/* Footer com Créditos e Licença MIT */}
+      {/* Footer com Créditos */}
       <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-400">
         <p>
           Desenvolvido por{' '}
-          <strong className="text-slate-200 font-semibold">Felipe Gonçalves Vidal</strong> &amp;{' '}
-          <strong className="text-slate-200 font-semibold">Robert Francisco Taveira</strong> • Licença MIT
+          <a
+            href="https://www.linkedin.com/in/vvvvvdal/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-200 font-semibold underline underline-offset-2 hover:text-[#008D4C] dark:hover:text-[#10B981] transition-colors"
+          >
+            Felipe Vidal
+          </a>{' '}
+          &amp;{' '}
+          <a
+            href="https://www.linkedin.com/in/robert-taveira/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-200 font-semibold underline underline-offset-2 hover:text-[#008D4C] dark:hover:text-[#10B981] transition-colors"
+          >
+            Robert Taveira
+          </a>
         </p>
       </footer>
     </div>

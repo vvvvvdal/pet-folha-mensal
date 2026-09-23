@@ -550,15 +550,31 @@ export default function Home() {
           </div>
         )}
 
-        {/* Footer com Créditos e Licença MIT */}
-        <footer className="w-full border-t border-slate-800/80 bg-slate-950/60 py-6 text-center text-xs text-slate-400 mt-12">
-          <p>
-            Desenvolvido por{' '}
-            <strong className="text-slate-200 font-semibold">Felipe Gonçalves Vidal</strong> &amp;{' '}
-            <strong className="text-slate-200 font-semibold">Robert Francisco Taveira</strong> • Licença MIT
-          </p>
-        </footer>
       </main>
+
+      {/* Footer com Créditos */}
+      <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-400 mt-12">
+        <p>
+          Desenvolvido por{' '}
+          <a
+            href="https://www.linkedin.com/in/vvvvvdal/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-200 font-semibold underline underline-offset-2 hover:text-[#008D4C] dark:hover:text-[#10B981] transition-colors"
+          >
+            Felipe Vidal
+          </a>{' '}
+          &amp;{' '}
+          <a
+            href="https://www.linkedin.com/in/robert-taveira/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-200 font-semibold underline underline-offset-2 hover:text-[#008D4C] dark:hover:text-[#10B981] transition-colors"
+          >
+            Robert Taveira
+          </a>
+        </p>
+      </footer>
     </div>
 
       {/* ============================================================
