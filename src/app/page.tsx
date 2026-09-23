@@ -521,7 +521,6 @@ export default function Home() {
           gats={gats}
           roles={roles}
           onSaveProfile={handleSaveProfile}
-          onOpenAdmin={() => setIsAdminModalOpen(true)}
         />
 
         {/* Modal de Gestão & Administração */}

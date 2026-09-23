@@ -105,24 +105,24 @@ button, a, select, input {
    ============================================================ */
 html[data-theme="dark"] input[type="date"],
 html[data-theme="dark"] input[type="time"] {
-  color-scheme: dark;
+  color-scheme: dark !important;
 }
 
 html[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
 html[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: invert(0.99) brightness(1.2) !important;
   cursor: pointer;
   opacity: 0.95;
 }
 
 html[data-theme="light"] input[type="date"],
 html[data-theme="light"] input[type="time"] {
-  color-scheme: light;
+  color-scheme: light !important;
 }
 
 html[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
 html[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: none;
+  filter: none !important;
   cursor: pointer;
   opacity: 0.85;
 }

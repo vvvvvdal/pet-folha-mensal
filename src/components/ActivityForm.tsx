@@ -5,6 +5,7 @@ import { Activity, ModalityType, ActivityTemplate } from '@/types';
 import { calcPetHours } from '@/lib/pet-calculator';
 import { Plus, Check } from 'lucide-react';
 import { useDialog } from '@/context/DialogContext';
+import { useTheme } from '@/lib/theme';
 
 interface ActivityFormProps {
   onSave: (data: Omit<Activity, 'id' | 'hours'>, editingId?: string) => void;
@@ -23,6 +24,7 @@ export function ActivityForm({
   defaultGatName = 'Mangaba',
   templates = []
 }: ActivityFormProps) {
+  const { theme } = useTheme();
   const { alert } = useDialog();
   const [date, setDate] = useState('2026-09-23');
   const [start, setStart] = useState('19:00');
@@ -160,6 +162,7 @@ export function ActivityForm({
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
+              style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
               className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
             />
           </div>
@@ -172,6 +175,7 @@ export function ActivityForm({
               value={start}
               onChange={(e) => setStart(e.target.value)}
               required
+              style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
               className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
             />
           </div>
@@ -184,6 +188,7 @@ export function ActivityForm({
               value={end}
               onChange={(e) => setEnd(e.target.value)}
               required
+              style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
               className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
             />
           </div>

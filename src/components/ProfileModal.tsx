@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, UserRole, GATInfo } from '@/types';
 import { normalizeName } from '@/lib/storage';
-import { X, Check, User, Shield } from 'lucide-react';
+import { X, Check, User } from 'lucide-react';
 import { useDialog } from '@/context/DialogContext';
 
 interface ProfileModalProps {
@@ -14,7 +14,6 @@ interface ProfileModalProps {
   gats: Record<string, GATInfo>;
   roles: string[];
   onSaveProfile: (updated: UserProfile) => void;
-  onOpenAdmin: () => void;
 }
 
 export function ProfileModal({
@@ -24,8 +23,7 @@ export function ProfileModal({
   allProfiles,
   gats,
   roles,
-  onSaveProfile,
-  onOpenAdmin
+  onSaveProfile
 }: ProfileModalProps) {
   const { alert } = useDialog();
   const [name, setName] = useState(currentUser.name);
@@ -148,35 +146,21 @@ export function ProfileModal({
             Seus dados são salvos exclusivamente no seu dispositivo (100% no navegador).
           </p>
 
-          <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2 border-t border-slate-800/60">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800/60">
             <button
               type="button"
-              onClick={() => {
-                onClose();
-                onOpenAdmin();
-              }}
-              className="text-xs text-slate-400 hover:text-[#10B981] flex items-center justify-center sm:justify-start gap-1.5 py-2 cursor-pointer transition-colors"
+              onClick={onClose}
+              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 text-xs sm:text-sm font-medium rounded-xl border border-slate-800 text-slate-300 hover:bg-slate-800 cursor-pointer transition-colors"
             >
-              <Shield className="size-3.5" style={{ color: '#10B981' }} />
-              <span>Painel Admin</span>
+              Cancelar
             </button>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 text-xs sm:text-sm font-medium rounded-xl border border-slate-800 text-slate-300 hover:bg-slate-800 cursor-pointer transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="flex-1 sm:flex-none min-h-[44px] px-5 py-2 text-xs sm:text-sm font-bold rounded-xl text-white bg-[#008D4C] hover:bg-[#00733E] cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-              >
-                <Check className="size-4" />
-                <span>Salvar Alterações</span>
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="flex-1 sm:flex-none min-h-[44px] px-5 py-2 text-xs sm:text-sm font-bold rounded-xl text-white bg-[#008D4C] hover:bg-[#00733E] cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+            >
+              <Check className="size-4" />
+              <span>Salvar Alterações</span>
+            </button>
           </div>
         </form>
       </div>
