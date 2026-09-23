@@ -16,6 +16,10 @@
 - [x] Implementação da regra canônica de cálculo de horas PET (`CEILING - FLOOR`).
 - [x] Componente `OfficialSheet.tsx` e regras de impressão `@media print` gerando folha A4 Paisagem idêntica ao modelo do Ministério da Saúde.
 - [x] Criação da documentação canônica em `docs/` (`architecture.md`, `regimento-pet.md`, `deployment-vercel.md`).
+- [x] **Identidade Visual Oficial (PET-Saúde Clima)**: Integração da paleta oficial do Cerrado/Saúde/Clima (`#008D4C`, `#00A3E0`, `#F9BD47`, `#DE3831`, `#94C12D`), logos em alta resolução vetorial, favicon oficial e suporte a alternância dinâmico Modo Claro / Modo Escuro suave.
+- [x] **Simplificação e Limpeza Administrativa**: Remoção de campos desnecessários de e-mail no Admin, confirmação de segurança na exclusão de templates, e redução dos modelos padrão para 2 essenciais (Reunião do GAT e Reunião Geral).
+- [x] **Licenciamento e Autoria**: Licença MIT adicionada ao repositório com atribuição oficial a Felipe Gonçalves Vidal e Robert Francisco Taveira no rodapé e metadados.
+- [x] **Fluxo Guiado de Onboarding e Backup**: Landing page com explicação simplificada de arquivos `.json` e segurança 100% local, tela de bloqueio de saída com download forçado do backup e folha A4.
 
 ## Modo de Execução Atual: Localhost
 - [x] Execução autossuficiente em `http://localhost:5000` com persistência local (`localStorage`).
