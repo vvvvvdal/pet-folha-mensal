@@ -90,13 +90,13 @@ export function LandingPage({
             <button
               type="button"
               onClick={toggleTheme}
-              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-slate-100 cursor-pointer transition-colors"
               title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
             >
               {theme === 'dark' ? (
-                <Sun className="size-4 text-amber-400" />
+                <Sun className="size-4" />
               ) : (
-                <Moon className="size-4 text-slate-600" />
+                <Moon className="size-4 text-slate-400" />
               )}
             </button>
 

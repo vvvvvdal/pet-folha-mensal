@@ -29,18 +29,18 @@ export function ActivityTable({
 }: ActivityTableProps) {
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
 
-  // Modalidades em conformidade com o Manual de Identidade Visual PET Saúde Clima
+  // Modalidades em 3 tons distintos e harmoniosos da família azul
   const getModalityBadge = (modality: string) => {
     switch (modality) {
       case 'Síncrona presencial':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/30 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-600/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 whitespace-nowrap">
             Síncrona presencial
           </span>
         );
       case 'Assíncrona virtual':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F9BD47]/15 text-[#B45309] dark:text-amber-300 border border-[#F9BD47]/30 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-600/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 whitespace-nowrap">
             Assíncrona virtual
           </span>
         );

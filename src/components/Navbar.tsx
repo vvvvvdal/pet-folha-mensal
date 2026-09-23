@@ -124,22 +124,24 @@ export function Navbar({
           </div>
 
           {/* Backup Actions */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1.5">
             <button
               type="button"
               onClick={onExportBackup}
-              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors"
+              className="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-medium"
               title="Salvar cópia de segurança (.json) no seu dispositivo"
             >
-              <Download className="size-4" />
+              <Download className="size-3.5" />
+              <span>Baixar</span>
             </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors"
+              className="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors flex items-center gap-1.5 text-xs font-medium"
               title="Carregar outro arquivo .json salvo"
             >
-              <Upload className="size-4" />
+              <Upload className="size-3.5" />
+              <span>Carregar</span>
             </button>
             <input
               ref={fileInputRef}
@@ -160,13 +162,13 @@ export function Navbar({
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-slate-100 cursor-pointer transition-colors"
             title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
           >
             {theme === 'dark' ? (
-              <Sun className="size-4 text-amber-400" />
+              <Sun className="size-4" />
             ) : (
-              <Moon className="size-4 text-slate-600" />
+              <Moon className="size-4 text-slate-400" />
             )}
           </button>
 

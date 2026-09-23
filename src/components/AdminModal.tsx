@@ -9,11 +9,6 @@ import {
 } from '@/types';
 import {
   ADMIN_PASSWORD,
-  normalizeName,
-  deduplicateProfiles,
-  saveProfiles,
-  deleteUserProfile,
-  updateUserProfileAdmin,
   saveGats,
   saveRoles,
   saveTemplates,
@@ -25,7 +20,6 @@ import {
   Shield,
   X,
   Lock,
-  Users,
   Briefcase,
   Layers,
   CalendarDays,
@@ -41,23 +35,23 @@ import {
 interface AdminModalProps {
   isOpen: boolean;
   onClose: () => void;
-  profiles: UserProfile[];
+  profiles?: UserProfile[];
   gats: Record<string, GATInfo>;
   roles: string[];
   templates: ActivityTemplate[];
-  onProfilesChange: (updated: UserProfile[]) => void;
+  onProfilesChange?: (updated: UserProfile[]) => void;
   onGatsChange: (updated: Record<string, GATInfo>) => void;
   onRolesChange: (updated: string[]) => void;
   onTemplatesChange: (updated: ActivityTemplate[]) => void;
-  onSelectUser: (user: UserProfile) => void;
+  onSelectUser?: (user: UserProfile) => void;
   defaultAuthenticated?: boolean;
-  defaultTab?: 'users' | 'roles' | 'gats' | 'templates';
+  defaultTab?: 'roles' | 'gats' | 'templates';
 }
 
 export function AdminModal({
   isOpen,
   onClose,
-  profiles,
+  profiles = [],
   gats,
   roles,
   templates,
@@ -67,7 +61,7 @@ export function AdminModal({
   onTemplatesChange,
   onSelectUser,
   defaultAuthenticated = false,
-  defaultTab = 'users'
+  defaultTab = 'roles'
 }: AdminModalProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     if (defaultAuthenticated) return true;
@@ -78,22 +72,13 @@ export function AdminModal({
   });
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'gats' | 'templates'>(() => {
+  const [activeTab, setActiveTab] = useState<'roles' | 'gats' | 'templates'>(() => {
     if (typeof window !== 'undefined') {
       const tab = new URLSearchParams(window.location.search).get('tab');
-      if (tab === 'templates' || tab === 'users' || tab === 'roles' || tab === 'gats') return tab;
+      if (tab === 'templates' || tab === 'roles' || tab === 'gats') return tab;
     }
     return defaultTab;
   });
-
-  // Formulário de Edição de Usuário
-  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
-
-  // Formulário de Novo Usuário
-  const [isAddingUser, setIsAddingUser] = useState(false);
-  const [newUserName, setNewUserName] = useState('');
-  const [newUserRole, setNewUserRole] = useState(roles[0] || 'Estudante');
-  const [newUserGat, setNewUserGat] = useState(Object.keys(gats)[0] || '01');
 
   // Formulário de Edição / Nova Função (Role)
   const [newRoleName, setNewRoleName] = useState('');
@@ -131,71 +116,6 @@ export function AdminModal({
     setIsAuthenticated(false);
     setPinInput('');
     setPinError(false);
-  };
-
-  // ============================================================
-  // AÇÕES: USUÁRIOS
-  // ============================================================
-
-  const hasDuplicateUsers = () => {
-    const names = profiles.map((p) => normalizeName(p.name));
-    return new Set(names).size !== names.length;
-  };
-
-  const handleDeduplicate = () => {
-    const clean = deduplicateProfiles(profiles);
-    saveProfiles(clean);
-    onProfilesChange(clean);
-    alert('Perfis duplicados mesclados e removidos com sucesso.');
-  };
-
-  const handleSaveEditUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingUser) return;
-    const res = updateUserProfileAdmin(editingUser);
-    if (!res.success) {
-      alert(res.error);
-      return;
-    }
-    const updated = profiles.map((p) => (p.id === editingUser.id ? editingUser : p));
-    onProfilesChange(updated);
-    setEditingUser(null);
-  };
-
-  const handleAddUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUserName.trim()) return;
-
-    const normalized = normalizeName(newUserName);
-    if (profiles.some((p) => normalizeName(p.name) === normalized)) {
-      alert(`Já existe um participante com o nome "${newUserName.trim()}".`);
-      return;
-    }
-
-    const gatInfo = gats[newUserGat];
-    const newUser: UserProfile = {
-      id: `usr-${Date.now().toString(36)}`,
-      name: newUserName.trim(),
-      role: newUserRole,
-      gatNumber: newUserGat,
-      gatName: gatInfo?.name || `GAT ${newUserGat}`,
-      createdAt: new Date().toISOString()
-    };
-
-    const updated = [...profiles, newUser];
-    saveProfiles(updated);
-    onProfilesChange(updated);
-
-    setNewUserName('');
-    setIsAddingUser(false);
-  };
-
-  const handleDeleteUser = (id: string, name: string) => {
-    if (confirm(`Deseja realmente excluir o participante "${name}"?`)) {
-      deleteUserProfile(id);
-      const updated = profiles.filter((p) => p.id !== id);
-      onProfilesChange(updated);
-    }
   };
 
   // ============================================================
@@ -243,22 +163,17 @@ export function AdminModal({
     const updatedProfiles = profiles.map((p) =>
       p.role === editingRoleOriginal ? { ...p, role: clean } : p
     );
-    onProfilesChange(updatedProfiles);
+    onProfilesChange?.(updatedProfiles);
 
     setEditingRoleOriginal(null);
     setEditingRoleNewName('');
   };
 
   const handleDeleteRole = (roleToDelete: string) => {
-    const isUsed = profiles.some((p) => p.role === roleToDelete);
-    if (isUsed) {
-      alert(`Não é possível excluir a função "${roleToDelete}" porque existem participantes cadastrados com ela.`);
-      return;
-    }
     if (confirm(`Excluir a função "${roleToDelete}"?`)) {
       const updated = roles.filter((r) => r !== roleToDelete);
       saveRoles(updated);
-      onRolesChange(updated);
+      onRolesChange?.(updated);
     }
   };
 
@@ -342,23 +257,18 @@ export function AdminModal({
       }
       return p;
     });
-    onProfilesChange(updatedProfiles);
+    onProfilesChange?.(updatedProfiles);
 
     setEditingGatOriginalNumber(null);
     setEditingGat(null);
   };
 
   const handleDeleteGat = (gatNum: string) => {
-    const isUsed = profiles.some((p) => p.gatNumber === gatNum);
-    if (isUsed) {
-      alert(`Não é possível excluir o GAT ${gatNum} porque há participantes vinculados a ele.`);
-      return;
-    }
     if (confirm(`Excluir o GAT ${gatNum}?`)) {
       const updated = { ...gats };
       delete updated[gatNum];
       saveGats(updated);
-      onGatsChange(updated);
+      onGatsChange?.(updated);
     }
   };
 
@@ -521,20 +431,6 @@ export function AdminModal({
             {/* Navegação de Abas */}
             <div className="flex border-b border-slate-800 bg-slate-950/60 text-xs font-medium px-4 overflow-x-auto">
               <button
-                onClick={() => setActiveTab('users')}
-                className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
-                  activeTab === 'users'
-                    ? 'border-[#008D4C] text-[#10B981]'
-                    : 'border-transparent text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Users className="size-3.5" />
-                <span>Participantes ({profiles.length})</span>
-                {hasDuplicateUsers() && (
-                  <span className="size-2 rounded-full bg-amber-400 animate-pulse" />
-                )}
-              </button>
-              <button
                 onClick={() => setActiveTab('roles')}
                 className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'roles'
@@ -572,224 +468,7 @@ export function AdminModal({
             {/* Conteúdo da Aba Ativa */}
             <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
               {/* ============================================================
-                  ABA 1: PARTICIPANTES
-                  ============================================================ */}
-              {activeTab === 'users' && (
-                <div className="space-y-4">
-                  {hasDuplicateUsers() && (
-                    <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3 text-xs text-amber-300">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="size-4 shrink-0 text-amber-400" />
-                        <span>Detectamos nomes duplicados na lista de participantes.</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleDeduplicate}
-                        className="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 cursor-pointer transition-all"
-                      >
-                        Mesclar e Limpar Duplicados
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-400 font-medium">
-                      Gerencie e edite os participantes cadastrados no sistema.
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsAddingUser(!isAddingUser)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5 transition-all"
-                    >
-                      <Plus className="size-3.5" />
-                      <span>{isAddingUser ? 'Fechar Formulário' : 'Novo Participante'}</span>
-                    </button>
-                  </div>
-
-                  {isAddingUser && (
-                    <form onSubmit={handleAddUser} className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3 text-xs animate-fade-in">
-                      <div className="font-semibold text-slate-200">Cadastrar Novo Participante</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Nome Completo</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Ex: João da Silva..."
-                            value={newUserName}
-                            onChange={(e) => setNewUserName(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Função</label>
-                          <select
-                            value={newUserRole}
-                            onChange={(e) => setNewUserRole(e.target.value)}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
-                          >
-                            {roles.map((r) => (
-                              <option key={r} value={r}>{r}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">GAT</label>
-                          <select
-                            value={newUserGat}
-                            onChange={(e) => setNewUserGat(e.target.value)}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
-                          >
-                            {Object.entries(gats).map(([num, info]) => (
-                              <option key={num} value={num}>GAT {num} ({info.name})</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => setIsAddingUser(false)}
-                          className="px-3 py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-3.5 py-1.5 rounded-lg font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
-                        >
-                          Cadastrar
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {editingUser && (
-                    <form onSubmit={handleSaveEditUser} className="p-4 rounded-xl border border-[#008D4C]/30 bg-[#00341f]/10 space-y-3 text-xs animate-fade-in">
-                      <div className="font-semibold text-[#10B981]">Editando Participante: {editingUser.name}</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Nome Completo</label>
-                          <input
-                            type="text"
-                            required
-                            value={editingUser.name}
-                            onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">Função</label>
-                          <select
-                            value={editingUser.role}
-                            onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
-                          >
-                            {roles.map((r) => (
-                              <option key={r} value={r}>{r}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">GAT</label>
-                          <select
-                            value={editingUser.gatNumber}
-                            onChange={(e) => {
-                              const num = e.target.value;
-                              const gatInfo = gats[num];
-                              setEditingUser({
-                                ...editingUser,
-                                gatNumber: num,
-                                gatName: gatInfo?.name || `GAT ${num}`
-                              });
-                            }}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
-                          >
-                            {Object.entries(gats).map(([num, info]) => (
-                              <option key={num} value={num}>GAT {num} ({info.name})</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => setEditingUser(null)}
-                          className="px-3 py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 cursor-pointer"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-3.5 py-1.5 rounded-lg font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
-                        >
-                          Salvar Alterações
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/40 overflow-hidden">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-800 bg-slate-950/60 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                          <th className="py-2.5 px-3">Nome</th>
-                          <th className="py-2.5 px-3">Função</th>
-                          <th className="py-2.5 px-3">GAT</th>
-                          <th className="py-2.5 px-3 text-right">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/60">
-                        {profiles.map((p) => (
-                          <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
-                            <td className="py-2.5 px-3 font-medium text-slate-200">
-                              <div>{p.name}</div>
-                            </td>
-                            <td className="py-2.5 px-3 text-slate-300">{p.role}</td>
-                            <td className="py-2.5 px-3 text-slate-300">
-                              GAT {p.gatNumber} <span className="text-slate-500 text-[11px]">({p.gatName || gats[p.gatNumber]?.name})</span>
-                            </td>
-                            <td className="py-2.5 px-3 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    onSelectUser(p);
-                                    onClose();
-                                  }}
-                                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 cursor-pointer"
-                                  title="Ativar e abrir a folha deste participante"
-                                >
-                                  Ver Folha
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingUser(p)}
-                                  className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
-                                  title="Editar dados"
-                                >
-                                  <Edit2 className="size-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteUser(p.id, p.name)}
-                                  className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
-                                  title="Excluir participante"
-                                >
-                                  <Trash2 className="size-3.5" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* ============================================================
-                  ABA 2: FUNÇÕES / TIPOS DE PESSOAS (ROLES) - COM EDIÇÃO
+                  ABA 1: FUNÇÕES / TIPOS DE PESSOAS (ROLES) - COM EDIÇÃO
                   ============================================================ */}
               {activeTab === 'roles' && (
                 <div className="space-y-4">
@@ -820,7 +499,6 @@ export function AdminModal({
                   {/* Lista de Funções com Edição */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                     {roles.map((r) => {
-                      const count = profiles.filter((p) => p.role === r).length;
                       const isEditing = editingRoleOriginal === r;
 
                       if (isEditing) {
@@ -864,9 +542,6 @@ export function AdminModal({
                         >
                           <div>
                             <div className="font-semibold text-slate-200">{r}</div>
-                            <div className="text-[11px] text-slate-500">
-                              {count} {count === 1 ? 'participante' : 'participantes'}
-                            </div>
                           </div>
                           <div className="flex items-center gap-1">
                             <button
@@ -880,13 +555,8 @@ export function AdminModal({
                             <button
                               type="button"
                               onClick={() => handleDeleteRole(r)}
-                              disabled={count > 0}
-                              className={`p-1 rounded transition-colors ${
-                                count > 0
-                                  ? 'text-slate-600 cursor-not-allowed'
-                                  : 'text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer'
-                              }`}
-                              title={count > 0 ? 'Não é possível excluir função em uso' : 'Excluir função'}
+                              className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                              title="Excluir função"
                             >
                               <Trash2 className="size-3.5" />
                             </button>
@@ -1042,7 +712,6 @@ export function AdminModal({
                   {/* Cards de GATs Atuais com Edição */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     {Object.entries(gats).map(([num, info]) => {
-                      const count = profiles.filter((p) => p.gatNumber === num).length;
                       return (
                         <div
                           key={num}
@@ -1061,8 +730,7 @@ export function AdminModal({
                               {info.description}
                             </p>
                           </div>
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] text-slate-500">
-                            <span>{count} {count === 1 ? 'participante' : 'participantes'}</span>
+                          <div className="flex items-center justify-end pt-2 border-t border-slate-800/80">
                             <div className="flex items-center gap-1">
                               <button
                                 type="button"
@@ -1075,13 +743,8 @@ export function AdminModal({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteGat(num)}
-                                disabled={count > 0}
-                                className={`p-1 rounded transition-colors ${
-                                  count > 0
-                                    ? 'text-slate-600 cursor-not-allowed'
-                                    : 'text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer'
-                                }`}
-                                title={count > 0 ? 'Não é possível excluir GAT com participantes ativos' : 'Excluir GAT'}
+                                className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                                title="Excluir GAT"
                               >
                                 <Trash2 className="size-3.5" />
                               </button>

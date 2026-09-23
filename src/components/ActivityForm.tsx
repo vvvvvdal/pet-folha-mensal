@@ -195,13 +195,13 @@ export function ActivityForm({
         <div>
           <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">Modalidade</label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {/* Síncrona Virtual: Azul Celeste / Sky */}
+            {/* Síncrona Virtual: Azul Turquesa / Cyan */}
             <button
               type="button"
               onClick={() => setModality('Síncrona virtual')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Síncrona virtual'
-                  ? 'bg-[#00A3E0]/15 border-[#00A3E0]/50 text-[#7DD3FC] shadow-xs font-semibold'
+                  ? 'bg-[#00A3E0]/15 border-[#00A3E0]/50 text-[#00A3E0] dark:text-[#7DD3FC] shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
@@ -209,31 +209,31 @@ export function ActivityForm({
               <span>Síncrona Virtual</span>
             </button>
 
-            {/* Síncrona Presencial: Azul Real / Ocean */}
+            {/* Síncrona Presencial: Azul Cobalto / Royal Blue */}
             <button
               type="button"
               onClick={() => setModality('Síncrona presencial')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Síncrona presencial'
-                  ? 'bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-xs font-semibold'
+                  ? 'bg-blue-600/20 border-blue-500/50 text-blue-600 dark:text-blue-300 shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Síncrona presencial' ? 'bg-blue-400' : 'bg-slate-600'}`} />
+              <span className={`size-2 rounded-full ${modality === 'Síncrona presencial' ? 'bg-blue-500' : 'bg-slate-600'}`} />
               <span>Síncrona Presencial</span>
             </button>
 
-            {/* Assíncrona Virtual: Azul Índigo / Slate */}
+            {/* Assíncrona Virtual: Azul Índigo / Slate Blue */}
             <button
               type="button"
               onClick={() => setModality('Assíncrona virtual')}
               className={`px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 modality === 'Assíncrona virtual'
-                  ? 'bg-[#F9BD47]/20 border-[#F9BD47]/50 text-[#F9BD47] shadow-xs font-semibold'
+                  ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-300 shadow-xs font-semibold'
                   : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-[#F9BD47]' : 'bg-slate-600'}`} />
+              <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-indigo-500' : 'bg-slate-600'}`} />
               <span>Assíncrona Virtual</span>
             </button>
           </div>

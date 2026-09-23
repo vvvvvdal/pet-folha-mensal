@@ -69,14 +69,47 @@ export default function Home() {
     }
 
     if (urlParams?.get('demo') === '1') {
-      const demoUser = loadedProfiles[0];
-      if (demoUser) {
-        setActiveUser(demoUser);
-        setActiveProfileId(demoUser.id);
-        const acts = getActivitiesForMonth(demoUser.id, monthKey);
-        setActivities(acts);
-        return;
-      }
+      const demoUser = loadedProfiles[0] || {
+        id: 'usr-felipe',
+        name: 'Felipe Gonçalves Vidal',
+        role: 'Estudante',
+        gatNumber: '04',
+        gatName: 'Mangaba',
+        createdAt: new Date().toISOString()
+      };
+      setActiveUser(demoUser);
+      setActiveProfileId(demoUser.id);
+      const acts = getActivitiesForMonth(demoUser.id, monthKey);
+      setActivities(acts.length > 0 ? acts : [
+        {
+          id: 'act-1',
+          date: '2026-08-05',
+          start: '19:00',
+          end: '21:00',
+          description: 'Reunião do GAT 04 (Mangaba)',
+          modality: 'Síncrona virtual',
+          hours: 2
+        },
+        {
+          id: 'act-2',
+          date: '2026-08-12',
+          start: '08:00',
+          end: '12:00',
+          description: 'Ação territorial na USF',
+          modality: 'Síncrona presencial',
+          hours: 4
+        },
+        {
+          id: 'act-3',
+          date: '2026-08-18',
+          start: '14:00',
+          end: '16:00',
+          description: 'Estudo do Guia de Bolso MS',
+          modality: 'Assíncrona virtual',
+          hours: 2
+        }
+      ]);
+      return;
     }
 
     const active = getActiveProfile();
