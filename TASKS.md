@@ -22,6 +22,3 @@
 
 ## Próximos Passos (Postergados para Etapa Futura)
 - [ ] **Deploy na Vercel**: Configuração e publicação remota (ignorado temporariamente a pedido do usuário).
-- [ ] **Persistência em Nuvem (Supabase opcional)**: Sincronização multi-dispositivo via PostgreSQL.
-- [ ] **Exportação assinada**: Integração com assinatura digital Gov.br / ICP-Brasil.
-- [ ] **Relatórios consolidados**: Exportação semestral consolidada por GAT.

@@ -87,7 +87,7 @@ export function ActivityForm({
       {/* Top Header: Title & Quick Presets */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800/60">
         <div className="flex items-center gap-2">
-          <div className="size-6 rounded-md bg-emerald-500/15 text-emerald-400 flex items-center justify-center font-bold text-xs">
+          <div className="size-6 rounded-md bg-[#008D4C]/15 text-[#008D4C] dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
             {editingActivity ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
           </div>
           <span className="text-xs sm:text-sm font-semibold text-slate-200">
@@ -251,14 +251,14 @@ export function ActivityForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-500/15"
+              className="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#008D4C] text-white hover:bg-[#00733E] cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-[#008D4C]/25"
             >
               {editingActivity ? (
                 <>

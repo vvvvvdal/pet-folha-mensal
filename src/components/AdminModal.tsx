@@ -65,10 +65,21 @@ export function AdminModal({
   onTemplatesChange,
   onSelectUser
 }: AdminModalProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('auth') === '1';
+    }
+    return false;
+  });
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'gats' | 'templates'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'roles' | 'gats' | 'templates'>(() => {
+    if (typeof window !== 'undefined') {
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (tab === 'templates' || tab === 'users' || tab === 'roles' || tab === 'gats') return tab;
+    }
+    return 'users';
+  });
 
   // Formulário de Edição de Usuário
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -76,7 +87,6 @@ export function AdminModal({
   // Formulário de Novo Usuário
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [newUserName, setNewUserName] = useState('');
-  const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState(roles[0] || 'Estudante');
   const [newUserGat, setNewUserGat] = useState(Object.keys(gats)[0] || '01');
 
@@ -161,7 +171,6 @@ export function AdminModal({
     const newUser: UserProfile = {
       id: `usr-${Date.now().toString(36)}`,
       name: newUserName.trim(),
-      email: newUserEmail.trim() || undefined,
       role: newUserRole,
       gatNumber: newUserGat,
       gatName: gatInfo?.name || `GAT ${newUserGat}`,
@@ -173,7 +182,6 @@ export function AdminModal({
     onProfilesChange(updated);
 
     setNewUserName('');
-    setNewUserEmail('');
     setIsAddingUser(false);
   };
 
@@ -404,7 +412,10 @@ export function AdminModal({
     setEditingTemplate(null);
   };
 
-  const handleDeleteTemplate = (id: string) => {
+  const handleDeleteTemplate = (id: string, name?: string) => {
+    if (!confirm(`Deseja realmente excluir o modelo de atividade "${name || 'selecionado'}"?`)) {
+      return;
+    }
     const updated = templates.filter((t) => t.id !== id);
     saveTemplates(updated);
     onTemplatesChange(updated);
@@ -593,7 +604,7 @@ export function AdminModal({
                   {isAddingUser && (
                     <form onSubmit={handleAddUser} className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3 text-xs animate-fade-in">
                       <div className="font-semibold text-slate-200">Cadastrar Novo Participante</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className="block text-[11px] text-slate-400 mb-1">Nome Completo</label>
                           <input
@@ -602,16 +613,6 @@ export function AdminModal({
                             placeholder="Ex: João da Silva..."
                             value={newUserName}
                             onChange={(e) => setNewUserName(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">E-mail (opcional)</label>
-                          <input
-                            type="email"
-                            placeholder="exemplo@discente.ufg.br"
-                            value={newUserEmail}
-                            onChange={(e) => setNewUserEmail(e.target.value)}
                             className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
                           />
                         </div>
@@ -661,7 +662,7 @@ export function AdminModal({
                   {editingUser && (
                     <form onSubmit={handleSaveEditUser} className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 space-y-3 text-xs animate-fade-in">
                       <div className="font-semibold text-emerald-300">Editando Participante: {editingUser.name}</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className="block text-[11px] text-slate-400 mb-1">Nome Completo</label>
                           <input
@@ -669,15 +670,6 @@ export function AdminModal({
                             required
                             value={editingUser.name}
                             onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] text-slate-400 mb-1">E-mail</label>
-                          <input
-                            type="email"
-                            value={editingUser.email || ''}
-                            onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
                             className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
                           />
                         </div>
@@ -747,7 +739,6 @@ export function AdminModal({
                           <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
                             <td className="py-2.5 px-3 font-medium text-slate-200">
                               <div>{p.name}</div>
-                              {p.email && <div className="text-[10px] text-slate-500">{p.email}</div>}
                             </td>
                             <td className="py-2.5 px-3 text-slate-300">{p.role}</td>
                             <td className="py-2.5 px-3 text-slate-300">
@@ -1253,7 +1244,7 @@ export function AdminModal({
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDeleteTemplate(tpl.id)}
+                            onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
                             className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 cursor-pointer transition-colors"
                             title="Excluir modelo"
                           >

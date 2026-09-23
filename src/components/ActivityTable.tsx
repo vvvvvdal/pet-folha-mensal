@@ -29,25 +29,25 @@ export function ActivityTable({
 }: ActivityTableProps) {
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
 
-  // Modalidades em tons harmônicos de azul, com texto por extenso
+  // Modalidades em conformidade com o Manual de Identidade Visual PET Saúde Clima
   const getModalityBadge = (modality: string) => {
     switch (modality) {
       case 'Síncrona presencial':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-600/20 text-blue-300 border border-blue-500/30 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#008D4C]/15 text-[#008D4C] dark:text-emerald-300 border border-[#008D4C]/30 whitespace-nowrap">
             Síncrona presencial
           </span>
         );
       case 'Assíncrona virtual':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F9BD47]/15 text-[#B45309] dark:text-amber-300 border border-[#F9BD47]/30 whitespace-nowrap">
             Assíncrona virtual
           </span>
         );
       case 'Síncrona virtual':
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-500/15 text-sky-300 border border-sky-500/30 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#00A3E0]/15 text-[#0284C7] dark:text-sky-300 border border-[#00A3E0]/30 whitespace-nowrap">
             Síncrona virtual
           </span>
         );
@@ -60,7 +60,7 @@ export function ActivityTable({
         {/* Table Header Bar */}
         <div className="p-4 sm:px-6 py-4 border-b border-slate-800/80 flex items-center justify-between gap-3 bg-slate-950/40">
           <div className="flex items-center gap-2.5">
-            <ListChecks className="size-5 text-emerald-400" />
+            <ListChecks className="size-5 text-[#008D4C] dark:text-emerald-400" />
             <h3 className="text-sm sm:text-base font-bold text-slate-100">
               Lançamentos de {monthLabel}
             </h3>

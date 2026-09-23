@@ -22,7 +22,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
   {
     id: 'felipe-vidal',
     name: 'Felipe Gonçalves Vidal',
-    email: 'felipe.vidal@discente.ufg.br',
     role: 'Estudante',
     gatNumber: '04',
     gatName: 'Mangaba',
@@ -32,7 +31,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
   {
     id: 'mariana-rios',
     name: 'Mariana Dias Rios',
-    email: 'mariana.rios@discente.ufg.br',
     role: 'Estudante',
     gatNumber: '01',
     gatName: 'Araticum',
@@ -42,7 +40,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
   {
     id: 'carlos-meireles',
     name: 'Carlos Eduardo Meireles',
-    email: 'carlos.meireles@sms.goiania.go.gov.br',
     role: 'Preceptor',
     gatNumber: '02',
     gatName: 'Buriti',
@@ -52,7 +49,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
   {
     id: 'dra-juliana',
     name: 'Dra. Juliana Peixoto',
-    email: 'juliana.peixoto@ufg.br',
     role: 'Tutor',
     gatNumber: '03',
     gatName: 'Ipê-amarelo',
@@ -62,7 +58,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
   {
     id: 'lucas-alencar',
     name: 'Lucas Alencar Ferreira',
-    email: 'lucas.alencar@inf.ufg.br',
     role: 'Estudante',
     gatNumber: '05',
     gatName: 'Pequi',
@@ -80,33 +75,8 @@ export const DEFAULT_TEMPLATES: ActivityTemplate[] = [
   },
   {
     id: 'tpl-2',
-    name: 'Oficina formativa: REDCap e construção de instrumentos para pesquisa científica',
-    modality: 'Síncrona virtual'
-  },
-  {
-    id: 'tpl-3',
     name: 'Reunião geral do PET',
     modality: 'Síncrona presencial'
-  },
-  {
-    id: 'tpl-4',
-    name: 'Oficinas de SUStentabilidade',
-    modality: 'Síncrona presencial'
-  },
-  {
-    id: 'tpl-5',
-    name: 'Ciclo de Palestra 2026 - Cavernas como arquivo climático: A região Centro-Oeste no holoceno',
-    modality: 'Síncrona virtual'
-  },
-  {
-    id: 'tpl-6',
-    name: 'Conselho Federal de Psicologia - Atuação psicossocial em desastres climáticos e o El Niño',
-    modality: 'Síncrona virtual'
-  },
-  {
-    id: 'tpl-7',
-    name: 'Síntese analítica: Desastres climáticos e atuação psicossocial',
-    modality: 'Assíncrona virtual'
   }
 ];
 
@@ -388,12 +358,26 @@ export function getStoredTemplates(): ActivityTemplate[] {
       };
     });
 
-    const hasLegacySchema = parsed.some((p: any) => !p.name || p.day !== undefined || p.descriptionTemplate);
-    if (hasLegacySchema) {
-      localStorage.setItem(TEMPLATES_KEY, JSON.stringify(migrated));
+    const filtered = migrated.filter((item) => {
+      const name = item.name.toLowerCase();
+      if (
+        name.includes('redcap') ||
+        name.includes('sustentabilidade') ||
+        name.includes('cavernas como arquivo') ||
+        name.includes('conselho federal de psicologia') ||
+        name.includes('síntese analítica')
+      ) {
+        return false;
+      }
+      return true;
+    });
+
+    const result = filtered.length > 0 ? filtered : DEFAULT_TEMPLATES;
+    if (result.length !== parsed.length) {
+      localStorage.setItem(TEMPLATES_KEY, JSON.stringify(result));
     }
 
-    return migrated;
+    return result;
   } catch {
     return DEFAULT_TEMPLATES;
   }

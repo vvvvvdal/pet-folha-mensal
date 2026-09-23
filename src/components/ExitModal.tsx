@@ -72,7 +72,7 @@ export function ExitModal({
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-5">
           <div className="flex items-center gap-3">
-            <div className="size-11 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div className="size-11 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-emerald-400 border border-[#008D4C]/20 flex items-center justify-center shrink-0">
               <ShieldCheck className="size-6" />
             </div>
             <div>
@@ -217,7 +217,7 @@ export function ExitModal({
               onClick={handleExitClick}
               className={`px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 ${
                 downloadedJson || !hasChanges
-                  ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20'
+                  ? 'bg-[#008D4C] hover:bg-[#00733E] text-white shadow-md shadow-[#008D4C]/25'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600'
               }`}
               title={

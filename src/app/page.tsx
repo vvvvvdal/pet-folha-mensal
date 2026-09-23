@@ -33,8 +33,8 @@ import { Calendar, Download, Printer, CheckCircle2, ArrowLeft } from 'lucide-rea
 export default function Home() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeUser, setActiveUser] = useState<UserProfile | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [monthKey, setMonthKey] = useState('2026-09');
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -62,6 +62,22 @@ export default function Home() {
 
     const loadedTemplates = getStoredTemplates();
     setTemplates(loadedTemplates);
+
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    if (urlParams?.get('admin') === '1') {
+      setIsAdminModalOpen(true);
+    }
+
+    if (urlParams?.get('demo') === '1') {
+      const demoUser = loadedProfiles[0];
+      if (demoUser) {
+        setActiveUser(demoUser);
+        setActiveProfileId(demoUser.id);
+        const acts = getActivitiesForMonth(demoUser.id, monthKey);
+        setActivities(acts);
+        return;
+      }
+    }
 
     const active = getActiveProfile();
     if (active) {
@@ -228,9 +244,6 @@ export default function Home() {
           templates={templates}
           onProfilesChange={(updated) => {
             setProfiles(updated);
-            if (activeUser && !updated.some((p) => p.id === activeUser.id)) {
-              if (updated.length > 0) handleSelectProfile(updated[0]);
-            }
           }}
           onGatsChange={(updated) => setGats(updated)}
           onRolesChange={(updated) => setRoles(updated)}

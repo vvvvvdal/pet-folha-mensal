@@ -37,7 +37,7 @@ export function OfficialSheet({
         <div className="w-[36%] text-center flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logo-pet-clima.png"
+            src="/images/logo-horizontal.png"
             alt="PET-Saúde Clima"
             className="h-11 sm:h-12 max-w-full object-contain"
           />

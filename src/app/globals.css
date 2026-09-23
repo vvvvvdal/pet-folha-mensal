@@ -1,20 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-:root {
+/* ============================================================
+   PALETA OFICIAL PET-SAÚDE CLIMA (MANUAL DE IDENTIDADE VISUAL)
+   - C70 M15 Y0 K0  => Azul Turquesa / Clima: #00A3E0
+   - C83 M12 Y90 K1 => Verde Saúde / SUS:    #008D4C
+   - C41 M0 Y91 K0  => Verde Cerrado / Folha: #94C12D
+   - C1 M26 Y79 K0  => Amarelo Sol / Capelo:  #F9BD47
+   - C2 M91 Y83 K0  => Vermelho Cruz / Vida:  #DE3831
+   ============================================================ */
+
+:root, html[data-theme="dark"] {
   --background: #090d16;
   --foreground: #f1f5f9;
   --surface: #0f1523;
   --surface-raised: #151d30;
   --surface-hover: #1c2740;
   --border: #1e293b;
-  --border-focus: #10b981;
+  --border-focus: #00a3e0;
 
-  --accent-emerald: #10b981;
-  --accent-emerald-glow: rgba(16, 185, 129, 0.15);
-  --accent-teal: #14b8a6;
-  --accent-sky: #38bdf8;
-  --accent-amber: #f59e0b;
+  --pet-turquoise: #00a3e0;
+  --pet-green: #008d4c;
+  --pet-leaf: #94c12d;
+  --pet-yellow: #f9bd47;
+  --pet-red: #de3831;
+
+  --accent-emerald: #008d4c;
+  --accent-emerald-glow: rgba(0, 141, 76, 0.2);
+}
+
+html[data-theme="light"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-raised: #f1f5f9;
+  --surface-hover: #e2e8f0;
+  --border: #e2e8f0;
+  --border-focus: #00a3e0;
+
+  --pet-turquoise: #0087ba;
+  --pet-green: #00733e;
+  --pet-leaf: #7ea324;
+  --pet-yellow: #d99b26;
+  --pet-red: #c92f29;
+
+  --accent-emerald: #008d4c;
+  --accent-emerald-glow: rgba(0, 141, 76, 0.15);
 }
 
 body {
@@ -26,12 +57,11 @@ body {
   min-height: 100vh;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  selection-background-color: #10b981;
-  selection-color: #ffffff;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 ::selection {
-  background-color: #10b981;
+  background-color: var(--pet-turquoise);
   color: #ffffff;
 }
 
@@ -47,17 +77,100 @@ body {
   background: #334155;
   border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+html[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-emerald);
+  outline: 2px solid var(--pet-turquoise);
   outline-offset: 2px;
 }
 
 button, a, select, input {
   transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   REGRAS ESPECÍFICAS DE MODO CLARO (LIGHT THEME OVERRIDES)
+   ============================================================ */
+html[data-theme="light"] body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] header {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .bg-slate-950,
+html[data-theme="light"] .bg-slate-950\/80,
+html[data-theme="light"] .bg-slate-950\/70,
+html[data-theme="light"] .bg-slate-950\/60,
+html[data-theme="light"] .bg-slate-950\/50,
+html[data-theme="light"] .bg-slate-950\/40 {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="light"] .bg-slate-900,
+html[data-theme="light"] .bg-slate-900\/90,
+html[data-theme="light"] .bg-slate-900\/80,
+html[data-theme="light"] .bg-slate-900\/60,
+html[data-theme="light"] .bg-slate-900\/40 {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="light"] .border-slate-800,
+html[data-theme="light"] .border-slate-800\/80,
+html[data-theme="light"] .border-slate-800\/60,
+html[data-theme="light"] .border-slate-700,
+html[data-theme="light"] .border-slate-700\/80,
+html[data-theme="light"] .border-slate-700\/70 {
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .text-slate-100,
+html[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html[data-theme="light"] .text-slate-300 {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .text-slate-400 {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .text-slate-500 {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .hover\:bg-slate-800:hover,
+html[data-theme="light"] .hover\:bg-slate-900:hover,
+html[data-theme="light"] .hover\:bg-slate-950:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html[data-theme="light"] .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] footer {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
 }
 
 /* ============================================================
@@ -106,7 +219,6 @@ button, a, select, input {
     break-inside: avoid !important;
   }
 
-  /* Tabela Oficial: garantia de que a borda inferior nunca some */
   table.official-table {
     width: 100% !important;
     border-collapse: collapse !important;
@@ -130,7 +242,6 @@ button, a, select, input {
     line-height: 1.2 !important;
   }
 
-  /* Regra vital: crava a borda inferior em cada célula da última linha */
   table.official-table tbody tr:last-child td {
     border-bottom: 1.5px solid #000000 !important;
   }

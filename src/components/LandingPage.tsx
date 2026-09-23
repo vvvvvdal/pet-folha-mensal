@@ -2,8 +2,8 @@
 
 import React, { useState, useRef } from 'react';
 import { UserRole, GATInfo } from '@/types';
+import { useTheme } from '@/lib/theme';
 import {
-  Leaf,
   Upload,
   UserPlus,
   FileCheck,
@@ -14,7 +14,9 @@ import {
   Smartphone,
   HelpCircle,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -32,6 +34,7 @@ export function LandingPage({
   roles,
   onOpenAdmin
 }: LandingPageProps) {
+  const { theme, toggleTheme } = useTheme();
   const [tab, setTab] = useState<'upload' | 'create'>('upload');
   const [name, setName] = useState('');
   const [selectedGat, setSelectedGat] = useState(Object.keys(gats)[0] || '04');
@@ -62,27 +65,50 @@ export function LandingPage({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-slate-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
-      {/* Header Superior Limpo */}
-      <header className="w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+    <div className="min-h-screen bg-[var(--background)] text-slate-100 flex flex-col justify-between selection:bg-[#008D4C] selection:text-white transition-colors">
+      {/* Header Superior Limpo com Identidade Visual Oficial */}
+      <header className="w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md transition-colors">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
-              <Leaf className="size-5" />
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/images/avatar-pet-clima.png"
+              alt="Avatar Oficial PET-Saúde Clima"
+              className="size-8 sm:size-9 object-contain drop-shadow-xs"
+            />
+            <div className="flex flex-col leading-tight">
+              <span className="font-extrabold text-base sm:text-lg tracking-tight select-none">
+                <span className="text-[#DE3831] font-black">PET</span>
+                <span className="text-slate-400 font-semibold">-</span>
+                <span className="text-[#008D4C] dark:text-[#10B981] font-black">Saúde</span>{' '}
+                <span className="text-[#00A3E0] font-black tracking-wider">CLIMA</span>
+              </span>
             </div>
-            <span className="font-bold text-slate-100 text-base sm:text-lg tracking-tight">
-              PET Saúde Clima
-            </span>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className="text-xs sm:text-sm text-slate-400 hover:text-emerald-400 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-emerald-500/30 bg-slate-900/60 cursor-pointer transition-colors"
-          >
-            <ShieldCheck className="size-4 text-emerald-400" />
-            <span>Acesso Gestão</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Alternador de Tema: Claro / Escuro */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+              title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="size-4 text-amber-400" />
+              ) : (
+                <Moon className="size-4 text-slate-600" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              className="text-xs sm:text-sm text-slate-400 hover:text-[#008D4C] dark:hover:text-emerald-400 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-[#008D4C]/30 bg-slate-900/60 cursor-pointer transition-colors"
+            >
+              <ShieldCheck className="size-4 text-[#008D4C] dark:text-emerald-400" />
+              <span>Acesso Gestão</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -90,7 +116,7 @@ export function LandingPage({
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-12">
         {/* Hero Section */}
         <section className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm sm:text-base font-bold shadow-xs">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#008D4C]/10 border border-[#008D4C]/30 text-[#008D4C] dark:text-emerald-400 text-sm sm:text-base font-bold shadow-xs">
             <Sparkles className="size-4" />
             <span>Folha de Frequência Mensal</span>
           </div>
@@ -105,7 +131,7 @@ export function LandingPage({
         {/* Bloco Explicativo Amigável: O que é o arquivo .json? */}
         <section className="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-5 relative overflow-hidden">
           <div className="flex items-center gap-3.5">
-            <div className="size-12 rounded-2xl bg-sky-500/15 text-sky-400 border border-sky-500/25 flex items-center justify-center shrink-0">
+            <div className="size-12 rounded-2xl bg-[#00A3E0]/15 text-[#00A3E0] border border-[#00A3E0]/25 flex items-center justify-center shrink-0">
               <HelpCircle className="size-6" />
             </div>
             <div>
@@ -134,15 +160,15 @@ export function LandingPage({
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs sm:text-sm text-slate-300">
               <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
-                <Cloud className="size-5 text-sky-400 shrink-0" />
+                <Cloud className="size-5 text-[#00A3E0] shrink-0" />
                 <span><strong>Google Drive:</strong> Salve em uma pasta na nuvem.</span>
               </div>
               <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
-                <Smartphone className="size-5 text-emerald-400 shrink-0" />
+                <Smartphone className="size-5 text-[#008D4C] dark:text-emerald-400 shrink-0" />
                 <span><strong>WhatsApp:</strong> Envie em conversa consigo mesmo.</span>
               </div>
               <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
-                <HardDrive className="size-5 text-amber-400 shrink-0" />
+                <HardDrive className="size-5 text-[#F9BD47] shrink-0" />
                 <span><strong>Documentos:</strong> Na pasta do computador ou celular.</span>
               </div>
             </div>
@@ -158,7 +184,7 @@ export function LandingPage({
               onClick={() => setTab('upload')}
               className={`py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 tab === 'upload'
-                  ? 'bg-slate-800 text-white shadow-xs'
+                  ? 'bg-slate-800 text-white shadow-xs font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -170,7 +196,7 @@ export function LandingPage({
               onClick={() => setTab('create')}
               className={`py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 tab === 'create'
-                  ? 'bg-slate-800 text-white shadow-xs'
+                  ? 'bg-slate-800 text-white shadow-xs font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -192,11 +218,11 @@ export function LandingPage({
                 onClick={() => fileInputRef.current?.click()}
                 className={`p-8 sm:p-10 rounded-2xl border-2 border-dashed text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
                   isDragging
-                    ? 'border-emerald-500 bg-emerald-500/10'
-                    : 'border-slate-700/80 bg-slate-950/50 hover:border-emerald-500/50 hover:bg-slate-950'
+                    ? 'border-[#008D4C] bg-[#008D4C]/10'
+                    : 'border-slate-700/80 bg-slate-950/50 hover:border-[#008D4C]/50 hover:bg-slate-950'
                 }`}
               >
-                <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+                <div className="size-12 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-emerald-400 border border-[#008D4C]/20 flex items-center justify-center">
                   <Upload className="size-6" />
                 </div>
                 <div>
@@ -207,7 +233,7 @@ export function LandingPage({
                     Arraste o seu arquivo aqui ou clique para selecionar do seu dispositivo.
                   </p>
                 </div>
-                <span className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors mt-2 shadow-xs">
+                <span className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#008D4C] text-white hover:bg-[#00733E] transition-colors mt-2 shadow-sm shadow-[#008D4C]/25">
                   Selecionar Arquivo .json
                 </span>
                 <input
@@ -244,7 +270,7 @@ export function LandingPage({
                   onChange={(e) => setName(e.target.value)}
                   required
                   autoFocus
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-sm outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-sm outline-none focus:border-[#008D4C] transition-colors"
                 />
               </div>
 
@@ -256,7 +282,7 @@ export function LandingPage({
                   <select
                     value={selectedRole}
                     onChange={(e) => setSelectedRole(e.target.value)}
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-xs sm:text-sm outline-none focus:border-emerald-500 cursor-pointer"
+                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-xs sm:text-sm outline-none focus:border-[#008D4C] cursor-pointer"
                   >
                     {roles.map((r) => (
                       <option key={r} value={r} className="bg-slate-900 text-slate-100">
@@ -273,7 +299,7 @@ export function LandingPage({
                   <select
                     value={selectedGat}
                     onChange={(e) => setSelectedGat(e.target.value)}
-                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-xs sm:text-sm outline-none focus:border-emerald-500 cursor-pointer"
+                    className="w-full px-3.5 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 text-xs sm:text-sm outline-none focus:border-[#008D4C] cursor-pointer"
                   >
                     {Object.values(gats).map((gat) => (
                       <option key={gat.number} value={gat.number} className="bg-slate-900 text-slate-100">
@@ -286,7 +312,7 @@ export function LandingPage({
 
               <button
                 type="submit"
-                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 mt-2"
+                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold bg-[#008D4C] text-white hover:bg-[#00733E] cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#008D4C]/25 mt-2"
               >
                 <span>Criar Minha Folha e Começar</span>
                 <ArrowRight className="size-4" />
@@ -302,7 +328,7 @@ export function LandingPage({
         {/* 3 Pilares do Sistema - Ampliados */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-4">
           <div className="p-6 sm:p-7 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="size-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <div className="size-12 rounded-xl bg-[#008D4C]/10 text-[#008D4C] dark:text-emerald-400 flex items-center justify-center border border-[#008D4C]/20">
               <Clock className="size-6" />
             </div>
             <h3 className="text-base sm:text-lg font-bold text-slate-100">Cálculo Preciso das 8h</h3>
@@ -312,7 +338,7 @@ export function LandingPage({
           </div>
 
           <div className="p-6 sm:p-7 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="size-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
+            <div className="size-12 rounded-xl bg-[#00A3E0]/10 text-[#00A3E0] flex items-center justify-center border border-[#00A3E0]/20">
               <FileCheck className="size-6" />
             </div>
             <h3 className="text-base sm:text-lg font-bold text-slate-100">Folha Oficial A4</h3>
@@ -322,7 +348,7 @@ export function LandingPage({
           </div>
 
           <div className="p-6 sm:p-7 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="size-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <div className="size-12 rounded-xl bg-[#DE3831]/10 text-[#DE3831] flex items-center justify-center border border-[#DE3831]/20">
               <ShieldCheck className="size-6" />
             </div>
             <h3 className="text-base sm:text-lg font-bold text-slate-100">Privacidade Garantida</h3>

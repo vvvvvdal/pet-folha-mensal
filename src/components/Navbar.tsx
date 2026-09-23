@@ -2,7 +2,17 @@
 
 import React from 'react';
 import { UserProfile, GATS } from '@/types';
-import { LayoutDashboard, FileText, Printer, Download, Upload, Shield, Leaf, ChevronDown } from 'lucide-react';
+import { useTheme } from '@/lib/theme';
+import {
+  LayoutDashboard,
+  FileText,
+  Printer,
+  Download,
+  Upload,
+  Shield,
+  Sun,
+  Moon
+} from 'lucide-react';
 
 interface NavbarProps {
   user: UserProfile;
@@ -29,34 +39,42 @@ export function Navbar({
   onOpenAdmin,
   onOpenExitModal
 }: NavbarProps) {
+  const { theme, toggleTheme } = useTheme();
   const gatName = user.gatName || GATS[user.gatNumber]?.name || 'PET';
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Brand & Identity: Limpo, sem 13ª edição nem SMS Goiânia */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="size-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
-            <Leaf className="size-5" />
+        {/* Brand & Identity Oficial do PET-Saúde Clima */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <img
+            src="/images/avatar-pet-clima.png"
+            alt="Avatar Oficial PET-Saúde Clima"
+            className="size-8 sm:size-9 object-contain drop-shadow-xs"
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="font-extrabold text-base sm:text-lg tracking-tight select-none">
+              <span className="text-[#DE3831] font-black">PET</span>
+              <span className="text-slate-400 font-semibold">-</span>
+              <span className="text-[#008D4C] dark:text-[#10B981] font-black">Saúde</span>{' '}
+              <span className="text-[#00A3E0] font-black tracking-wider">CLIMA</span>
+            </span>
           </div>
-          <span className="font-bold text-slate-100 text-base sm:text-lg tracking-tight">
-            PET Saúde Clima
-          </span>
         </div>
 
         {/* Profile Pill: Apenas dados do participante ativo */}
         <button
           type="button"
           onClick={onOpenProfileModal}
-          className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-slate-700 text-left transition-all cursor-pointer group"
+          className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-slate-700 text-left transition-all cursor-pointer group shadow-xs"
           title="Clique para editar seus dados de identificação"
         >
-          <div className="size-7 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs">
+          <div className="size-7 rounded-lg bg-[#008D4C]/15 text-[#008D4C] dark:text-emerald-400 border border-[#008D4C]/30 flex items-center justify-center font-bold text-xs">
             {user.gatNumber}
           </div>
           <div className="flex flex-col text-xs leading-tight">
-            <div className="flex items-center gap-1.5 font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">
+            <div className="flex items-center gap-1.5 font-semibold text-slate-200 group-hover:text-[#00A3E0] transition-colors">
               <span className="truncate max-w-[150px]">{user.name}</span>
             </div>
             <span className="text-[10px] text-slate-400">
@@ -73,7 +91,7 @@ export function Navbar({
             onClick={onOpenProfileModal}
             className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 text-xs text-slate-200 font-medium"
           >
-            <span className="size-5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px] flex items-center justify-center">
+            <span className="size-5 rounded bg-[#008D4C]/20 text-[#008D4C] dark:text-emerald-400 font-bold text-[10px] flex items-center justify-center">
               {user.gatNumber}
             </span>
             <span className="truncate max-w-[90px]">{user.name.split(' ')[0]}</span>
@@ -85,7 +103,7 @@ export function Navbar({
               onClick={() => onTabChange('dashboard')}
               className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'dashboard'
-                  ? 'bg-slate-800 text-slate-100 shadow-xs'
+                  ? 'bg-slate-800 text-slate-100 shadow-xs font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -96,7 +114,7 @@ export function Navbar({
               onClick={() => onTabChange('official')}
               className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'official'
-                  ? 'bg-slate-800 text-slate-100 shadow-xs'
+                  ? 'bg-slate-800 text-slate-100 shadow-xs font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -110,7 +128,7 @@ export function Navbar({
             <button
               type="button"
               onClick={onExportBackup}
-              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-emerald-400 cursor-pointer transition-colors"
+              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors"
               title="Salvar cópia de segurança (.json) no seu dispositivo"
             >
               <Download className="size-4" />
@@ -118,7 +136,7 @@ export function Navbar({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-sky-400 cursor-pointer transition-colors"
+              className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-[#00A3E0] cursor-pointer transition-colors"
               title="Carregar outro arquivo .json salvo"
             >
               <Upload className="size-4" />
@@ -138,11 +156,25 @@ export function Navbar({
             />
           </div>
 
+          {/* Alternador de Tema: Claro / Escuro */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+            title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+          >
+            {theme === 'dark' ? (
+              <Sun className="size-4 text-amber-400" />
+            ) : (
+              <Moon className="size-4 text-slate-600" />
+            )}
+          </button>
+
           {/* Admin Shield */}
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-emerald-500/30 text-slate-400 hover:text-emerald-400 cursor-pointer transition-colors"
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-emerald-400 cursor-pointer transition-colors"
             title="Acesso de gestão / modo administrador (PIN 4031)"
           >
             <Shield className="size-4" />
@@ -161,7 +193,7 @@ export function Navbar({
           {/* Primary Action Button: Print PDF */}
           <button
             onClick={onPrint}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all flex items-center gap-1.5 shadow-sm shadow-emerald-500/10 cursor-pointer relative"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#008D4C] text-white hover:bg-[#00733E] transition-all flex items-center gap-1.5 shadow-sm shadow-[#008D4C]/25 cursor-pointer relative"
           >
             {hasChanges && (
               <span className="size-2 rounded-full bg-amber-400 animate-pulse absolute -top-0.5 -right-0.5 ring-2 ring-slate-950" />
