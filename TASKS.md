@@ -5,6 +5,8 @@
 - [x] Configuração da porta de desenvolvimento padrão para 5000 (`next dev -p 5000`).
 - [x] Migração dos assets, templates oficiais (`.docx`, `.pdf`, `.xlsx`) e logo do PET.
 - [x] Implementação dos tokens de conforto óptico e anti-fadiga visual (`frontend-design-ultimate`).
+- [x] **Modo Administrador (PIN 4031) e Gestão Total**: Painel exclusivo para criação, edição e exclusão de usuários, criação de novos GATs, novos tipos de funções (roles no SUS) e personalização de templates de atividades.
+- [x] **Motor Anti-Duplicação e Normalização de Participantes**: Normalização algorítmica (`normalizeName`), bloqueio rigoroso de nomes idênticos no cadastro e rotina de auto-desduplicação para limpar clones órfãos pré-existentes no `localStorage`.
 - [x] **Ajuste de Conforto Óptico (Dark Slate Suave)**: Transição do preto absoluto (`#09090b`) para uma paleta carvão/slate balanceada (`#141720` canvas, `#1b202c` surface, `#232938` elevated, bordas `#2b3346`), garantindo descanso visual e contraste confortável.
 - [x] **Isolamento Transparente de Dados de Perfis**: Remoção do auto-povoamento acidental de atividades de exemplo para novos usuários. Novos participantes começam com a folha zerada (0h), com botão opcional de carregar exemplos do GAT e ação de zerar folha.
 - [x] **UX Simplificada de Backup (Sem Jargão Técnico)**: Substituição de termos como "Exportar JSON" por ações claras e acessíveis como "Salvar Cópia" e "Restaurar", protegendo os dados do bolsista contra limpezas de histórico.
