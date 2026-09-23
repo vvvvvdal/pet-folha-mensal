@@ -365,7 +365,6 @@ export default function Home() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
-          onPrint={handlePrint}
           hasChanges={hasChanges}
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}

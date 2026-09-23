@@ -6,7 +6,6 @@ import { useTheme } from '@/lib/theme';
 import {
   LayoutDashboard,
   FileText,
-  Printer,
   Download,
   Upload,
   Shield,
@@ -19,7 +18,6 @@ interface NavbarProps {
   activeTab: 'dashboard' | 'official';
   onTabChange: (tab: 'dashboard' | 'official') => void;
   onOpenProfileModal: () => void;
-  onPrint: () => void;
   hasChanges: boolean;
   onExportBackup: () => void;
   onImportBackup: (file: File) => void;
@@ -32,7 +30,6 @@ export function Navbar({
   activeTab,
   onTabChange,
   onOpenProfileModal,
-  onPrint,
   hasChanges,
   onExportBackup,
   onImportBackup,
@@ -182,26 +179,17 @@ export function Navbar({
             <Shield className="size-4" />
           </button>
 
-          {/* Sair / Salvar Obrigatório */}
+          {/* Salvar e Sair */}
           <button
             type="button"
             onClick={onOpenExitModal}
-            className="px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold cursor-pointer transition-colors"
+            className="px-3.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-semibold cursor-pointer transition-colors relative"
             title="Salvar arquivo de backup e sair"
-          >
-            Salvar e Sair
-          </button>
-
-          {/* Primary Action Button: Print PDF */}
-          <button
-            onClick={onPrint}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#008D4C] text-white hover:bg-[#00733E] transition-all flex items-center gap-1.5 shadow-sm shadow-[#008D4C]/25 cursor-pointer relative"
           >
             {hasChanges && (
               <span className="size-2 rounded-full bg-amber-400 animate-pulse absolute -top-0.5 -right-0.5 ring-2 ring-slate-950" />
             )}
-            <Printer className="size-3.5" />
-            <span className="hidden sm:inline">Imprimir / PDF</span>
+            <span>Salvar e Sair</span>
           </button>
         </div>
       </div>
