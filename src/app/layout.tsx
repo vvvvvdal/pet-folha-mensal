@@ -3,7 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PET-Saúde Clima UFG — Folha de Frequência Mensal",
+  title: "PET-Saúde Clima UFG: Folha de Frequência Mensal",
   description: "Gestão e emissão da folha de frequência mensal para bolsistas do PET-Saúde Clima (SMS Goiânia, SES Goiás e UFG).",
   icons: {
     icon: "/images/avatar-pet-clima.png"

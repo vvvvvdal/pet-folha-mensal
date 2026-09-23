@@ -124,7 +124,7 @@ export function LandingPage({
             Controle de presença simples, rápido e 100% privado.
           </h1>
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto">
-            Lance suas 8 horas semanais de forma simples, acompanhe o total de horas calculadas automaticamente e gere sua folha em A4 pronta para imprimir e assinar.
+            Lance suas 32 horas mensais de forma simples, acompanhe o total de horas calculadas automaticamente e gere sua folha em A4 pronta para imprimir e assinar.
           </p>
         </section>
 
@@ -149,7 +149,7 @@ export function LandingPage({
               O arquivo <strong>.json</strong> funciona como o seu <strong>crachá e cofre digital pessoal</strong>. Ele é apenas um arquivo de texto muito leve que guarda o seu nome, seu GAT e as atividades que você já cadastrou.
             </p>
             <p className="text-slate-300">
-              Para respeitar rigorosamente a sua <strong>privacidade (LGPD)</strong>, este sistema não armazena os dados de ninguém em um servidor central na internet. As suas informações ficam estritamente com você.
+              Para respeitar rigorosamente a sua <strong>privacidade  </strong>, este sistema não armazena os dados de ninguém em um servidor central na internet. As suas informações ficam estritamente com você.
             </p>
           </div>
 
@@ -331,7 +331,7 @@ export function LandingPage({
             <div className="size-12 rounded-xl bg-[#008D4C]/10 text-[#008D4C] dark:text-[#10B981] flex items-center justify-center border border-[#008D4C]/20">
               <Clock className="size-6" />
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-100">Cálculo Preciso das 8h</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-100">Cálculo Preciso das 32h</h3>
             <p className="text-sm text-slate-300 leading-relaxed">
               Calcula os intervalos obedecendo à regra oficial de horas inteiras iniciadas para validação do Ministério da Saúde.
             </p>
@@ -353,7 +353,7 @@ export function LandingPage({
             </div>
             <h3 className="text-base sm:text-lg font-bold text-slate-100">Privacidade Garantida</h3>
             <p className="text-sm text-slate-300 leading-relaxed">
-              Nenhum dado é salvo em servidor central. Você não vê o nome dos outros participantes e ninguém vê o seu.
+              Nenhum dado é salvo em servidor central. Não coletamos, guardamos ou visualizamos nenhum registro seu.
             </p>
           </div>
         </section>
