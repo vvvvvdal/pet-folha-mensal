@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { UserProfile, GATS } from '@/types';
-import { LayoutDashboard, FileText, Printer, User, Download, Upload } from 'lucide-react';
+import { LayoutDashboard, FileText, Printer, User, Download, Upload, Shield } from 'lucide-react';
 
 interface NavbarProps {
   user: UserProfile;
@@ -13,6 +13,7 @@ interface NavbarProps {
   hasChanges: boolean;
   onExportBackup: () => void;
   onImportBackup: (file: File) => void;
+  onOpenAdmin: () => void;
 }
 
 export function Navbar({
@@ -23,7 +24,8 @@ export function Navbar({
   onPrint,
   hasChanges,
   onExportBackup,
-  onImportBackup
+  onImportBackup,
+  onOpenAdmin
 }: NavbarProps) {
   const gatName = user.gatName || GATS[user.gatNumber]?.name || 'PET';
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -118,6 +120,17 @@ export function Navbar({
             }}
           />
         </div>
+
+        {/* Modo Admin (PIN 4031) */}
+        <button
+          type="button"
+          onClick={onOpenAdmin}
+          className="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-slate-800 text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-all"
+          title="Acesso restrito para administradores e gestão (PIN 4031)"
+        >
+          <Shield className="size-3.5 text-emerald-400" />
+          <span className="hidden sm:inline">Admin</span>
+        </button>
 
         {/* Primary Action: Print PDF */}
         <button

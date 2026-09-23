@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, Activity, UserRole, GATS } from '@/types';
+import { UserProfile, Activity, UserRole, GATInfo, ActivityTemplate } from '@/types';
 import {
   getStoredProfiles,
   saveProfiles,
@@ -12,11 +12,16 @@ import {
   loadSampleActivitiesForUser,
   clearActivitiesForMonth,
   exportUserData,
-  importUserData
+  importUserData,
+  getStoredGats,
+  getStoredRoles,
+  getStoredTemplates,
+  registerProfile
 } from '@/lib/storage';
 import { calcPetHours, getMonthYearLabel } from '@/lib/pet-calculator';
 import { Navbar } from '@/components/Navbar';
 import { ProfileModal } from '@/components/ProfileModal';
+import { AdminModal } from '@/components/AdminModal';
 import { StatsGrid } from '@/components/StatsGrid';
 import { ActivityForm } from '@/components/ActivityForm';
 import { ActivityTable } from '@/components/ActivityTable';
@@ -27,6 +32,7 @@ export default function Home() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeUser, setActiveUser] = useState<UserProfile | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [monthKey, setMonthKey] = useState('2026-09');
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'official'>('dashboard');
@@ -34,10 +40,24 @@ export default function Home() {
   const [hasChanges, setHasChanges] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Inicialização Local-First: carrega direto no painel
+  // Estados Dinâmicos de Configuração (GATs, Funções e Templates)
+  const [gats, setGats] = useState<Record<string, GATInfo>>({});
+  const [roles, setRoles] = useState<string[]>([]);
+  const [templates, setTemplates] = useState<ActivityTemplate[]>([]);
+
+  // Inicialização Local-First
   useEffect(() => {
     const loadedProfiles = getStoredProfiles();
     setProfiles(loadedProfiles);
+
+    const loadedGats = getStoredGats();
+    setGats(loadedGats);
+
+    const loadedRoles = getStoredRoles();
+    setRoles(loadedRoles);
+
+    const loadedTemplates = getStoredTemplates();
+    setTemplates(loadedTemplates);
 
     const active = getActiveProfile() || loadedProfiles[0];
     if (active) {
@@ -70,20 +90,18 @@ export default function Home() {
   };
 
   const handleCreateNewProfile = (name: string, gatNumber: string, role: UserRole) => {
-    const gatInfo = GATS[gatNumber];
-    const newProfile: UserProfile = {
-      id: `usr-${Date.now().toString(36)}`,
-      name,
-      gatNumber,
-      gatName: gatInfo?.name || `GAT ${gatNumber}`,
-      role,
-      createdAt: new Date().toISOString()
-    };
-    const updatedProfiles = [...profiles, newProfile];
-    setProfiles(updatedProfiles);
-    saveProfiles(updatedProfiles);
-    handleSelectProfile(newProfile);
-    showToast(`Participante cadastrado: ${name}`);
+    const res = registerProfile({ name, role, gatNumber });
+    if (!res.success) {
+      alert(res.error || 'Erro ao cadastrar participante.');
+      return;
+    }
+
+    const updated = getStoredProfiles();
+    setProfiles(updated);
+    if (res.user) {
+      handleSelectProfile(res.user);
+      showToast(`Participante cadastrado: ${name}`);
+    }
   };
 
   // Manipulação de Atividades (Salvar / Editar / Excluir)
@@ -138,7 +156,13 @@ export default function Home() {
 
   const handleClearMonth = () => {
     if (!activeUser) return;
-    if (confirm(`Deseja realmente apagar todos os lançamentos de ${getMonthYearLabel(monthKey)} para recomeçar a folha do zero?`)) {
+    if (
+      confirm(
+        `Deseja realmente apagar todos os lançamentos de ${getMonthYearLabel(
+          monthKey
+        )} para recomeçar a folha do zero?`
+      )
+    ) {
       clearActivitiesForMonth(activeUser.id, monthKey);
       setActivities([]);
       setEditingActivity(null);
@@ -152,7 +176,7 @@ export default function Home() {
     window.print();
   };
 
-  // Exportar Backup Local em JSON (Zero Custos, Zero LGPD)
+  // Exportar Backup Local em JSON
   const handleExportBackup = () => {
     if (!activeUser) return;
     const jsonString = exportUserData(activeUser, monthKey);
@@ -163,7 +187,7 @@ export default function Home() {
     a.download = `backup-frequencia-${activeUser.name.toLowerCase().replace(/\s+/g, '-')}-${monthKey}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Backup JSON exportado com sucesso.');
+    showToast('Backup da folha exportado com sucesso.');
   };
 
   // Importar Backup Local em JSON
@@ -178,9 +202,9 @@ export default function Home() {
         setActiveUser(result.user);
         if (result.monthKey) setMonthKey(result.monthKey);
         setActivities(result.activities);
-        showToast('Backup importado com sucesso!');
+        showToast('Backup da folha restaurado com sucesso!');
       } else {
-        alert(result.error || 'Erro ao importar arquivo.');
+        alert(result.error || 'Erro ao carregar arquivo de backup.');
       }
     };
     reader.readAsText(file);
@@ -207,6 +231,7 @@ export default function Home() {
             hasChanges={hasChanges}
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
+            onOpenAdmin={() => setIsAdminModalOpen(true)}
           />
 
           {/* Subheader: Mês e Total */}
@@ -246,7 +271,7 @@ export default function Home() {
                 editingActivity={editingActivity}
                 onCancelEdit={() => setEditingActivity(null)}
                 defaultGatNumber={activeUser.gatNumber}
-                defaultGatName={activeUser.gatName || GATS[activeUser.gatNumber]?.name}
+                defaultGatName={activeUser.gatName || gats[activeUser.gatNumber]?.name}
               />
 
               <ActivityTable
@@ -300,15 +325,38 @@ export default function Home() {
           )}
         </div>
 
-        {/* Modal Minimalista de Identificação / Troca de GAT */}
+        {/* Modal de Identificação / Troca de GAT */}
         <ProfileModal
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
           currentUser={activeUser}
           allProfiles={profiles}
+          gats={gats}
+          roles={roles}
           onSaveProfile={handleSaveProfile}
           onSwitchProfile={handleSelectProfile}
           onCreateNew={handleCreateNewProfile}
+          onOpenAdmin={() => setIsAdminModalOpen(true)}
+        />
+
+        {/* Modal de Gestão & Administração (PIN 4031) */}
+        <AdminModal
+          isOpen={isAdminModalOpen}
+          onClose={() => setIsAdminModalOpen(false)}
+          profiles={profiles}
+          gats={gats}
+          roles={roles}
+          templates={templates}
+          onProfilesChange={(updated) => {
+            setProfiles(updated);
+            if (activeUser && !updated.some((p) => p.id === activeUser.id)) {
+              if (updated.length > 0) handleSelectProfile(updated[0]);
+            }
+          }}
+          onGatsChange={(updated) => setGats(updated)}
+          onRolesChange={(updated) => setRoles(updated)}
+          onTemplatesChange={(updated) => setTemplates(updated)}
+          onSelectUser={(user) => handleSelectProfile(user)}
         />
 
         {/* Toast Notificação Minimalista */}

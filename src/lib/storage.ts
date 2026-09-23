@@ -1,9 +1,22 @@
-import { Activity, UserProfile, UserRole, GATS } from '@/types';
+import {
+  Activity,
+  UserProfile,
+  UserRole,
+  GATInfo,
+  DEFAULT_GATS,
+  DEFAULT_ROLES,
+  ActivityTemplate
+} from '@/types';
 import { calcPetHours } from './pet-calculator';
+
+export const ADMIN_PASSWORD = '4031';
 
 const PROFILES_KEY = 'pet_folha_profiles_v2';
 const ACTIVE_PROFILE_ID_KEY = 'pet_folha_active_profile_id_v2';
 const ACTIVITIES_PREFIX = 'pet_folha_activities_v2_';
+const GATS_KEY = 'pet_folha_config_gats_v2';
+const ROLES_KEY = 'pet_folha_config_roles_v2';
+const TEMPLATES_KEY = 'pet_folha_config_templates_v2';
 
 export const DEFAULT_PROFILES: UserProfile[] = [
   {
@@ -58,6 +71,107 @@ export const DEFAULT_PROFILES: UserProfile[] = [
   }
 ];
 
+export const DEFAULT_TEMPLATES: ActivityTemplate[] = [
+  {
+    id: 'tpl-1',
+    day: 8,
+    start: '19:00',
+    end: '21:00',
+    modality: 'Síncrona virtual',
+    descriptionTemplate: '{gatLabel} (Síncrona virtual)',
+    isGatSpecific: true
+  },
+  {
+    id: 'tpl-2',
+    day: 10,
+    start: '10:00',
+    end: '12:00',
+    modality: 'Síncrona virtual',
+    descriptionTemplate:
+      'Oficina formativa: REDCap e construção de instrumentos para pesquisa científica (Síncrona virtual)'
+  },
+  {
+    id: 'tpl-3',
+    day: 11,
+    start: '13:30',
+    end: '17:30',
+    modality: 'Síncrona presencial',
+    descriptionTemplate: 'Reunião geral do PET (Síncrona presencial)'
+  },
+  {
+    id: 'tpl-4',
+    day: 21,
+    start: '15:00',
+    end: '19:20',
+    modality: 'Síncrona presencial',
+    descriptionTemplate: 'Oficinas de SUStentabilidade (Síncrona presencial)'
+  },
+  {
+    id: 'tpl-5',
+    day: 17,
+    start: '19:00',
+    end: '20:07',
+    modality: 'Síncrona virtual',
+    descriptionTemplate:
+      'Ciclo de Palestra 2026 - Cavernas como arquivo climático: A região Centro-Oeste no holoceno (Síncrona virtual)'
+  },
+  {
+    id: 'tpl-6',
+    day: 16,
+    start: '20:00',
+    end: '21:27',
+    modality: 'Síncrona virtual',
+    descriptionTemplate:
+      'Conselho Federal de Psicologia - Atuação psicossocial em desastres climáticos e o El Niño (Síncrona virtual)'
+  },
+  {
+    id: 'tpl-7',
+    day: 22,
+    start: '15:00',
+    end: '16:00',
+    modality: 'Assíncrona virtual',
+    descriptionTemplate:
+      'Síntese analítica: Desastres climáticos e atuação psicossocial (Assíncrona virtual)'
+  },
+  {
+    id: 'tpl-8',
+    day: 22,
+    start: '19:00',
+    end: '20:40',
+    modality: 'Síncrona virtual',
+    descriptionTemplate: '{gatLabel} (Síncrona virtual)',
+    isGatSpecific: true
+  }
+];
+
+// ============================================================
+// FUNÇÕES DE NORMALIZAÇÃO E ANTI-DUPLICIDADE
+// ============================================================
+
+export function normalizeName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+export function deduplicateProfiles(profiles: UserProfile[]): UserProfile[] {
+  const seen = new Map<string, UserProfile>();
+  for (const p of profiles) {
+    const key = normalizeName(p.name);
+    if (!seen.has(key)) {
+      seen.set(key, p);
+    }
+  }
+  return Array.from(seen.values());
+}
+
+// ============================================================
+// GESTÃO DE PERFIS (USUÁRIOS)
+// ============================================================
+
 export function getStoredProfiles(): UserProfile[] {
   if (typeof window === 'undefined') return DEFAULT_PROFILES;
   try {
@@ -67,7 +181,14 @@ export function getStoredProfiles(): UserProfile[] {
       return DEFAULT_PROFILES;
     }
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_PROFILES;
+    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PROFILES;
+
+    // Auto-desduplicação para garantir integridade e resolver casos como imagem 1
+    const deduplicated = deduplicateProfiles(parsed);
+    if (deduplicated.length !== parsed.length) {
+      localStorage.setItem(PROFILES_KEY, JSON.stringify(deduplicated));
+    }
+    return deduplicated;
   } catch {
     return DEFAULT_PROFILES;
   }
@@ -75,15 +196,16 @@ export function getStoredProfiles(): UserProfile[] {
 
 export function saveProfiles(profiles: UserProfile[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+  const clean = deduplicateProfiles(profiles);
+  localStorage.setItem(PROFILES_KEY, JSON.stringify(clean));
 }
 
 export function getActiveProfile(): UserProfile | null {
   if (typeof window === 'undefined') return DEFAULT_PROFILES[0];
   const profiles = getStoredProfiles();
   const activeId = localStorage.getItem(ACTIVE_PROFILE_ID_KEY);
-  if (!activeId) return null;
-  return profiles.find(p => p.id === activeId) || null;
+  if (!activeId) return profiles[0] || null;
+  return profiles.find((p) => p.id === activeId) || profiles[0] || null;
 }
 
 export function setActiveProfileId(profileId: string | null): void {
@@ -95,53 +217,50 @@ export function setActiveProfileId(profileId: string | null): void {
   }
 }
 
-export function loginWithPin(identifier: string, pin: string): { success: boolean; user?: UserProfile; error?: string } {
-  const profiles = getStoredProfiles();
-  const cleanId = identifier.trim().toLowerCase();
-  
-  const user = profiles.find(
-    p => p.id.toLowerCase() === cleanId || (p.email && p.email.toLowerCase() === cleanId) || p.name.toLowerCase() === cleanId
-  );
-
-  if (!user) {
-    return { success: false, error: 'Participante não encontrado no sistema.' };
-  }
-
-  // Se o usuário tem PIN configurado, valida
-  if (user.pin && user.pin !== pin.trim()) {
-    return { success: false, error: 'PIN de acesso incorreto. Tente novamente.' };
-  }
-
-  setActiveProfileId(user.id);
-  return { success: true, user };
-}
-
 export function registerProfile(data: {
   name: string;
-  email: string;
+  email?: string;
   role: UserRole;
   gatNumber: string;
-  pin: string;
+  pin?: string;
 }): { success: boolean; user?: UserProfile; error?: string } {
   const profiles = getStoredProfiles();
-  const cleanEmail = data.email.trim().toLowerCase();
-  
-  if (profiles.some(p => p.email && p.email.toLowerCase() === cleanEmail)) {
-    return { success: false, error: 'Já existe um participante cadastrado com este e-mail.' };
+  const trimmedName = data.name.trim();
+
+  // Validação Anti-Duplicidade por Nome
+  const normalizedNew = normalizeName(trimmedName);
+  if (profiles.some((p) => normalizeName(p.name) === normalizedNew)) {
+    return {
+      success: false,
+      error: `Já existe um participante cadastrado como "${trimmedName}".`
+    };
   }
 
-  const gatInfo = GATS[data.gatNumber] || { name: `GAT ${data.gatNumber}` };
-  const baseId = data.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  // Validação Anti-Duplicidade por E-mail (se informado)
+  if (data.email) {
+    const cleanEmail = data.email.trim().toLowerCase();
+    if (profiles.some((p) => p.email && p.email.toLowerCase() === cleanEmail)) {
+      return { success: false, error: 'Já existe um participante cadastrado com este e-mail.' };
+    }
+  }
+
+  const gats = getStoredGats();
+  const gatInfo = gats[data.gatNumber] || { name: `GAT ${data.gatNumber}` };
+  const baseId = trimmedName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
   const uniqueId = `${baseId}-${Date.now().toString(36).slice(-4)}`;
 
   const newProfile: UserProfile = {
     id: uniqueId,
-    name: data.name.trim(),
-    email: cleanEmail,
+    name: trimmedName,
+    email: data.email?.trim().toLowerCase(),
     role: data.role,
     gatNumber: data.gatNumber,
     gatName: gatInfo.name,
-    pin: data.pin.trim() || '1234',
+    pin: data.pin?.trim() || '1234',
     createdAt: new Date().toISOString()
   };
 
@@ -152,24 +271,132 @@ export function registerProfile(data: {
   return { success: true, user: newProfile };
 }
 
-export function generateSeedActivities(gatNumber: string, gatName: string): Activity[] {
-  const gatLabel = `Reunião do GAT ${gatNumber} (${gatName})`;
-  const seed: Omit<Activity, 'id' | 'hours'>[] = [
-    { date: '2026-09-08', start: '19:00', end: '21:00', modality: 'Síncrona virtual', description: `${gatLabel} (Síncrona virtual)` },
-    { date: '2026-09-10', start: '10:00', end: '12:00', modality: 'Síncrona virtual', description: 'Oficina formativa: REDCap e construção de instrumentos para pesquisa científica (Síncrona virtual)' },
-    { date: '2026-09-11', start: '13:30', end: '17:30', modality: 'Síncrona presencial', description: 'Reunião geral do PET (Síncrona presencial)' },
-    { date: '2026-09-21', start: '15:00', end: '19:20', modality: 'Síncrona presencial', description: 'Oficinas de SUStentabilidade (Síncrona presencial)' },
-    { date: '2026-09-17', start: '19:00', end: '20:07', modality: 'Síncrona virtual', description: 'Ciclo de Palestra 2026 - Cavernas como arquivo climático: A região Centro-Oeste no holoceno (Síncrona virtual)' },
-    { date: '2026-09-16', start: '20:00', end: '21:27', modality: 'Síncrona virtual', description: 'Conselho Federal de Psicologia - Atuação psicossocial em desastres climáticos e o El Niño (Síncrona virtual)' },
-    { date: '2026-09-22', start: '15:00', end: '16:00', modality: 'Assíncrona virtual', description: 'Síntese analítica: Desastres climáticos e atuação psicossocial (Assíncrona virtual)' },
-    { date: '2026-09-22', start: '19:00', end: '20:40', modality: 'Síncrona virtual', description: `${gatLabel} (Síncrona virtual)` }
-  ];
+export function deleteUserProfile(profileId: string): void {
+  if (typeof window === 'undefined') return;
+  const profiles = getStoredProfiles().filter((p) => p.id !== profileId);
+  saveProfiles(profiles);
 
-  return seed.map((act, index) => ({
-    ...act,
-    id: `act-seed-${index + 1}`,
-    hours: calcPetHours(act.start, act.end)
-  }));
+  const activeId = localStorage.getItem(ACTIVE_PROFILE_ID_KEY);
+  if (activeId === profileId) {
+    if (profiles.length > 0) {
+      setActiveProfileId(profiles[0].id);
+    } else {
+      setActiveProfileId(null);
+    }
+  }
+}
+
+export function updateUserProfileAdmin(updated: UserProfile): { success: boolean; error?: string } {
+  const profiles = getStoredProfiles();
+  const normalizedNew = normalizeName(updated.name);
+
+  // Verifica duplicidade com outro usuário que não seja ele mesmo
+  if (profiles.some((p) => p.id !== updated.id && normalizeName(p.name) === normalizedNew)) {
+    return { success: false, error: `Já existe outro participante com o nome "${updated.name}".` };
+  }
+
+  const gats = getStoredGats();
+  const gatInfo = gats[updated.gatNumber];
+  const finalUser = {
+    ...updated,
+    name: updated.name.trim(),
+    gatName: gatInfo?.name || updated.gatName || `GAT ${updated.gatNumber}`
+  };
+
+  const updatedProfiles = profiles.map((p) => (p.id === updated.id ? finalUser : p));
+  saveProfiles(updatedProfiles);
+  return { success: true };
+}
+
+// ============================================================
+// GESTÃO DINÂMICA DE GATS (ADMIN)
+// ============================================================
+
+export function getStoredGats(): Record<string, GATInfo> {
+  if (typeof window === 'undefined') return DEFAULT_GATS;
+  try {
+    const raw = localStorage.getItem(GATS_KEY);
+    if (!raw) return DEFAULT_GATS;
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? parsed : DEFAULT_GATS;
+  } catch {
+    return DEFAULT_GATS;
+  }
+}
+
+export function saveGats(gats: Record<string, GATInfo>): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(GATS_KEY, JSON.stringify(gats));
+}
+
+// ============================================================
+// GESTÃO DINÂMICA DE FUNÇÕES / ROLES (ADMIN)
+// ============================================================
+
+export function getStoredRoles(): string[] {
+  if (typeof window === 'undefined') return DEFAULT_ROLES;
+  try {
+    const raw = localStorage.getItem(ROLES_KEY);
+    if (!raw) return DEFAULT_ROLES;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_ROLES;
+  } catch {
+    return DEFAULT_ROLES;
+  }
+}
+
+export function saveRoles(roles: string[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+}
+
+// ============================================================
+// GESTÃO DINÂMICA DE TEMPLATES DE ATIVIDADES (ADMIN)
+// ============================================================
+
+export function getStoredTemplates(): ActivityTemplate[] {
+  if (typeof window === 'undefined') return DEFAULT_TEMPLATES;
+  try {
+    const raw = localStorage.getItem(TEMPLATES_KEY);
+    if (!raw) return DEFAULT_TEMPLATES;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_TEMPLATES;
+  } catch {
+    return DEFAULT_TEMPLATES;
+  }
+}
+
+export function saveTemplates(templates: ActivityTemplate[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+}
+
+// ============================================================
+// GERAÇÃO E CARREGAMENTO DE ATIVIDADES
+// ============================================================
+
+export function generateSeedActivities(
+  gatNumber: string,
+  gatName: string,
+  monthKey: string = '2026-09'
+): Activity[] {
+  const templates = getStoredTemplates();
+  const gatLabel = `Reunião do GAT ${gatNumber} (${gatName})`;
+
+  return templates.map((tpl, index) => {
+    const dayStr = String(tpl.day).padStart(2, '0');
+    const date = `${monthKey}-${dayStr}`;
+    const description = tpl.descriptionTemplate.replace('{gatLabel}', gatLabel);
+    return {
+      id: `act-seed-${index + 1}-${Date.now().toString(36).slice(-3)}`,
+      date,
+      start: tpl.start,
+      end: tpl.end,
+      modality: tpl.modality,
+      description,
+      hours: calcPetHours(tpl.start, tpl.end)
+    };
+  });
 }
 
 export function getActivitiesForMonth(profileId: string, monthKey: string): Activity[] {
@@ -180,7 +407,7 @@ export function getActivitiesForMonth(profileId: string, monthKey: string): Acti
     if (!raw) {
       // Apenas o perfil inicial de demonstração (felipe-vidal) recebe atividades semente automaticamente
       if (monthKey === '2026-09' && profileId === 'felipe-vidal') {
-        const initialActs = generateSeedActivities('04', 'Mangaba');
+        const initialActs = generateSeedActivities('04', 'Mangaba', '2026-09');
         saveActivitiesForMonth(profileId, monthKey, initialActs);
         return initialActs;
       }
@@ -195,9 +422,10 @@ export function getActivitiesForMonth(profileId: string, monthKey: string): Acti
 export function loadSampleActivitiesForUser(profileId: string, monthKey: string): Activity[] {
   const profiles = getStoredProfiles();
   const user = profiles.find((p) => p.id === profileId);
+  const gats = getStoredGats();
   const gatNumber = user?.gatNumber || '04';
-  const gatName = user?.gatName || GATS[gatNumber]?.name || 'PET';
-  const samples = generateSeedActivities(gatNumber, gatName);
+  const gatName = user?.gatName || gats[gatNumber]?.name || 'PET';
+  const samples = generateSeedActivities(gatNumber, gatName, monthKey);
   saveActivitiesForMonth(profileId, monthKey, samples);
   return samples;
 }
@@ -208,11 +436,19 @@ export function clearActivitiesForMonth(profileId: string, monthKey: string): vo
   localStorage.setItem(key, JSON.stringify([]));
 }
 
-export function saveActivitiesForMonth(profileId: string, monthKey: string, activities: Activity[]): void {
+export function saveActivitiesForMonth(
+  profileId: string,
+  monthKey: string,
+  activities: Activity[]
+): void {
   if (typeof window === 'undefined') return;
   const key = `${ACTIVITIES_PREFIX}${profileId}_${monthKey}`;
   localStorage.setItem(key, JSON.stringify(activities));
 }
+
+// ============================================================
+// EXPORTAÇÃO / IMPORTAÇÃO LOCAL
+// ============================================================
 
 export function exportUserData(user: UserProfile, monthKey: string): string {
   const activities = getActivitiesForMonth(user.id, monthKey);
@@ -236,7 +472,7 @@ export function importUserData(jsonStr: string): {
   try {
     const data = JSON.parse(jsonStr);
     if (!data.user || !data.user.name || !Array.isArray(data.activities)) {
-      return { success: false, error: 'Arquivo de backup inválido.' };
+      return { success: false, error: 'Arquivo de cópia de folha inválido.' };
     }
     const user: UserProfile = data.user;
     const monthKey: string = data.monthKey || '2026-09';
@@ -257,8 +493,6 @@ export function importUserData(jsonStr: string): {
 
     return { success: true, user, monthKey, activities };
   } catch {
-    return { success: false, error: 'Falha ao processar arquivo JSON.' };
+    return { success: false, error: 'Falha ao processar arquivo de folha.' };
   }
 }
-
-

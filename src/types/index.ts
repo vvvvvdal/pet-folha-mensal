@@ -1,9 +1,12 @@
-export type UserRole =
-  | 'Estudante'
-  | 'Orientador de Serviço'
-  | 'Preceptor'
-  | 'Tutor'
-  | 'Coordenador de GAT';
+export type UserRole = string;
+
+export const DEFAULT_ROLES: string[] = [
+  'Estudante',
+  'Orientador de Serviço',
+  'Preceptor',
+  'Tutor',
+  'Coordenador de GAT'
+];
 
 export interface GATInfo {
   number: string;
@@ -13,7 +16,7 @@ export interface GATInfo {
   description: string;
 }
 
-export const GATS: Record<string, GATInfo> = {
+export const DEFAULT_GATS: Record<string, GATInfo> = {
   '01': {
     number: '01',
     name: 'Araticum',
@@ -50,6 +53,18 @@ export const GATS: Record<string, GATInfo> = {
     description: 'Vigilância preditiva baseada em IA e modelagem computacional'
   }
 };
+
+export const GATS = DEFAULT_GATS;
+
+export interface ActivityTemplate {
+  id: string;
+  day: number; // dia do mês (ex: 8, 10, 11)
+  start: string;
+  end: string;
+  modality: ModalityType;
+  descriptionTemplate: string; // ex: "{gatLabel} (Síncrona virtual)" ou título fixo
+  isGatSpecific?: boolean;
+}
 
 export type ModalityType =
   | 'Síncrona virtual'
