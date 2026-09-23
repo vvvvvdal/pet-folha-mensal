@@ -256,8 +256,8 @@ export default function Home() {
 
         {/* Toast Notificação */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-emerald-500/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
-            <CheckCircle2 className="size-3.5 text-emerald-400 shrink-0" />
+          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-[#008D4C]/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 className="size-3.5 text-[#10B981] shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
@@ -301,7 +301,7 @@ export default function Home() {
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs shadow-xs">
-                <Calendar className="size-4 text-emerald-400" />
+                <Calendar className="size-4 text-[#10B981]" />
                 <span className="text-slate-400 font-medium">Mês:</span>
                 <select
                   value={monthKey}
@@ -394,7 +394,7 @@ export default function Home() {
                   )}
                   <button
                     onClick={handlePrint}
-                    className="px-3.5 py-1.5 rounded-xl font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all text-xs shadow-sm shadow-emerald-500/10"
+                    className="px-3.5 py-1.5 rounded-xl font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5 transition-all text-xs shadow-sm shadow-[#008D4C]/10"
                   >
                     <Printer className="size-3.5" />
                     <span>
@@ -477,8 +477,8 @@ export default function Home() {
 
         {/* Toast Notificação Minimalista */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-emerald-500/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
-            <CheckCircle2 className="size-3.5 text-emerald-400 shrink-0" />
+          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-[#008D4C]/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 className="size-3.5 text-[#10B981] shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}

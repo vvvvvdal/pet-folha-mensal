@@ -70,7 +70,7 @@ export function Navbar({
           className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-slate-700 text-left transition-all cursor-pointer group shadow-xs"
           title="Clique para editar seus dados de identificação"
         >
-          <div className="size-7 rounded-lg bg-[#008D4C]/15 text-[#008D4C] dark:text-emerald-400 border border-[#008D4C]/30 flex items-center justify-center font-bold text-xs">
+          <div className="size-7 rounded-lg bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/30 flex items-center justify-center font-bold text-xs">
             {user.gatNumber}
           </div>
           <div className="flex flex-col text-xs leading-tight">
@@ -91,7 +91,7 @@ export function Navbar({
             onClick={onOpenProfileModal}
             className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 text-xs text-slate-200 font-medium"
           >
-            <span className="size-5 rounded bg-[#008D4C]/20 text-[#008D4C] dark:text-emerald-400 font-bold text-[10px] flex items-center justify-center">
+            <span className="size-5 rounded bg-[#008D4C]/20 text-[#008D4C] dark:text-[#10B981] font-bold text-[10px] flex items-center justify-center">
               {user.gatNumber}
             </span>
             <span className="truncate max-w-[90px]">{user.name.split(' ')[0]}</span>
@@ -174,7 +174,7 @@ export function Navbar({
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-emerald-400 cursor-pointer transition-colors"
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors"
             title="Acesso de gestão / modo administrador (PIN 4031)"
           >
             <Shield className="size-4" />

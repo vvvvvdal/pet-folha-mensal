@@ -103,9 +103,9 @@ export function LandingPage({
             <button
               type="button"
               onClick={onOpenAdmin}
-              className="text-xs sm:text-sm text-slate-400 hover:text-[#008D4C] dark:hover:text-emerald-400 font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-[#008D4C]/30 bg-slate-900/60 cursor-pointer transition-colors"
+              className="text-xs sm:text-sm text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-[#008D4C]/30 bg-slate-900/60 cursor-pointer transition-colors"
             >
-              <ShieldCheck className="size-4 text-[#008D4C] dark:text-emerald-400" />
+              <ShieldCheck className="size-4 text-[#008D4C] dark:text-[#10B981]" />
               <span>Acesso Gestão</span>
             </button>
           </div>
@@ -116,7 +116,7 @@ export function LandingPage({
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-12">
         {/* Hero Section */}
         <section className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#008D4C]/10 border border-[#008D4C]/30 text-[#008D4C] dark:text-emerald-400 text-sm sm:text-base font-bold shadow-xs">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#008D4C]/10 border border-[#008D4C]/30 text-[#008D4C] dark:text-[#10B981] text-sm sm:text-base font-bold shadow-xs">
             <Sparkles className="size-4" />
             <span>Folha de Frequência Mensal</span>
           </div>
@@ -164,7 +164,7 @@ export function LandingPage({
                 <span><strong>Google Drive:</strong> Salve em uma pasta na nuvem.</span>
               </div>
               <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
-                <Smartphone className="size-5 text-[#008D4C] dark:text-emerald-400 shrink-0" />
+                <Smartphone className="size-5 text-[#008D4C] dark:text-[#10B981] shrink-0" />
                 <span><strong>WhatsApp:</strong> Envie em conversa consigo mesmo.</span>
               </div>
               <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-3">
@@ -222,7 +222,7 @@ export function LandingPage({
                     : 'border-slate-700/80 bg-slate-950/50 hover:border-[#008D4C]/50 hover:bg-slate-950'
                 }`}
               >
-                <div className="size-12 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-emerald-400 border border-[#008D4C]/20 flex items-center justify-center">
+                <div className="size-12 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/20 flex items-center justify-center">
                   <Upload className="size-6" />
                 </div>
                 <div>
@@ -328,7 +328,7 @@ export function LandingPage({
         {/* 3 Pilares do Sistema - Ampliados */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-4">
           <div className="p-6 sm:p-7 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-            <div className="size-12 rounded-xl bg-[#008D4C]/10 text-[#008D4C] dark:text-emerald-400 flex items-center justify-center border border-[#008D4C]/20">
+            <div className="size-12 rounded-xl bg-[#008D4C]/10 text-[#008D4C] dark:text-[#10B981] flex items-center justify-center border border-[#008D4C]/20">
               <Clock className="size-6" />
             </div>
             <h3 className="text-base sm:text-lg font-bold text-slate-100">Cálculo Preciso das 8h</h3>

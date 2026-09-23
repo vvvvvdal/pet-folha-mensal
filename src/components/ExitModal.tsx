@@ -72,7 +72,7 @@ export function ExitModal({
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-5">
           <div className="flex items-center gap-3">
-            <div className="size-11 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-emerald-400 border border-[#008D4C]/20 flex items-center justify-center shrink-0">
+            <div className="size-11 rounded-2xl bg-[#008D4C]/10 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/20 flex items-center justify-center shrink-0">
               <ShieldCheck className="size-6" />
             </div>
             <div>
@@ -106,7 +106,7 @@ export function ExitModal({
               <span>Google Drive / Nuvem</span>
             </div>
             <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col items-center text-center gap-1">
-              <Smartphone className="size-4 text-emerald-400" />
+              <Smartphone className="size-4 text-[#10B981]" />
               <span>WhatsApp (para si mesmo)</span>
             </div>
             <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col items-center text-center gap-1">
@@ -131,13 +131,13 @@ export function ExitModal({
             onClick={handleDownloadJson}
             className={`w-full p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
               downloadedJson
-                ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300'
+                ? 'bg-[#00341f]/20 border-[#008D4C]/40 text-[#10B981]'
                 : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-200 hover:bg-slate-950'
             }`}
           >
             <div className="flex items-center gap-3">
               <div className={`size-8 rounded-xl flex items-center justify-center ${
-                downloadedJson ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                downloadedJson ? 'bg-[#008D4C]/20 text-[#10B981]' : 'bg-slate-800 text-slate-400'
               }`}>
                 <Download className="size-4" />
               </div>
@@ -151,9 +151,9 @@ export function ExitModal({
               </div>
             </div>
             {downloadedJson ? (
-              <CheckCircle2 className="size-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="size-5 text-[#10B981] shrink-0" />
             ) : (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#008D4C]/10 text-[#10B981] border border-[#008D4C]/20">
                 Baixar
               </span>
             )}
@@ -164,13 +164,13 @@ export function ExitModal({
             onClick={handleDownloadPdf}
             className={`w-full p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
               downloadedPdf
-                ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300'
+                ? 'bg-[#00341f]/20 border-[#008D4C]/40 text-[#10B981]'
                 : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-200 hover:bg-slate-950'
             }`}
           >
             <div className="flex items-center gap-3">
               <div className={`size-8 rounded-xl flex items-center justify-center ${
-                downloadedPdf ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                downloadedPdf ? 'bg-[#008D4C]/20 text-[#10B981]' : 'bg-slate-800 text-slate-400'
               }`}>
                 <FileText className="size-4" />
               </div>
@@ -184,7 +184,7 @@ export function ExitModal({
               </div>
             </div>
             {downloadedPdf ? (
-              <CheckCircle2 className="size-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="size-5 text-[#10B981] shrink-0" />
             ) : (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">
                 Gerar PDF

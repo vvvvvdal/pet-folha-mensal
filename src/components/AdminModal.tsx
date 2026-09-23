@@ -442,10 +442,10 @@ export function AdminModal({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/40">
           <div className="flex items-center gap-2">
-            <Shield className="size-4 text-emerald-400" />
+            <Shield className="size-4 text-[#10B981]" />
             <h3 className="text-sm font-semibold text-slate-100">Painel de Gestão & Administração</h3>
             {isAuthenticated && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#008D4C]/10 text-[#10B981] border border-[#008D4C]/20 font-medium">
                 Admin Autenticado
               </span>
             )}
@@ -475,7 +475,7 @@ export function AdminModal({
         {!isAuthenticated ? (
           /* TELA DE AUTENTICAÇÃO COM PIN 4031 */
           <div className="p-8 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="size-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="size-12 rounded-full bg-[#008D4C]/10 border border-[#008D4C]/20 flex items-center justify-center text-[#10B981]">
               <Lock className="size-5" />
             </div>
             <div>
@@ -498,7 +498,7 @@ export function AdminModal({
                   }}
                   className={`w-full text-center px-4 py-2.5 text-sm tracking-widest font-mono rounded-lg bg-slate-950 border ${
                     pinError ? 'border-red-500 text-red-300' : 'border-slate-800 text-slate-100'
-                  } outline-none focus:border-emerald-500`}
+                  } outline-none focus:border-[#008D4C]`}
                 />
                 {pinError && (
                   <p className="text-[11px] text-red-400 mt-1.5 flex items-center justify-center gap-1">
@@ -509,7 +509,7 @@ export function AdminModal({
               </div>
               <button
                 type="submit"
-                className="w-full py-2 text-xs font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all cursor-pointer shadow-sm"
+                className="w-full py-2 text-xs font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] transition-all cursor-pointer shadow-sm"
               >
                 Acessar Painel
               </button>
@@ -524,7 +524,7 @@ export function AdminModal({
                 onClick={() => setActiveTab('users')}
                 className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'users'
-                    ? 'border-emerald-500 text-emerald-400'
+                    ? 'border-[#008D4C] text-[#10B981]'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -538,7 +538,7 @@ export function AdminModal({
                 onClick={() => setActiveTab('roles')}
                 className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'roles'
-                    ? 'border-emerald-500 text-emerald-400'
+                    ? 'border-[#008D4C] text-[#10B981]'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -549,7 +549,7 @@ export function AdminModal({
                 onClick={() => setActiveTab('gats')}
                 className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'gats'
-                    ? 'border-emerald-500 text-emerald-400'
+                    ? 'border-[#008D4C] text-[#10B981]'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -560,7 +560,7 @@ export function AdminModal({
                 onClick={() => setActiveTab('templates')}
                 className={`py-2.5 px-3 flex items-center gap-2 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
                   activeTab === 'templates'
-                    ? 'border-emerald-500 text-emerald-400'
+                    ? 'border-[#008D4C] text-[#10B981]'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -599,7 +599,7 @@ export function AdminModal({
                     <button
                       type="button"
                       onClick={() => setIsAddingUser(!isAddingUser)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-all"
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5 transition-all"
                     >
                       <Plus className="size-3.5" />
                       <span>{isAddingUser ? 'Fechar Formulário' : 'Novo Participante'}</span>
@@ -618,7 +618,7 @@ export function AdminModal({
                             placeholder="Ex: João da Silva..."
                             value={newUserName}
                             onChange={(e) => setNewUserName(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                           />
                         </div>
                         <div>
@@ -626,7 +626,7 @@ export function AdminModal({
                           <select
                             value={newUserRole}
                             onChange={(e) => setNewUserRole(e.target.value)}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             {roles.map((r) => (
                               <option key={r} value={r}>{r}</option>
@@ -638,7 +638,7 @@ export function AdminModal({
                           <select
                             value={newUserGat}
                             onChange={(e) => setNewUserGat(e.target.value)}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             {Object.entries(gats).map(([num, info]) => (
                               <option key={num} value={num}>GAT {num} ({info.name})</option>
@@ -656,7 +656,7 @@ export function AdminModal({
                         </button>
                         <button
                           type="submit"
-                          className="px-3.5 py-1.5 rounded-lg font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-lg font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
                         >
                           Cadastrar
                         </button>
@@ -665,8 +665,8 @@ export function AdminModal({
                   )}
 
                   {editingUser && (
-                    <form onSubmit={handleSaveEditUser} className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 space-y-3 text-xs animate-fade-in">
-                      <div className="font-semibold text-emerald-300">Editando Participante: {editingUser.name}</div>
+                    <form onSubmit={handleSaveEditUser} className="p-4 rounded-xl border border-[#008D4C]/30 bg-[#00341f]/10 space-y-3 text-xs animate-fade-in">
+                      <div className="font-semibold text-[#10B981]">Editando Participante: {editingUser.name}</div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className="block text-[11px] text-slate-400 mb-1">Nome Completo</label>
@@ -675,7 +675,7 @@ export function AdminModal({
                             required
                             value={editingUser.name}
                             onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                           />
                         </div>
                         <div>
@@ -683,7 +683,7 @@ export function AdminModal({
                           <select
                             value={editingUser.role}
                             onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             {roles.map((r) => (
                               <option key={r} value={r}>{r}</option>
@@ -703,7 +703,7 @@ export function AdminModal({
                                 gatName: gatInfo?.name || `GAT ${num}`
                               });
                             }}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             {Object.entries(gats).map(([num, info]) => (
                               <option key={num} value={num}>GAT {num} ({info.name})</option>
@@ -721,7 +721,7 @@ export function AdminModal({
                         </button>
                         <button
                           type="submit"
-                          className="px-3.5 py-1.5 rounded-lg font-semibold bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-lg font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
                         >
                           Salvar Alterações
                         </button>
@@ -765,7 +765,7 @@ export function AdminModal({
                                 <button
                                   type="button"
                                   onClick={() => setEditingUser(p)}
-                                  className="p-1 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                                  className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                                   title="Editar dados"
                                 >
                                   <Edit2 className="size-3.5" />
@@ -806,11 +806,11 @@ export function AdminModal({
                       placeholder="Ex: Pesquisador, Bolsista de Extensão, Coordenador de Eixo..."
                       value={newRoleName}
                       onChange={(e) => setNewRoleName(e.target.value)}
-                      className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-slate-950 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                      className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-slate-950 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                     />
                     <button
                       type="submit"
-                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1"
+                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1"
                     >
                       <Plus className="size-3.5" />
                       <span>Adicionar Função</span>
@@ -828,7 +828,7 @@ export function AdminModal({
                           <form
                             key={r}
                             onSubmit={handleSaveEditRole}
-                            className="p-2.5 rounded-lg border border-emerald-500/40 bg-emerald-950/20 flex items-center gap-2"
+                            className="p-2.5 rounded-lg border border-[#008D4C]/40 bg-[#00341f]/20 flex items-center gap-2"
                           >
                             <input
                               type="text"
@@ -836,11 +836,11 @@ export function AdminModal({
                               autoFocus
                               value={editingRoleNewName}
                               onChange={(e) => setEditingRoleNewName(e.target.value)}
-                              className="flex-1 px-2 py-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-100 outline-none focus:border-emerald-500"
+                              className="flex-1 px-2 py-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-100 outline-none focus:border-[#008D4C]"
                             />
                             <button
                               type="submit"
-                              className="p-1.5 rounded bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                              className="p-1.5 rounded bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
                               title="Salvar alteração"
                             >
                               <Check className="size-3.5" />
@@ -872,7 +872,7 @@ export function AdminModal({
                             <button
                               type="button"
                               onClick={() => handleStartEditRole(r)}
-                              className="p-1 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                              className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                               title="Editar nome da função"
                             >
                               <Edit2 className="size-3.5" />
@@ -911,8 +911,8 @@ export function AdminModal({
 
                   {/* Edição de GAT Selecionado */}
                   {editingGat && (
-                    <form onSubmit={handleSaveEditGat} className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20 space-y-3 text-xs animate-fade-in">
-                      <div className="font-semibold text-emerald-300">
+                    <form onSubmit={handleSaveEditGat} className="p-4 rounded-xl border border-[#008D4C]/40 bg-[#00341f]/20 space-y-3 text-xs animate-fade-in">
+                      <div className="font-semibold text-[#10B981]">
                         Editando GAT {editingGatOriginalNumber}: {editingGat.name}
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -923,7 +923,7 @@ export function AdminModal({
                             required
                             value={editingGat.number}
                             onChange={(e) => setEditingGat({ ...editingGat, number: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                           />
                         </div>
                         <div>
@@ -933,7 +933,7 @@ export function AdminModal({
                             required
                             value={editingGat.name}
                             onChange={(e) => setEditingGat({ ...editingGat, name: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                           />
                         </div>
                         <div>
@@ -941,7 +941,7 @@ export function AdminModal({
                           <select
                             value={editingGat.axis}
                             onChange={(e) => setEditingGat({ ...editingGat, axis: e.target.value })}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             <option value="Eixo I">Eixo I (Atenção Primária e SAN)</option>
                             <option value="Eixo II">Eixo II (Atenção Especializada)</option>
@@ -955,7 +955,7 @@ export function AdminModal({
                           type="text"
                           value={editingGat.description}
                           onChange={(e) => setEditingGat({ ...editingGat, description: e.target.value })}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                         />
                       </div>
                       <div className="flex justify-end gap-2">
@@ -971,7 +971,7 @@ export function AdminModal({
                         </button>
                         <button
                           type="submit"
-                          className="px-3.5 py-1.5 font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                          className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
                         >
                           Salvar GAT
                         </button>
@@ -991,7 +991,7 @@ export function AdminModal({
                           placeholder="06"
                           value={newGatNumber}
                           onChange={(e) => setNewGatNumber(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                         />
                       </div>
                       <div>
@@ -1002,7 +1002,7 @@ export function AdminModal({
                           placeholder="Nome do fruto/árvore..."
                           value={newGatName}
                           onChange={(e) => setNewGatName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                         />
                       </div>
                       <div>
@@ -1010,7 +1010,7 @@ export function AdminModal({
                         <select
                           value={newGatAxis}
                           onChange={(e) => setNewGatAxis(e.target.value)}
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                         >
                           <option value="Eixo I">Eixo I (Atenção Primária e SAN)</option>
                           <option value="Eixo II">Eixo II (Atenção Especializada)</option>
@@ -1025,13 +1025,13 @@ export function AdminModal({
                         placeholder="Ex: Vigilância de arboviroses na Região Norte..."
                         value={newGatDesc}
                         onChange={(e) => setNewGatDesc(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
                       />
                     </div>
                     <div className="flex justify-end">
                       <button
                         type="submit"
-                        className="px-3.5 py-1.5 font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5"
                       >
                         <Plus className="size-3.5" />
                         <span>Adicionar GAT</span>
@@ -1050,7 +1050,7 @@ export function AdminModal({
                         >
                           <div>
                             <div className="flex items-center justify-between mb-1.5">
-                              <span className="font-semibold text-emerald-400">
+                              <span className="font-semibold text-[#10B981]">
                                 GAT {num} — {info.name}
                               </span>
                               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">
@@ -1067,7 +1067,7 @@ export function AdminModal({
                               <button
                                 type="button"
                                 onClick={() => handleStartEditGat(num, info)}
-                                className="p-1 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                                className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                                 title="Editar GAT"
                               >
                                 <Edit2 className="size-3.5" />
@@ -1115,8 +1115,8 @@ export function AdminModal({
 
                   {/* Edição de Template */}
                   {editingTemplate && (
-                    <form onSubmit={handleSaveEditTemplate} className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20 space-y-3 text-xs animate-fade-in">
-                      <div className="font-semibold text-emerald-300">Editando Modelo de Atividade</div>
+                    <form onSubmit={handleSaveEditTemplate} className="p-4 rounded-xl border border-[#008D4C]/40 bg-[#00341f]/20 space-y-3 text-xs animate-fade-in">
+                      <div className="font-semibold text-[#10B981]">Editando Modelo de Atividade</div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-2">
                           <label className="block text-[11px] text-slate-400 mb-1">Nome / Descrição da Atividade</label>
@@ -1126,7 +1126,7 @@ export function AdminModal({
                             disabled={editingTemplate.isGatSpecific}
                             value={editingTemplate.isGatSpecific ? 'Reunião do GAT {gatNumber} ({gatName})' : editingTemplate.name}
                             onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 disabled:opacity-50"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] disabled:opacity-50"
                           />
                         </div>
                         <div>
@@ -1134,7 +1134,7 @@ export function AdminModal({
                           <select
                             value={editingTemplate.modality}
                             onChange={(e) => setEditingTemplate({ ...editingTemplate, modality: e.target.value as ModalityType })}
-                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                            className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                           >
                             <option value="Síncrona virtual">Síncrona virtual</option>
                             <option value="Síncrona presencial">Síncrona presencial</option>
@@ -1148,7 +1148,7 @@ export function AdminModal({
                             type="checkbox"
                             checked={editingTemplate.isGatSpecific || false}
                             onChange={(e) => setEditingTemplate({ ...editingTemplate, isGatSpecific: e.target.checked })}
-                            className="rounded accent-emerald-500"
+                            className="rounded accent-[#008D4C]"
                           />
                           <span>Atividade própria do GAT (dinâmica)</span>
                         </label>
@@ -1162,7 +1162,7 @@ export function AdminModal({
                           </button>
                           <button
                             type="submit"
-                            className="px-3.5 py-1.5 font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                            className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer"
                           >
                             Salvar Modelo
                           </button>
@@ -1184,7 +1184,7 @@ export function AdminModal({
                           placeholder={newTplGatSpecific ? 'Reunião do GAT (automática)' : 'Ex: Oficina de Indicadores SISVAN, Seminário...'}
                           value={newTplGatSpecific ? 'Reunião do GAT {gatNumber} ({gatName})' : newTplName}
                           onChange={(e) => setNewTplName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 disabled:opacity-50"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] disabled:opacity-50"
                         />
                       </div>
                       <div>
@@ -1192,7 +1192,7 @@ export function AdminModal({
                         <select
                           value={newTplModality}
                           onChange={(e) => setNewTplModality(e.target.value as ModalityType)}
-                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                          className="w-full px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
                         >
                           <option value="Síncrona virtual">Síncrona virtual</option>
                           <option value="Síncrona presencial">Síncrona presencial</option>
@@ -1207,14 +1207,14 @@ export function AdminModal({
                           type="checkbox"
                           checked={newTplGatSpecific}
                           onChange={(e) => setNewTplGatSpecific(e.target.checked)}
-                          className="rounded accent-emerald-500"
+                          className="rounded accent-[#008D4C]"
                         />
                         <span>Atividade própria do GAT (injeta número e nome automaticamente)</span>
                       </label>
 
                       <button
                         type="submit"
-                        className="px-3.5 py-1.5 font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 font-semibold rounded-lg bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5"
                       >
                         <Plus className="size-3.5" />
                         <span>Adicionar Modelo</span>
@@ -1234,7 +1234,7 @@ export function AdminModal({
                             {tpl.name || (tpl as any).descriptionTemplate || 'Modelo'}
                           </div>
                           <div className="text-[11px] text-slate-400 mt-0.5">
-                            Tipo: <span className="text-emerald-400 font-medium">{tpl.modality}</span>
+                            Tipo: <span className="text-[#10B981] font-medium">{tpl.modality}</span>
                             {tpl.isGatSpecific && <span className="ml-2 text-sky-400 font-medium">• GAT Dinâmico</span>}
                           </div>
                         </div>
@@ -1242,7 +1242,7 @@ export function AdminModal({
                           <button
                             type="button"
                             onClick={() => handleStartEditTemplate(tpl)}
-                            className="p-1 rounded text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                            className="p-1 rounded text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                             title="Editar modelo"
                           >
                             <Edit2 className="size-3.5" />

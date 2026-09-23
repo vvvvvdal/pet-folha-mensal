@@ -87,7 +87,7 @@ export function ActivityForm({
       {/* Top Header: Title & Quick Presets */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800/60">
         <div className="flex items-center gap-2">
-          <div className="size-6 rounded-md bg-[#008D4C]/15 text-[#008D4C] dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+          <div className="size-6 rounded-md bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] flex items-center justify-center font-bold text-xs">
             {editingActivity ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
           </div>
           <span className="text-xs sm:text-sm font-semibold text-slate-200">
@@ -118,7 +118,7 @@ export function ActivityForm({
                   e.target.value = '';
                 }}
                 defaultValue=""
-                className="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-300 text-xs outline-none cursor-pointer focus:border-emerald-500 hover:border-slate-600 transition-colors"
+                className="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-300 text-xs outline-none cursor-pointer focus:border-[#008D4C] hover:border-slate-600 transition-colors"
                 title="Selecione uma atividade para preencher o nome e a modalidade automaticamente"
               >
                 <option value="" disabled>
@@ -154,7 +154,7 @@ export function ActivityForm({
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
@@ -166,7 +166,7 @@ export function ActivityForm({
               value={start}
               onChange={(e) => setStart(e.target.value)}
               required
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
@@ -178,14 +178,14 @@ export function ActivityForm({
               value={end}
               onChange={(e) => setEnd(e.target.value)}
               required
-              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3 py-2 text-xs rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
           </div>
 
           {/* Duração Calculada */}
           <div className="p-2 sm:p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-400">Duração calculada:</span>
-            <span className="text-sm font-bold text-emerald-400">
+            <span className="text-sm font-bold text-[#10B981]">
               {previewHours}h {previewHours === 1 ? 'hora' : 'horas'}
             </span>
           </div>

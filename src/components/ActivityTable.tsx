@@ -34,7 +34,7 @@ export function ActivityTable({
     switch (modality) {
       case 'Síncrona presencial':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#008D4C]/15 text-[#008D4C] dark:text-emerald-300 border border-[#008D4C]/30 whitespace-nowrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] border border-[#008D4C]/30 whitespace-nowrap">
             Síncrona presencial
           </span>
         );
@@ -60,7 +60,7 @@ export function ActivityTable({
         {/* Table Header Bar */}
         <div className="p-4 sm:px-6 py-4 border-b border-slate-800/80 flex items-center justify-between gap-3 bg-slate-950/40">
           <div className="flex items-center gap-2.5">
-            <ListChecks className="size-5 text-[#008D4C] dark:text-emerald-400" />
+            <ListChecks className="size-5 text-[#008D4C] dark:text-[#10B981]" />
             <h3 className="text-sm sm:text-base font-bold text-slate-100">
               Lançamentos de {monthLabel}
             </h3>
@@ -100,7 +100,7 @@ export function ActivityTable({
                 <tr>
                   <td colSpan={7} className="py-16 px-4 text-center">
                     <div className="max-w-md mx-auto space-y-3.5">
-                      <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
+                      <div className="size-12 rounded-2xl bg-[#008D4C]/10 text-[#10B981] flex items-center justify-center mx-auto border border-[#008D4C]/20">
                         <Clock className="size-6" />
                       </div>
                       <div className="text-base font-bold text-slate-100">
@@ -113,9 +113,9 @@ export function ActivityTable({
                         <button
                           type="button"
                           onClick={onLoadSamples}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-sm font-semibold cursor-pointer transition-all shadow-xs"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#008D4C]/30 bg-[#008D4C]/10 hover:bg-[#008D4C]/20 text-[#10B981] text-sm font-semibold cursor-pointer transition-all shadow-xs"
                         >
-                          <Sparkles className="size-4 text-emerald-400" />
+                          <Sparkles className="size-4 text-[#10B981]" />
                           <span>Carregar Atividades Padrão (GAT {user.gatNumber})</span>
                         </button>
                       </div>
@@ -129,7 +129,7 @@ export function ActivityTable({
                     <tr
                       key={act.id}
                       className={`transition-colors hover:bg-slate-800/40 text-sm ${
-                        isEditing ? 'bg-emerald-950/30' : ''
+                        isEditing ? 'bg-[#00341f]/30' : ''
                       }`}
                     >
                       <td className="py-3.5 px-4 font-semibold text-slate-200 whitespace-nowrap">
@@ -150,14 +150,14 @@ export function ActivityTable({
                       <td className="py-3.5 px-4 text-slate-100 font-medium leading-relaxed">
                         <span>{act.description}</span>
                       </td>
-                      <td className="py-3.5 px-4 text-right font-extrabold text-base text-emerald-400 whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-right font-extrabold text-base text-[#10B981] whitespace-nowrap">
                         {act.hours}h
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => onEdit(act)}
-                            className="p-2 rounded-xl text-slate-400 hover:text-emerald-400 hover:bg-slate-800 cursor-pointer transition-colors"
+                            className="p-2 rounded-xl text-slate-400 hover:text-[#10B981] hover:bg-slate-800 cursor-pointer transition-colors"
                             title="Editar atividade"
                           >
                             <Edit2 className="size-4" />
@@ -182,7 +182,7 @@ export function ActivityTable({
                   <td colSpan={5} className="py-4 px-4 text-right text-slate-300 uppercase tracking-wider text-xs">
                     Total do Mês ({monthLabel}):
                   </td>
-                  <td className="py-4 px-4 text-right text-emerald-400 font-extrabold text-lg">
+                  <td className="py-4 px-4 text-right text-[#10B981] font-extrabold text-lg">
                     {totalHours}h
                   </td>
                   <td></td>
