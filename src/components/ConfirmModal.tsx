@@ -69,8 +69,9 @@ export function ConfirmModal({
             className={`px-4 py-2 rounded-xl text-xs font-semibold text-white cursor-pointer transition-all shadow-sm ${
               isDestructive
                 ? 'bg-red-600 hover:bg-red-500 shadow-red-600/20'
-                : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
+                : 'text-white cursor-pointer transition-all shadow-sm'
             }`}
+            style={isDestructive ? {} : { backgroundColor: '#008D4C', boxShadow: '0 1px 2px rgba(0,141,76,0.2)' }}
           >
             {confirmLabel}
           </button>

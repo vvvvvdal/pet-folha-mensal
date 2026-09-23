@@ -23,7 +23,7 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32 }: Sta
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Horas Apuradas
           </span>
-          <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+          <div className="size-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,141,76,0.12)', color: '#10B981' }}>
             <Target className="size-4" />
           </div>
         </div>
@@ -36,10 +36,8 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32 }: Sta
           </div>
           <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                isGoalReached ? 'bg-emerald-400' : 'bg-emerald-500'
-              }`}
-              style={{ width: `${pct}%` }}
+              className={`h-full rounded-full transition-all duration-500`}
+              style={{ backgroundColor: '#10B981', width: `${pct}%` }}
             />
           </div>
           <div className="flex items-center justify-between text-[11px] text-slate-400">
@@ -55,7 +53,7 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32 }: Sta
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Média Semanal
           </span>
-          <div className="size-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center">
+          <div className="size-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,163,224,0.12)', color: '#00A3E0' }}>
             <TrendingUp className="size-4" />
           </div>
         </div>
@@ -78,14 +76,14 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32 }: Sta
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Status da Frequência
           </span>
-          <div className="size-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+          <div className="size-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(249,189,71,0.12)', color: '#F9BD47' }}>
             <CalendarCheck className="size-4" />
           </div>
         </div>
         <div>
           <div className="flex items-center gap-2">
             {isGoalReached ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: 'rgba(0,141,76,0.15)', color: '#10B981', border: '1px solid rgba(0,141,76,0.25)' }}>
                 <CheckCircle2 className="size-3.5" />
                 Apta para Envio
               </span>

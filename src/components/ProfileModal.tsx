@@ -74,7 +74,7 @@ export function ProfileModal({
       >
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
           <div className="flex items-center gap-2">
-            <User className="size-4 text-emerald-400" />
+            <User className="size-4" style={{ color: '#10B981' }} />
             <h3 className="text-sm font-semibold text-slate-100">
               Identificação do Participante
             </h3>
@@ -97,7 +97,7 @@ export function ProfileModal({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C]"
             />
           </div>
 
@@ -109,7 +109,7 @@ export function ProfileModal({
               <select
                 value={gatNumber}
                 onChange={(e) => setGatNumber(e.target.value)}
-                className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
               >
                 {Object.entries(gats).map(([num, info]) => (
                   <option key={num} value={num}>
@@ -126,7 +126,7 @@ export function ProfileModal({
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
+                className="w-full px-2.5 py-2 text-xs rounded-lg bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer"
               >
                 {roles.map((r) => (
                   <option key={r} value={r}>
@@ -148,9 +148,9 @@ export function ProfileModal({
                 onClose();
                 onOpenAdmin();
               }}
-              className="text-[11px] text-slate-400 hover:text-emerald-400 flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-[11px] text-slate-400 hover:text-[#10B981] flex items-center gap-1 cursor-pointer transition-colors"
             >
-              <Shield className="size-3 text-emerald-400" />
+              <Shield className="size-3" style={{ color: '#10B981' }} />
               <span>Painel Admin</span>
             </button>
 
@@ -164,7 +164,8 @@ export function ProfileModal({
               </button>
               <button
                 type="submit"
-                className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer flex items-center gap-1.5 transition-colors"
+                className="px-4 py-1.5 text-xs font-semibold rounded-lg text-white hover:brightness-110 cursor-pointer flex items-center gap-1.5 transition-colors"
+                style={{ backgroundColor: '#008D4C' }}
               >
                 <Check className="size-3.5" />
                 Salvar Alterações

@@ -50,6 +50,8 @@ interface AdminModalProps {
   onRolesChange: (updated: string[]) => void;
   onTemplatesChange: (updated: ActivityTemplate[]) => void;
   onSelectUser: (user: UserProfile) => void;
+  defaultAuthenticated?: boolean;
+  defaultTab?: 'users' | 'roles' | 'gats' | 'templates';
 }
 
 export function AdminModal({
@@ -63,9 +65,12 @@ export function AdminModal({
   onGatsChange,
   onRolesChange,
   onTemplatesChange,
-  onSelectUser
+  onSelectUser,
+  defaultAuthenticated = false,
+  defaultTab = 'users'
 }: AdminModalProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (defaultAuthenticated) return true;
     if (typeof window !== 'undefined') {
       return new URLSearchParams(window.location.search).get('auth') === '1';
     }
@@ -78,7 +83,7 @@ export function AdminModal({
       const tab = new URLSearchParams(window.location.search).get('tab');
       if (tab === 'templates' || tab === 'users' || tab === 'roles' || tab === 'gats') return tab;
     }
-    return 'users';
+    return defaultTab;
   });
 
   // Formulário de Edição de Usuário
