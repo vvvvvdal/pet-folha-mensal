@@ -508,6 +508,9 @@ export default function Home() {
                     Voltar
                   </button>
                 </div>
+                <p className="text-[11px] text-slate-400 sm:hidden w-full text-center pt-1">
+                  Dica: no celular, escolha a orientação <strong>Horizontal</strong> na janela de impressão do sistema.
+                </p>
               </div>
 
               <div className="overflow-x-auto max-w-full p-2.5 sm:p-8 md:p-10 bg-slate-950/80 rounded-2xl border border-slate-800/80 flex justify-start sm:justify-center shadow-inner">

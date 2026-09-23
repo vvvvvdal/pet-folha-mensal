@@ -219,6 +219,11 @@ html[data-theme="light"] footer {
 /* ============================================================
    REGRAS DE IMPRESSÃO (A4 PAISAGEM RIGOROSAMENTE 1 PÁGINA)
    ============================================================ */
+@page {
+  size: A4 landscape;
+  margin: 8mm 10mm 8mm 10mm;
+}
+
 @media print {
   @page {
     size: A4 landscape;

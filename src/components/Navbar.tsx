@@ -186,30 +186,29 @@ export function Navbar({
             <MessageSquareHeart className="size-4 sm:size-4.5" />
           </button>
 
-          {/* Admin Shield: Desktop */}
+          {/* Admin Shield */}
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="hidden sm:flex size-9 sm:size-10 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors items-center justify-center shrink-0"
+            className="size-8.5 sm:size-10 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#008D4C]/30 text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] cursor-pointer transition-colors flex items-center justify-center shrink-0"
             title="Acesso de gestão / modo administrador"
             aria-label="Acesso de gestão / modo administrador"
           >
             <Shield className="size-4 sm:size-4.5" />
           </button>
 
-          {/* Salvar e Sair (Header) */}
+          {/* Salvar e Sair (Apenas Desktop - no mobile fica na segunda linha) */}
           <button
             type="button"
             onClick={onOpenExitModal}
-            className="h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl border border-slate-700/80 bg-slate-800/90 hover:bg-slate-700 text-slate-100 hover:text-white text-xs sm:text-sm font-bold cursor-pointer transition-all relative flex items-center gap-1.5 shrink-0 shadow-xs"
+            className="hidden sm:flex h-9 sm:h-10 px-3.5 rounded-xl border border-slate-700/80 bg-slate-800/90 hover:bg-slate-700 text-slate-100 hover:text-white text-xs sm:text-sm font-bold cursor-pointer transition-all relative items-center gap-1.5 shrink-0 shadow-xs"
             title="Salvar arquivo de backup e sair"
           >
             <LogOut className="size-3.5 text-emerald-400" />
             {hasChanges && (
               <span className="size-2 rounded-full bg-amber-400 animate-pulse absolute -top-0.5 -right-0.5 ring-2 ring-slate-950" />
             )}
-            <span className="hidden sm:inline">Salvar e Sair</span>
-            <span className="sm:hidden">Sair</span>
+            <span>Salvar e Sair</span>
           </button>
         </div>
       </div>
