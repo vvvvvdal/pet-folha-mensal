@@ -469,6 +469,15 @@ export default function Home() {
             <span>{toastMessage}</span>
           </div>
         )}
+
+        {/* Footer com Créditos e Licença MIT */}
+        <footer className="w-full border-t border-slate-800/80 bg-slate-950/60 py-6 text-center text-xs text-slate-400 mt-12">
+          <p>
+            Desenvolvido por{' '}
+            <strong className="text-slate-200 font-semibold">Felipe Gonçalves Vidal</strong> &amp;{' '}
+            <strong className="text-slate-200 font-semibold">Robert Francisco Taveira</strong> • Licença MIT
+          </p>
+        </footer>
       </main>
     </div>
 

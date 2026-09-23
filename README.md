@@ -37,7 +37,7 @@ npm install
 npm run dev
 
 # 3. Acessar no navegador
-# http://localhost:3000
+# http://localhost:5000
 ```
 
 ---
@@ -67,9 +67,24 @@ Consulte [docs/deployment-vercel.md](docs/deployment-vercel.md) para detalhes ad
 
 ---
 
+## 👥 Autoria e Desenvolvimento
+
+* **Felipe Gonçalves Vidal**
+* **Robert Francisco Taveira**
+
+Colaboradores e idealizadores do sistema de controle e emissão de folhas de frequência para o PET-Saúde Clima UFG.
+
+---
+
 ## 🏛️ Instituições Envolvidas
 
 * **SMS Goiânia** (Coordenação Geral)
 * **SES Goiás**
 * **Universidade Federal de Goiás (UFG)** — Campus Goiânia
 * **Ministério da Saúde (SGTES/MS)**
+
+---
+
+## 📄 Licença
+
+Este projeto é software livre distribuído sob os termos da [Licença MIT](LICENSE).

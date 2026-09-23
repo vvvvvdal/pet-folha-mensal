@@ -333,9 +333,13 @@ export function LandingPage({
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
-        <p>PET-Saúde Clima • SMS Goiânia, SES Goiás e Universidade Federal de Goiás (UFG)</p>
+      {/* Footer com Créditos e Licença MIT */}
+      <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-400">
+        <p>
+          Desenvolvido por{' '}
+          <strong className="text-slate-200 font-semibold">Felipe Gonçalves Vidal</strong> &amp;{' '}
+          <strong className="text-slate-200 font-semibold">Robert Francisco Taveira</strong> • Licença MIT
+        </p>
       </footer>
     </div>
   );
