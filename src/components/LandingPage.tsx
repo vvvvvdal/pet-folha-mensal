@@ -16,7 +16,8 @@ import {
   ArrowRight,
   Sparkles,
   Sun,
-  Moon
+  Moon,
+  MessageSquareHeart
 } from 'lucide-react';
 import { useDialog } from '@/context/DialogContext';
 
@@ -26,6 +27,7 @@ interface LandingPageProps {
   gats: Record<string, GATInfo>;
   roles: string[];
   onOpenAdmin: () => void;
+  onOpenFeedback: () => void;
 }
 
 export function LandingPage({
@@ -33,7 +35,8 @@ export function LandingPage({
   onCreateProfile,
   gats,
   roles,
-  onOpenAdmin
+  onOpenAdmin,
+  onOpenFeedback
 }: LandingPageProps) {
   const { theme, toggleTheme } = useTheme();
   const { alert } = useDialog();
@@ -108,6 +111,17 @@ export function LandingPage({
               ) : (
                 <Moon className="size-4 text-slate-400" />
               )}
+            </button>
+
+            {/* Feedback & Avaliação */}
+            <button
+              type="button"
+              onClick={onOpenFeedback}
+              className="text-xs sm:text-sm text-slate-400 hover:text-[#00A3E0] font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-[#00A3E0]/30 bg-slate-900/60 cursor-pointer transition-colors"
+              title="Avaliação do sistema, sugestões e relato de bugs"
+            >
+              <MessageSquareHeart className="size-4 text-[#00A3E0]" />
+              <span className="hidden sm:inline">Avaliação / Feedback</span>
             </button>
 
             <button
@@ -391,6 +405,16 @@ export function LandingPage({
             Robert Taveira
           </a>
         </p>
+        <div className="mt-2.5 flex items-center justify-center gap-4 text-[11px] text-slate-400">
+          <button
+            type="button"
+            onClick={onOpenFeedback}
+            className="hover:text-[#00A3E0] underline underline-offset-2 transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <MessageSquareHeart className="size-3.5 text-[#00A3E0]" />
+            <span>Avaliação do Sistema &amp; Relato de Bugs</span>
+          </button>
+        </div>
       </footer>
     </div>
   );

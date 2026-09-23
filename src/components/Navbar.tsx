@@ -10,7 +10,8 @@ import {
   Upload,
   Shield,
   Sun,
-  Moon
+  Moon,
+  MessageSquareHeart
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -23,6 +24,7 @@ interface NavbarProps {
   onImportBackup: (file: File) => void;
   onOpenAdmin: () => void;
   onOpenExitModal: () => void;
+  onOpenFeedback: () => void;
 }
 
 export function Navbar({
@@ -34,7 +36,8 @@ export function Navbar({
   onExportBackup,
   onImportBackup,
   onOpenAdmin,
-  onOpenExitModal
+  onOpenExitModal,
+  onOpenFeedback
 }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const gatName = user.gatName || GATS[user.gatNumber]?.name || 'PET';
@@ -167,6 +170,16 @@ export function Navbar({
             ) : (
               <Moon className="size-4 text-slate-400" />
             )}
+          </button>
+
+          {/* Feedback & Avaliação */}
+          <button
+            type="button"
+            onClick={onOpenFeedback}
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:border-[#00A3E0]/40 text-slate-400 hover:text-[#00A3E0] cursor-pointer transition-colors"
+            title="Avaliação do sistema, sugestões e relato de bugs"
+          >
+            <MessageSquareHeart className="size-4" />
           </button>
 
           {/* Admin Shield */}

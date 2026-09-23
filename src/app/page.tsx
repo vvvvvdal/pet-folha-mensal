@@ -28,7 +28,8 @@ import { ActivityTable } from '@/components/ActivityTable';
 import { OfficialSheet } from '@/components/OfficialSheet';
 import { LandingPage } from '@/components/LandingPage';
 import { ExitModal } from '@/components/ExitModal';
-import { Calendar, Download, Printer, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { FeedbackModal } from '@/components/FeedbackModal';
+import { Calendar, Download, Printer, CheckCircle2, ArrowLeft, MessageSquareHeart } from 'lucide-react';
 import { useDialog } from '@/context/DialogContext';
 
 export default function Home() {
@@ -38,6 +39,7 @@ export default function Home() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [monthKey, setMonthKey] = useState('2026-09');
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'official'>('dashboard');
@@ -310,6 +312,7 @@ export default function Home() {
           gats={gats}
           roles={roles}
           onOpenAdmin={() => setIsAdminModalOpen(true)}
+          onOpenFeedback={() => setIsFeedbackModalOpen(true)}
         />
 
         {/* Modal de Gestão & Administração */}
@@ -330,6 +333,13 @@ export default function Home() {
             handleSelectProfile(user);
             setIsAdminModalOpen(false);
           }}
+        />
+
+        {/* Modal de Feedback & Avaliação */}
+        <FeedbackModal
+          isOpen={isFeedbackModalOpen}
+          onClose={() => setIsFeedbackModalOpen(false)}
+          user={null}
         />
 
         {/* Toast Notificação */}
@@ -360,6 +370,7 @@ export default function Home() {
           onImportBackup={handleImportBackup}
           onOpenAdmin={() => setIsAdminModalOpen(true)}
           onOpenExitModal={() => setIsExitModalOpen(true)}
+          onOpenFeedback={() => setIsFeedbackModalOpen(true)}
         />
 
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 transition-all text-slate-200">
@@ -552,6 +563,13 @@ export default function Home() {
           hasChanges={hasChanges}
         />
 
+        {/* Modal de Feedback & Avaliação */}
+        <FeedbackModal
+          isOpen={isFeedbackModalOpen}
+          onClose={() => setIsFeedbackModalOpen(false)}
+          user={activeUser}
+        />
+
         {/* Toast Notificação Minimalista */}
         {toastMessage && (
           <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-[#008D4C]/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
@@ -584,6 +602,16 @@ export default function Home() {
             Robert Taveira
           </a>
         </p>
+        <div className="mt-2.5 flex items-center justify-center gap-4 text-[11px] text-slate-400">
+          <button
+            type="button"
+            onClick={() => setIsFeedbackModalOpen(true)}
+            className="hover:text-[#00A3E0] underline underline-offset-2 transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <MessageSquareHeart className="size-3.5 text-[#00A3E0]" />
+            <span>Avaliação do Sistema &amp; Relato de Bugs</span>
+          </button>
+        </div>
       </footer>
     </div>
 
