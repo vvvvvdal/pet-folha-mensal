@@ -35,9 +35,9 @@ O projeto articula 5 GATs de 12 membros cada (1 Tutor Coordenador, 1 Tutor Bolsi
    * Não se aplica subtração decimal comum de minutos.
    * Fórmula: `CEILING(Saída) - FLOOR(Chegada)`
    * *Exemplos*:
-     * 14:00 às 15:30: Início às 14h, término às 15:30 (adentra a hora das 15h–16h) = **2 horas**.
-     * 13:30 às 17:30: Início na hora das 13h, término às 17:30 (adentra a hora das 17h–18h) = **5 horas**.
-     * 19:00 às 20:40: Início às 19h, término às 20:40 (adentra a hora das 20h–21h) = **2 horas**.
+     * 14:00 às 15:30: Início às 14h, término às 15:30 (adentra a hora das 15h-16h) = **2 horas**.
+     * 13:30 às 17:30: Início na hora das 13h, término às 17:30 (adentra a hora das 17h-18h) = **5 horas**.
+     * 19:00 às 20:40: Início às 19h, término às 20:40 (adentra a hora das 20h-21h) = **2 horas**.
 
 ---
 

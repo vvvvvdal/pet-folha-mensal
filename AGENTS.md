@@ -31,11 +31,11 @@ Este repositório armazena a aplicação fullstack de gestão e emissão da **Fo
 
 ## 3. Estrutura Operacional (5 GATs)
 
-* **GAT 1 (Araticum) — Eixo I**: Produção do cuidado e Segurança Alimentar e Nutricional (SAN) na APS.
-* **GAT 2 (Buriti) — Eixo I**: Vigilância socioambiental territorial e Rede de Atenção Psicossocial (RAPS).
-* **GAT 3 (Ipê-amarelo) — Eixo II**: Assistência especializada e cuidado farmacêutico em eventos extremos.
-* **GAT 4 (Mangaba) — Eixo III**: Comunicação acessível (LIBRAS, Braille, audiodescrição) e educação popular.
-* **GAT 5 (Pequi) — Eixo III**: Vigilância preditiva baseada em IA e modelagem computacional.
+* **GAT 1 (Araticum) - Eixo I**: Produção do cuidado e Segurança Alimentar e Nutricional (SAN) na APS.
+* **GAT 2 (Buriti) - Eixo I**: Vigilância socioambiental territorial e Rede de Atenção Psicossocial (RAPS).
+* **GAT 3 (Ipê-amarelo) - Eixo II**: Assistência especializada e cuidado farmacêutico em eventos extremos.
+* **GAT 4 (Mangaba) - Eixo III**: Comunicação acessível (LIBRAS, Braille, audiodescrição) e educação popular.
+* **GAT 5 (Pequi) - Eixo III**: Vigilância preditiva baseada em IA e modelagem computacional.
 
 ---
 

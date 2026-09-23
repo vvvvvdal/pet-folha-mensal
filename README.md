@@ -17,14 +17,14 @@
 </p>
 
 <p align="center">
-  🌐 <a href="https://pet-folha-mensal.vercel.app" target="_blank"><strong>Acessar Aplicação Online (Vercel)</strong></a> •
-  💬 <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIxvavW_gq0xCUb6qx7VKK-I9tYino158tsCrNCO6IZ1Wf-A/viewform" target="_blank"><strong>Avaliação e Sugestões (Forms)</strong></a> •
-  📘 <a href="#-documentação-do-projeto"><strong>Documentação Técnica</strong></a>
+  <a href="https://pet-folha-mensal.vercel.app" target="_blank"><strong>Acessar Aplicação Online (Vercel)</strong></a> &bull;
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIxvavW_gq0xCUb6qx7VKK-I9tYino158tsCrNCO6IZ1Wf-A/viewform" target="_blank"><strong>Avaliação e Sugestões (Forms)</strong></a> &bull;
+  <a href="#documentacao-do-projeto"><strong>Documentação Técnica</strong></a>
 </p>
 
 ---
 
-## 🌿 Sobre o Projeto PET-Saúde Clima
+## Sobre o Projeto PET-Saúde Clima
 
 O **PET-Saúde: Clima** (13ª Edição do Programa de Educação pelo Trabalho para a Saúde, regulamentado pelo **Edital SGTES/MS nº 23/2026** e Chamamento Público nº 16/2026) é uma iniciativa interinstitucional e interprofissional que integra a **Secretaria Municipal de Saúde de Goiânia (SMS Goiânia)** como proponente principal, a **Secretaria Estadual de Saúde de Goiás (SES Goiás)** e a **Universidade Federal de Goiás (UFG)**.
 
@@ -33,11 +33,11 @@ O projeto reúne estudantes de graduação, orientadores de serviço, preceptore
 * **Vigência**: 24 meses (03/08/2026 a 02/08/2028).
 * **Coordenação Geral**: SMS Goiânia (Gerência de Planejamento e Projetos da DPP).
 * **Canal Oficial**: `petsaudeufg.smsgoiania@gmail.com`.
-* **Referenciais Normativos**: **AdaptaSUS** (Plano Clima Adaptação 2025–2035), **Plano de Ação em Saúde de Belém (BHAP)** (COP30), **Programa Brasil Saudável** (Decreto Federal nº 11.908/2024) e **Guia de Bolso de Mudanças Climáticas** (Ministério da Saúde, 2ª ed. 2026).
+* **Referenciais Normativos**: **AdaptaSUS** (Plano Clima Adaptação 2025-2035), **Plano de Ação em Saúde de Belém (BHAP)** (COP30), **Programa Brasil Saudável** (Decreto Federal nº 11.908/2024) e **Guia de Bolso de Mudanças Climáticas** (Ministério da Saúde, 2ª ed. 2026).
 
 ---
 
-## 🏛️ Estrutura Operacional dos 5 GATs
+## Estrutura Operacional dos 5 GATs
 
 A atuação territorial e formativa está organizada em 5 Grupos Tutoriais de Aprendizagem (GATs), distribuídos em três eixos estratégicos:
 
@@ -58,7 +58,7 @@ PET-Saúde Clima (SMS Goiânia · SES Goiás · UFG)
 
 ---
 
-## 🎯 Dores Resolvidas e Propósito da Aplicação
+## Dores Resolvidas e Propósito da Aplicação
 
 Historicamente, o controle mensal de frequência em projetos acadêmicos e do SUS sofre com planilhas manuais quebradas, fórmulas arrastadas de forma incorreta e inconsistências na formatação de impressão. 
 
@@ -80,7 +80,7 @@ O **PET Folha Mensal** foi desenvolvido para solucionar esses problemas de forma
 
 ---
 
-## ✨ Recursos da Aplicação
+## Recursos da Aplicação
 
 - **Autenticação Multiusuário sem Burocracia**: Seleção rápida de perfil ou cadastro instantâneo por Nome, Função no SUS e GAT (01 a 05).
 - **Interface Mobile-First Ergonômica**:
@@ -95,7 +95,7 @@ O **PET Folha Mensal** foi desenvolvido para solucionar esses problemas de forma
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Framework Web**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack, React Server Components)
 - **Biblioteca de Interface**: [React 19](https://react.dev/)
@@ -107,7 +107,7 @@ O **PET Folha Mensal** foi desenvolvido para solucionar esses problemas de forma
 
 ---
 
-## 🚀 Como Executar Localmente
+## Como Executar Localmente
 
 ### Pré-requisitos
 - Node.js 18.18+ (recomendado Node.js 20 ou 22 LTS)
@@ -132,7 +132,7 @@ npm run dev
 
 ---
 
-## 🧪 Gates de Validação e Qualidade
+## Gates de Validação e Qualidade
 
 Antes de qualquer entrega ou submissão para deploy, execute os comandos de verificação:
 
@@ -149,7 +149,7 @@ npm run lint
 
 ---
 
-## ☁️ Deploy Contínuo na Vercel
+## Deploy Contínuo na Vercel
 
 A aplicação está configurada para deploy automático via Git na [Vercel](https://vercel.com):
 
@@ -165,7 +165,7 @@ Para mais detalhes, consulte [docs/deployment-vercel.md](docs/deployment-vercel.
 
 ---
 
-## 📂 Estrutura do Repositório
+## Estrutura do Repositório
 
 ```text
 pet-folha-mensal/
@@ -194,17 +194,17 @@ pet-folha-mensal/
 
 ---
 
-## 📚 Documentação do Projeto
+## Documentação do Projeto
 
-* 📘 [docs/architecture.md](docs/architecture.md): Arquitetura de software, fluxo de estados e diagrama de componentes.
-* 🏛️ [docs/regimento-pet.md](docs/regimento-pet.md): Regras de carga horária, relatórios no Google Forms e comprovação de bolsa.
-* ☁️ [docs/deployment-vercel.md](docs/deployment-vercel.md): Manual de infraestrutura, DNS e variáveis de ambiente na Vercel.
-* 🤝 [CONTRIBUTING.md](CONTRIBUTING.md): Diretrizes de contribuição, fluxo Git e gates de aceitação.
-* 📋 [AGENTS.md](AGENTS.md): Contrato normativo para agentes de IA que atuam no repositório.
+* [docs/architecture.md](docs/architecture.md): Arquitetura de software, fluxo de estados e diagrama de componentes.
+* [docs/regimento-pet.md](docs/regimento-pet.md): Regras de carga horária, relatórios no Google Forms e comprovação de bolsa.
+* [docs/deployment-vercel.md](docs/deployment-vercel.md): Manual de infraestrutura, DNS e variáveis de ambiente na Vercel.
+* [CONTRIBUTING.md](CONTRIBUTING.md): Diretrizes de contribuição, fluxo Git e gates de aceitação.
+* [AGENTS.md](AGENTS.md): Contrato normativo para agentes de IA que atuam no repositório.
 
 ---
 
-## 👥 Autoria e Desenvolvimento
+## Autoria e Desenvolvimento
 
 Este sistema foi concebido, desenhado e implementado no âmbito do PET-Saúde Clima UFG por:
 
@@ -213,21 +213,21 @@ Este sistema foi concebido, desenhado e implementado no âmbito do PET-Saúde Cl
 
 ---
 
-## 🏛️ Instituições Parceiras
+## Instituições Parceiras
 
-* **Secretaria Municipal de Saúde de Goiânia (SMS Goiânia)** — Coordenação Geral
+* **Secretaria Municipal de Saúde de Goiânia (SMS Goiânia)** - Coordenação Geral
 * **Secretaria Estadual de Saúde de Goiás (SES Goiás)**
-* **Universidade Federal de Goiás (UFG)** — Campus Goiânia
-* **Ministério da Saúde (SGTES/MS)** — 13ª Edição do PET-Saúde
+* **Universidade Federal de Goiás (UFG)** - Campus Goiânia
+* **Ministério da Saúde (SGTES/MS)** - 13ª Edição do PET-Saúde
 
 ---
 
-## 📄 Licença
+## Licença
 
 Este software é livre e de código aberto, publicado sob os termos da [Licença MIT](LICENSE).
 
 ---
 
 <p align="center">
-  PET-Saúde Clima: Folha de Frequência Mensal &copy; 2026 • Desenvolvido por <a href="https://www.linkedin.com/in/vvvvvdal/">Felipe Vidal</a> & <a href="https://www.linkedin.com/in/robert-taveira/">Robert Taveira</a>
+  PET-Saúde Clima: Folha de Frequência Mensal &copy; 2026 &bull; Desenvolvido por <a href="https://www.linkedin.com/in/vvvvvdal/">Felipe Vidal</a> & <a href="https://www.linkedin.com/in/robert-taveira/">Robert Taveira</a>
 </p>

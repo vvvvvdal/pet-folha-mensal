@@ -4,7 +4,7 @@ Este diretório concentra a documentação técnica, arquitetural e normativa da
 
 ---
 
-## 📑 Sumário de Documentos
+## Sumário de Documentos
 
 1. **[architecture.md](architecture.md)**: Arquitetura de software, padrão Local-First, modelo de dados, componentes React e estratégias de ergonomia mobile.
 2. **[regimento-pet.md](regimento-pet.md)**: Normas do Edital SGTES/MS nº 23/2026, cálculo matemático de horas PET, composição dos 5 GATs e procedimentos de validação de bolsas.
@@ -14,12 +14,12 @@ Este diretório concentra a documentação técnica, arquitetural e normativa da
 
 ---
 
-## 🔗 Referências Oficiais e Institucionais
+## Referências Oficiais e Institucionais
 
 * [Repositório Oficial no GitHub](https://github.com/vvvvvdal/pet-folha-mensal)
 * [Aplicação em Produção (Vercel)](https://pet-folha-mensal.vercel.app)
 * [Formulário de Avaliação e Sugestões](https://docs.google.com/forms/d/e/1FAIpQLSfIxvavW_gq0xCUb6qx7VKK-I9tYino158tsCrNCO6IZ1Wf-A/viewform)
-* **Plano Setorial de Saúde – AdaptaSUS** (Plano Clima Adaptação 2025–2035)
+* **Plano Setorial de Saúde - AdaptaSUS** (Plano Clima Adaptação 2025-2035)
 * **Plano de Ação em Saúde de Belém (BHAP)** (COP30)
-* **Decreto Federal nº 11.908/2024** (Programa Brasil Saudável – Unir para Cuidar)
+* **Decreto Federal nº 11.908/2024** (Programa Brasil Saudável - Unir para Cuidar)
 * **Mudanças Climáticas para Profissionais da Saúde: Guia de Bolso** (2ª edição revisada, Ministério da Saúde, 2026)
