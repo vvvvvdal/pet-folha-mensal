@@ -20,6 +20,7 @@
 - [x] **Simplificação e Limpeza Administrativa**: Remoção de campos desnecessários de e-mail no Admin, confirmação de segurança na exclusão de templates, e redução dos modelos padrão para 2 essenciais (Reunião do GAT e Reunião Geral).
 - [x] **Licenciamento e Autoria**: Licença MIT adicionada ao repositório com atribuição oficial a Felipe Gonçalves Vidal e Robert Francisco Taveira no rodapé e metadados.
 - [x] **Fluxo Guiado de Onboarding e Backup**: Landing page com explicação simplificada de arquivos `.json` e segurança 100% local, tela de bloqueio de saída com download forçado do backup e folha A4.
+- [x] **Ciclo de Ergonomia e Operação (23/09/2026)**: Inclusão de edição de lançamentos, confirmação para exclusão, controles de saída responsivos sem ações duplicadas, ícones de calendário e hora consistentes entre temas, restauração do acesso administrativo no mobile e ajustes para preservar a folha em A4 paisagem.
 
 ## Modo de Execução Atual: Localhost
 - [x] Execução autossuficiente em `http://localhost:5000` com persistência local (`localStorage`).

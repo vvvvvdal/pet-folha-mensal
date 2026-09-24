@@ -45,10 +45,11 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
 - **`StatsGrid.tsx`**: Painel com 3 cards de métricas (Horas Apuradas, Média Semanal de 8h e Status da Frequência), calculando o progresso percentual e a distância para a meta mensal.
 - **`ActivityForm.tsx`**: Formulário de inclusão e edição de atividades, com cálculo instantâneo da regra de horas do PET, seleção de modalidade (Síncrona Virtual, Síncrona Presencial e Assíncrona Virtual) e templates dinâmicos por GAT.
 - **`ActivityTable.tsx`**: Componente híbrido inteligente:
-  - **Smartphone (`sm:hidden`)**: Renderiza uma lista de cartões empilhados completos, com touch targets mínimos de 44x44px (WCAG 2.5.5) e texto legível sem zoom involuntário.
-  - **Desktop (`hidden sm:block`)**: Apresenta a tabela tabular densa com 7 colunas (`Data`, `Entrada`, `Saída`, `Tipo`, `Descrição`, `Horas` e `Ações`).
+  - **Smartphone (`sm:hidden`)**: Renderiza uma lista de cartões empilhados completos, com touch targets mínimos de 44x44px (WCAG 2.5.5), texto legível sem zoom involuntário e ações de editar ou excluir.
+  - **Desktop (`hidden sm:block`)**: Apresenta a tabela tabular densa com 7 colunas (`Data`, `Entrada`, `Saída`, `Tipo`, `Descrição`, `Horas` e `Ações`), incluindo edição e exclusão com confirmação.
+- **`EditActivityModal.tsx`**: Modal de edição de lançamentos que recalcula as horas conforme a regra do PET antes de persistir a alteração.
 - **`OfficialSheet.tsx`**: Gabarito oficial de impressão compatível com as exigências da SGTES/Ministério da Saúde, desenhado para fechar em exatamente 1 página horizontal A4 (`@media print`).
-- **`ExitModal.tsx`**: Fluxo de saída seguro que incentiva o participante a baixar sua cópia de segurança em `.json` e gerar sua folha assinada em `.pdf` antes de encerrar a sessão.
+- **`ExitModal.tsx`**: Fluxo de saída seguro e responsivo que incentiva o participante a baixar sua cópia de segurança em `.json` e gerar sua folha assinada em `.pdf` antes de encerrar a sessão, com confirmação explícita e uma única ação de download por vez.
 - **`AdminModal.tsx`**: Painel gerencial protegido por hash SHA-256 para configuração de GATs, papéis institucionais e templates de atividades.
 - **`FeedbackModal.tsx`**: Modal minimalista com atalho para o formulário oficial de avaliação do sistema, sugestões e envio de prints de bugs.
 
