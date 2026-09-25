@@ -87,7 +87,7 @@ O **PET Folha Mensal** foi desenvolvido para solucionar esses problemas de forma
   - Em telas de smartphone (`< 640px`), os lançamentos são exibidos em cards empilhados completos, com toque mínimo de 44x44px (WCAG 2.5.5) e texto legível sem zoom involuntário.
   - Em computadores e tablets (`>= 640px`), apresenta a tabela tabular densa com colunas completas.
 - **Modelos Pré-Configurados por GAT**: Preenchimento rápido em um clique de atividades recorrentes (reuniões tutoradas de GAT, reuniões gerais do PET, oficinas formativas e estudos de campo).
-- **Painel Administrativo com Hash SHA-256**: Gestão centralizada de perfis, funções e templates, protegida por autenticação criptográfica local (`crypto.subtle`) e sobreposição configurável em produção via `NEXT_PUBLIC_ADMIN_PIN_HASH`.
+- **Painel de Configurações Locais com Sessão Server-Side**: O PIN é validado fora do bundle e a sessão usa cookie assinado `HttpOnly`. Esse bloqueio limita acesso casual à interface; os dados no `localStorage` continuam sob controle do próprio navegador.
 - **Cópia de Segurança (.json)**: Exportação e importação manual instantânea do banco de dados local para troca de aparelho ou guarda de histórico.
 - **Alternador de Temas Anti-Fadiga**: Modos **Gentle Dark** e **Soft Light** com conforto óptico para preenchimento noturno e ícones nativos adaptados.
 - **Canal de Avaliação e Feedback**: Acesso direto ao formulário oficial de sugestões, relatos de bugs e avaliação geral da plataforma.
@@ -123,10 +123,14 @@ cd pet-folha-mensal
 # 2. Instalar as dependências
 npm install
 
-# 3. Iniciar o servidor de desenvolvimento
+# 3. Opcional: habilitar o painel de configurações
+cp .env.example .env.local
+# Preencha ADMIN_PIN_HASH e ADMIN_SESSION_SECRET conforme as instruções do arquivo.
+
+# 4. Iniciar o servidor de desenvolvimento
 npm run dev
 
-# 4. Acessar no navegador
+# 5. Acessar no navegador
 # Abra http://localhost:5000
 ```
 
@@ -158,8 +162,10 @@ A aplicação está configurada para deploy automático via Git na [Vercel](http
    - **Framework Preset**: Next.js
    - **Build Command**: `next build`
    - **Output Directory**: `.next`
-3. **Variáveis de Ambiente (Opcional)**:
-   - `NEXT_PUBLIC_ADMIN_PIN_HASH`: Hash SHA-256 da senha de acesso ao painel de administração (se omitido, utiliza o hash padrão configurado no código).
+3. **Variáveis de Ambiente do painel**:
+   - `ADMIN_PIN_HASH`: hash SHA-256 da frase de acesso, lido apenas no servidor.
+   - `ADMIN_SESSION_SECRET`: segredo aleatório usado para assinar a sessão `HttpOnly`.
+   - Sem ambas, o aplicativo continua operando, mas o painel de configurações permanece bloqueado.
 
 Para mais detalhes, consulte [docs/deployment-vercel.md](docs/deployment-vercel.md).
 

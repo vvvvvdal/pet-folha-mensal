@@ -5,7 +5,7 @@
 - [x] Configuração da porta de desenvolvimento padrão para 5000 (`next dev -p 5000`).
 - [x] Migração dos assets, templates oficiais (`.docx`, `.pdf`, `.xlsx`) e logo do PET.
 - [x] Implementação dos tokens de conforto óptico e anti-fadiga visual (`frontend-design-ultimate`).
-- [x] **Modo Administrador (com PIN Secreto) e Gestão Total**: Painel exclusivo para criação, edição e exclusão de usuários, criação de novos GATs, novos tipos de funções (roles no SUS) e personalização de templates de atividades.
+- [x] **Painel de Configurações Locais**: Interface para criação, edição e exclusão de usuários, GATs, funções e templates; o bloqueio por PIN limita acesso casual, sem atribuir autoridade institucional aos dados do navegador.
 - [x] **Motor Anti-Duplicação e Normalização de Participantes**: Normalização algorítmica (`normalizeName`), bloqueio rigoroso de nomes idênticos no cadastro e rotina de auto-desduplicação para limpar clones órfãos pré-existentes no `localStorage`.
 - [x] **Ajuste de Conforto Óptico (Dark Slate Suave)**: Transição do preto absoluto (`#09090b`) para uma paleta carvão/slate balanceada (`#141720` canvas, `#1b202c` surface, `#232938` elevated, bordas `#2b3346`), garantindo descanso visual e contraste confortável.
 - [x] **Isolamento Transparente de Dados de Perfis**: Remoção do auto-povoamento acidental de atividades de exemplo para novos usuários. Novos participantes começam com a folha zerada (0h), com botão opcional de carregar exemplos do GAT e ação de zerar folha.
@@ -21,6 +21,7 @@
 - [x] **Licenciamento e Autoria**: Licença MIT adicionada ao repositório com atribuição oficial a Felipe Gonçalves Vidal e Robert Francisco Taveira no rodapé e metadados.
 - [x] **Fluxo Guiado de Onboarding e Backup**: Landing page com explicação simplificada de arquivos `.json` e segurança 100% local, tela de bloqueio de saída com download forçado do backup e folha A4.
 - [x] **Ciclo de Ergonomia e Operação (23/09/2026)**: Inclusão de edição de lançamentos, confirmação para exclusão, controles de saída responsivos sem ações duplicadas, ícones de calendário e hora consistentes entre temas, restauração do acesso administrativo no mobile e ajustes para preservar a folha em A4 paisagem.
+- [x] **Correção do Bloqueio do Painel (24/09/2026)**: Remoção do bypass `auth=1`, do hash público/fallback e dos PINs legados de perfil; validação server-side, sessão assinada em cookie `HttpOnly` e documentação explícita do limite de confiança do `localStorage`.
 
 ## Modo de Execução Atual: Localhost
 - [x] Execução autossuficiente em `http://localhost:5000` com persistência local (`localStorage`).

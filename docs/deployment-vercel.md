@@ -15,8 +15,10 @@ O projeto está configurado para integração contínua (CI/CD) direta com a bra
    * **Root Directory**: `./` (padrão).
    * **Build Command**: `next build`
    * **Output Directory**: `.next`
-4. Em **Environment Variables** (opcional):
-   * Se desejar personalizar o PIN do painel de administração em produção, adicione a variável `NEXT_PUBLIC_ADMIN_PIN_HASH` com o hash SHA-256 da sua senha (ex: `echo -n "SUA_SENHA" | sha256sum`).
+4. Em **Environment Variables**, configure o bloqueio do painel:
+   * `ADMIN_PIN_HASH`: hash SHA-256 de uma frase longa de acesso (`printf %s 'SUA_FRASE' | sha256sum`).
+   * `ADMIN_SESSION_SECRET`: segredo aleatório de sessão (`openssl rand -hex 32`).
+   * Não use o prefixo `NEXT_PUBLIC_`: ele incluiria o valor no bundle entregue ao navegador.
 5. Clique em **Deploy**.
 6. A cada novo `git push origin main`, a Vercel executará o build Turbopack e atualizará a aplicação em produção automaticamente em `https://pet-folha-mensal.vercel.app`.
 
@@ -38,11 +40,14 @@ npx vercel --prod
 
 ## 3. Variáveis de Ambiente
 
-A aplicação opera no modelo **Local-First**, logo **não possui variáveis de ambiente obrigatórias** para inicialização.
+A aplicação opera no modelo **Local-First** e inicia sem variáveis de ambiente. O painel de configurações falha fechado e permanece indisponível até que as duas variáveis abaixo sejam configuradas.
 
 | Variável | Obrigatória? | Descrição |
 |---|---|---|
-| `NEXT_PUBLIC_ADMIN_PIN_HASH` | Não | Hash SHA-256 da senha de acesso ao Painel de Administração. Se não for informada, o sistema adota o hash padrão embutido no código. |
+| `ADMIN_PIN_HASH` | Para o painel | Hash SHA-256 da frase de acesso. Sem fallback. Lido apenas no servidor. |
+| `ADMIN_SESSION_SECRET` | Para o painel | Segredo aleatório com no mínimo 32 caracteres usado para assinar a sessão de 8 horas. |
+
+Essas variáveis protegem o acesso casual à interface. Como perfis, atividades e configurações permanecem no `localStorage`, elas não conferem autoridade institucional aos dados gerados no navegador.
 
 ---
 

@@ -85,7 +85,6 @@ export interface UserProfile {
   role: UserRole;
   gatNumber: string;
   gatName?: string;
-  pin?: string;
   createdAt: string;
 }
 

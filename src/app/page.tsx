@@ -328,7 +328,7 @@ export default function Home() {
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
         />
 
-        {/* Modal de Gestão & Administração */}
+        {/* Modal de configurações locais */}
         <AdminModal
           isOpen={isAdminModalOpen}
           onClose={() => setIsAdminModalOpen(false)}
@@ -342,10 +342,6 @@ export default function Home() {
           onGatsChange={(updated) => setGats(updated)}
           onRolesChange={(updated) => setRoles(updated)}
           onTemplatesChange={(updated) => setTemplates(updated)}
-          onSelectUser={(user) => {
-            handleSelectProfile(user);
-            setIsAdminModalOpen(false);
-          }}
         />
 
         {/* Modal de Feedback & Avaliação */}
@@ -549,7 +545,7 @@ export default function Home() {
           templates={templates}
         />
 
-        {/* Modal de Gestão & Administração */}
+        {/* Modal de configurações locais */}
         <AdminModal
           isOpen={isAdminModalOpen}
           onClose={() => setIsAdminModalOpen(false)}
@@ -566,7 +562,6 @@ export default function Home() {
           onGatsChange={(updated) => setGats(updated)}
           onRolesChange={(updated) => setRoles(updated)}
           onTemplatesChange={(updated) => setTemplates(updated)}
-          onSelectUser={(user) => handleSelectProfile(user)}
         />
 
         {/* Modal de Saída / Backup Obrigatório */}

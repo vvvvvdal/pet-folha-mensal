@@ -29,8 +29,8 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
 │                          OfficialSheet.tsx                             │
 │       (Motor de Renderização e Impressão Nativa A4 Paisagem)           │
 ├────────────────────────────────────────────────────────────────────────┤
-│                       Camada de Persistência                           │
-│     localStorage (Key-Value) + Validação SHA-256 (crypto.subtle)       │
+│                  Persistência e bloqueio de acesso                     │
+│ localStorage (dados) + Route Handler (PIN) + cookie HttpOnly assinado  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -50,7 +50,7 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
 - **`EditActivityModal.tsx`**: Modal de edição de lançamentos que recalcula as horas conforme a regra do PET antes de persistir a alteração.
 - **`OfficialSheet.tsx`**: Gabarito oficial de impressão compatível com as exigências da SGTES/Ministério da Saúde, desenhado para fechar em exatamente 1 página horizontal A4 (`@media print`).
 - **`ExitModal.tsx`**: Fluxo de saída seguro e responsivo que incentiva o participante a baixar sua cópia de segurança em `.json` e gerar sua folha assinada em `.pdf` antes de encerrar a sessão, com confirmação explícita e uma única ação de download por vez.
-- **`AdminModal.tsx`**: Painel gerencial protegido por hash SHA-256 para configuração de GATs, papéis institucionais e templates de atividades.
+- **`AdminModal.tsx`**: Painel de configurações locais. Consulta a sessão no servidor antes de exibir a interface e informa que o bloqueio não transforma dados do `localStorage` em dados administrativos confiáveis.
 - **`FeedbackModal.tsx`**: Modal minimalista com atalho para o formulário oficial de avaliação do sistema, sugestões e envio de prints de bugs.
 
 ### 2.2. Núcleo Lógico e Utilitários (`src/lib/`)
@@ -61,8 +61,9 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
 - **`storage.ts`**: Camada de abstração do `localStorage`. Implementa:
   - Isolamento de dados por perfil de usuário e por mês (`pet_folha_activities_v2_${userId}_${monthKey}`).
   - Exportação e importação de backups completos (`exportUserData`, `importUserData`).
-  - Verificação assíncrona do PIN de administração via `crypto.subtle.digest('SHA-256', ...)`.
+  - Remoção automática do campo legado `pin` dos perfis armazenados e importados.
   - Suporte a templates e funções dinâmicas.
+- **`admin-auth.ts` + `/api/admin/session`**: Camada exclusivamente server-side que valida `ADMIN_PIN_HASH` com comparação constante, emite sessão assinada de 8 horas em cookie `HttpOnly`, `SameSite=Strict` e falha de forma fechada quando a configuração está ausente.
 - **`theme.ts`**: Hook `useTheme` que controla os modos `dark` e `light` via atributo `data-theme` na raiz do documento e chave `pet_theme` no storage.
 
 ---
@@ -89,7 +90,6 @@ export interface UserProfile {
   role: UserRole;
   gatNumber: string; // '01' a '05'
   gatName?: string;
-  pin?: string;
   createdAt: string;
 }
 
@@ -122,6 +122,8 @@ export interface GATInfo {
 
 ## 4. Segurança e Privacidade
 
-1. **Autenticação Administrativa Descentralizada**: O PIN de administração nunca é armazenado em texto plano. Sua verificação compara o hash SHA-256 gerado no navegador com a variável `NEXT_PUBLIC_ADMIN_PIN_HASH`.
-2. **Zero Rastreamento Invasivo**: A telemetria de uso é fornecida pelo `@vercel/analytics`, que opera de maneira puramente estatística sem uso de cookies e sem coleta de IP ou dados identificáveis.
-3. **Contenção de Viewport**: A interface implementa proteção estrita contra overflow horizontal (`overflow-x: hidden; max-width: 100vw;`) e dimensões fluidas, garantindo que navegadores móveis (Safari iOS e Chrome Android) mantenham a escala correta `1:1`.
+1. **PIN fora do bundle**: O hash e o segredo de sessão usam variáveis sem o prefixo `NEXT_PUBLIC_` e são lidos apenas por código marcado como `server-only`. Não existe hash padrão embutido.
+2. **Sessão do painel**: O endpoint `/api/admin/session` valida o PIN no servidor, compara hashes em tempo constante, restringe requisições mutáveis à mesma origem e mantém a sessão em cookie assinado e `HttpOnly`. Parâmetros de URL não concedem acesso.
+3. **Limite de confiança**: O painel altera somente o `localStorage` do navegador. A sessão reduz acesso casual à interface, mas não impede o proprietário do navegador de editar dados, scripts, backups ou folhas. Autoridade institucional real exige persistência, autenticação e autorização server-side sobre cada mutação.
+4. **Zero Rastreamento Invasivo**: A telemetria de uso é fornecida pelo `@vercel/analytics`, que opera de maneira puramente estatística sem uso de cookies e sem coleta de IP ou dados identificáveis.
+5. **Contenção de Viewport**: A interface implementa proteção estrita contra overflow horizontal (`overflow-x: hidden; max-width: 100vw;`) e dimensões fluidas, garantindo que navegadores móveis (Safari iOS e Chrome Android) mantenham a escala correta `1:1`.

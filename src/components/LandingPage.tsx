@@ -130,7 +130,7 @@ export function LandingPage({
               className="text-xs sm:text-sm text-slate-400 hover:text-[#008D4C] dark:hover:text-[#10B981] font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-[#008D4C]/30 bg-slate-900/60 cursor-pointer transition-colors"
             >
               <ShieldCheck className="size-4 text-[#008D4C] dark:text-[#10B981]" />
-              <span>Acesso Gestão</span>
+              <span>Configurações</span>
             </button>
           </div>
         </div>

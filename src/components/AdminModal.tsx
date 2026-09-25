@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   UserProfile,
   GATInfo,
@@ -8,7 +8,6 @@ import {
   ModalityType
 } from '@/types';
 import {
-  verifyAdminPin,
   saveGats,
   saveRoles,
   saveTemplates,
@@ -44,10 +43,15 @@ interface AdminModalProps {
   onGatsChange: (updated: Record<string, GATInfo>) => void;
   onRolesChange: (updated: string[]) => void;
   onTemplatesChange: (updated: ActivityTemplate[]) => void;
-  onSelectUser?: (user: UserProfile) => void;
-  defaultAuthenticated?: boolean;
   defaultTab?: 'roles' | 'gats' | 'templates';
 }
+
+type AdminAccessStatus =
+  | 'checking'
+  | 'authenticated'
+  | 'unauthenticated'
+  | 'unconfigured'
+  | 'unavailable';
 
 export function AdminModal({
   isOpen,
@@ -60,20 +64,13 @@ export function AdminModal({
   onGatsChange,
   onRolesChange,
   onTemplatesChange,
-  onSelectUser,
-  defaultAuthenticated = false,
   defaultTab = 'roles'
 }: AdminModalProps) {
   const { confirm, alert } = useDialog();
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (defaultAuthenticated) return true;
-    if (typeof window !== 'undefined') {
-      return new URLSearchParams(window.location.search).get('auth') === '1';
-    }
-    return false;
-  });
+  const [accessStatus, setAccessStatus] = useState<AdminAccessStatus>('checking');
   const [pinInput, setPinInput] = useState('');
-  const [pinError, setPinError] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'roles' | 'gats' | 'templates'>(() => {
     if (typeof window !== 'undefined') {
       const tab = new URLSearchParams(window.location.search).get('tab');
@@ -101,24 +98,101 @@ export function AdminModal({
   const [newTplGatSpecific, setNewTplGatSpecific] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<ActivityTemplate | null>(null);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const controller = new AbortController();
+
+    fetch('/api/admin/session', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      signal: controller.signal
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Falha ao consultar a sessão');
+        return response.json() as Promise<{ configured: boolean; authenticated: boolean }>;
+      })
+      .then(({ configured, authenticated }) => {
+        if (!configured) {
+          setAccessStatus('unconfigured');
+        } else {
+          setAccessStatus(authenticated ? 'authenticated' : 'unauthenticated');
+        }
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setAccessStatus('unavailable');
+      });
+
+    return () => controller.abort();
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    setAccessStatus('checking');
+    setPinInput('');
+    setPinError(null);
+    onClose();
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isValid = await verifyAdminPin(pinInput);
-    if (isValid) {
-      setIsAuthenticated(true);
-      setPinError(false);
-      setPinInput('');
-    } else {
-      setPinError(true);
+    if (!pinInput.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setPinError(null);
+
+    try {
+      const response = await fetch('/api/admin/session', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pinInput })
+      });
+
+      if (response.ok) {
+        setAccessStatus('authenticated');
+        setPinInput('');
+        return;
+      }
+
+      if (response.status === 503) {
+        setAccessStatus('unconfigured');
+        return;
+      }
+
+      setPinError(
+        response.status === 401
+          ? 'PIN incorreto. Tente novamente.'
+          : 'Não foi possível validar o acesso.'
+      );
+    } catch {
+      setPinError('Servidor indisponível. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setPinInput('');
-    setPinError(false);
+  const handleLogout = async () => {
+    setIsSubmitting(true);
+    setPinError(null);
+
+    try {
+      const response = await fetch('/api/admin/session', {
+        method: 'DELETE',
+        credentials: 'same-origin'
+      });
+
+      if (!response.ok) throw new Error('Falha ao encerrar a sessão');
+
+      setAccessStatus('unauthenticated');
+      setPinInput('');
+    } catch {
+      setPinError('Não foi possível encerrar a sessão. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // ============================================================
@@ -317,7 +391,7 @@ export function AdminModal({
   const handleStartEditTemplate = (tpl: ActivityTemplate) => {
     setEditingTemplate({
       ...tpl,
-      name: tpl.name || (tpl as any).descriptionTemplate || ''
+      name: tpl.name
     });
   };
 
@@ -379,27 +453,28 @@ export function AdminModal({
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950/60">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <Shield className="size-5 sm:size-6 text-[#10B981] shrink-0" />
-            <h3 className="text-base sm:text-lg font-bold text-slate-100">Painel de Gestão e Administração</h3>
-            {isAuthenticated && (
+            <h3 className="text-base sm:text-lg font-bold text-slate-100">Configurações Locais</h3>
+            {accessStatus === 'authenticated' && (
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#008D4C]/10 text-[#10B981] border border-[#008D4C]/20 font-semibold hidden sm:inline-block">
-                Admin Autenticado
+                Sessão validada
               </span>
             )}
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {isAuthenticated && (
+            {accessStatus === 'authenticated' && (
               <button
                 type="button"
                 onClick={handleLogout}
+                disabled={isSubmitting}
                 className="min-h-[40px] px-3 rounded-xl text-slate-300 hover:text-red-400 hover:bg-slate-800 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer transition-colors"
-                title="Sair do modo administrador"
+                title="Encerrar sessão das configurações"
               >
                 <LogOut className="size-4" />
                 <span>Sair</span>
               </button>
             )}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 cursor-pointer transition-colors"
               title="Fechar painel"
             >
@@ -409,48 +484,69 @@ export function AdminModal({
         </div>
 
         {/* Content Area */}
-        {!isAuthenticated ? (
-          /* TELA DE AUTENTICAÇÃO COM PIN SECRETO */
+        {accessStatus === 'checking' ? (
+          <div className="p-6 sm:p-10 flex flex-col items-center justify-center text-center space-y-4" role="status">
+            <Lock className="size-7 text-[#10B981] animate-pulse" />
+            <p className="text-sm text-slate-300">Verificando sessão do painel...</p>
+          </div>
+        ) : accessStatus !== 'authenticated' ? (
+          /* TELA DE BLOQUEIO LOCAL VALIDADO PELO SERVIDOR */
           <div className="p-6 sm:p-10 flex flex-col items-center justify-center text-center space-y-5">
             <div className="size-14 sm:size-16 rounded-2xl bg-[#008D4C]/10 border border-[#008D4C]/20 flex items-center justify-center text-[#10B981]">
               <Lock className="size-6 sm:size-7" />
             </div>
             <div>
-              <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-100">Área de Acesso Restrito</h4>
+              <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-100">Configurações Locais</h4>
               <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-md">
-                Digite o PIN de administrador para acessar as configurações de templates, GATs e funções.
+                Digite o PIN para acessar as configurações de templates, GATs e funções deste navegador.
+              </p>
+              <p className="text-xs text-amber-300/90 mt-3 max-w-lg">
+                Este bloqueio limita acesso casual. Os dados permanecem no localStorage e podem ser alterados por quem controla este navegador.
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 pt-2">
-              <div>
-                <input
-                  type="password"
-                  autoFocus
-                  placeholder="Digite o PIN de acesso"
-                  value={pinInput}
-                  onChange={(e) => {
-                    setPinInput(e.target.value);
-                    if (pinError) setPinError(false);
-                  }}
-                  className={`w-full text-center px-4 py-3 min-h-[48px] text-base sm:text-lg tracking-widest font-mono rounded-xl bg-slate-950 border ${
-                    pinError ? 'border-red-500 text-red-300' : 'border-slate-800 text-slate-100'
-                  } outline-none focus:border-[#008D4C] transition-colors`}
-                />
-                {pinError && (
-                  <p className="text-xs text-red-400 mt-2 flex items-center justify-center gap-1.5">
-                    <AlertTriangle className="size-3.5" />
-                    PIN incorreto. Tente novamente.
-                  </p>
-                )}
-              </div>
-              <button
-                type="submit"
-                className="w-full min-h-[48px] py-3 px-6 text-sm sm:text-base font-bold rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] transition-all cursor-pointer shadow-md shadow-[#008D4C]/20"
-              >
-                Acessar Painel
-              </button>
-            </form>
+            {accessStatus === 'unconfigured' ? (
+              <p className="w-full max-w-md rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200" role="alert">
+                Bloqueio indisponível: configure ADMIN_PIN_HASH e ADMIN_SESSION_SECRET no servidor.
+              </p>
+            ) : accessStatus === 'unavailable' ? (
+              <p className="w-full max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200" role="alert">
+                Não foi possível consultar o servidor. Feche o painel e tente novamente.
+              </p>
+            ) : (
+              <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 pt-2">
+                <div>
+                  <input
+                    type="password"
+                    autoFocus
+                    autoComplete="current-password"
+                    maxLength={128}
+                    placeholder="Digite o PIN de acesso"
+                    value={pinInput}
+                    onChange={(e) => {
+                      setPinInput(e.target.value);
+                      if (pinError) setPinError(null);
+                    }}
+                    className={`w-full text-center px-4 py-3 min-h-[48px] text-base sm:text-lg tracking-widest font-mono rounded-xl bg-slate-950 border ${
+                      pinError ? 'border-red-500 text-red-300' : 'border-slate-800 text-slate-100'
+                    } outline-none focus:border-[#008D4C] transition-colors`}
+                  />
+                  {pinError && (
+                    <p className="text-xs text-red-400 mt-2 flex items-center justify-center gap-1.5">
+                      <AlertTriangle className="size-3.5" />
+                      {pinError}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !pinInput.trim()}
+                  className="w-full min-h-[48px] py-3 px-6 text-sm sm:text-base font-bold rounded-xl bg-[#008D4C] text-white hover:bg-[#10B981] transition-all cursor-pointer shadow-md shadow-[#008D4C]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Validando...' : 'Acessar Painel'}
+                </button>
+              </form>
+            )}
           </div>
         ) : (
           /* PAINEL COMPLETO COM ABAS */
@@ -921,7 +1017,7 @@ export function AdminModal({
                       >
                         <div>
                           <div className="text-sm sm:text-base font-semibold text-slate-200">
-                            {tpl.name || (tpl as any).descriptionTemplate || 'Modelo'}
+                            {tpl.name || 'Modelo'}
                           </div>
                           <div className="text-xs sm:text-sm text-slate-300 mt-1">
                             Tipo: <span className="text-[#10B981] font-medium">{tpl.modality}</span>

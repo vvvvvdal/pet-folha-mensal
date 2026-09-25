@@ -9,25 +9,6 @@ import {
 } from '@/types';
 import { calcPetHours } from './pet-calculator';
 
-// Hash SHA-256 do PIN administrativo (padrão ou configurado via .env)
-export const ADMIN_PIN_HASH =
-  process.env.NEXT_PUBLIC_ADMIN_PIN_HASH ||
-  '683a9e878af26dfcbfb2b70bc63214acfd3614519ead8c1912c7d1907061d1a2';
-
-export async function verifyAdminPin(inputPin: string): Promise<boolean> {
-  const clean = inputPin.trim();
-  if (!clean) return false;
-  if (typeof window !== 'undefined' && window.crypto?.subtle) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(clean);
-    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-    return hashHex === ADMIN_PIN_HASH;
-  }
-  return false;
-}
-
 const PROFILES_KEY = 'pet_folha_profiles_v2';
 const ACTIVE_PROFILE_ID_KEY = 'pet_folha_active_profile_id_v2';
 const ACTIVITIES_PREFIX = 'pet_folha_activities_v2_';
@@ -42,7 +23,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
     role: 'Estudante',
     gatNumber: '04',
     gatName: 'Mangaba',
-    pin: '1234',
     createdAt: '2026-09-01T00:00:00.000Z'
   },
   {
@@ -51,7 +31,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
     role: 'Estudante',
     gatNumber: '01',
     gatName: 'Araticum',
-    pin: '1234',
     createdAt: '2026-09-01T00:00:00.000Z'
   },
   {
@@ -60,7 +39,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
     role: 'Preceptor',
     gatNumber: '02',
     gatName: 'Buriti',
-    pin: '1234',
     createdAt: '2026-09-01T00:00:00.000Z'
   },
   {
@@ -69,7 +47,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
     role: 'Tutor',
     gatNumber: '03',
     gatName: 'Ipê-amarelo',
-    pin: '1234',
     createdAt: '2026-09-01T00:00:00.000Z'
   },
   {
@@ -78,7 +55,6 @@ export const DEFAULT_PROFILES: UserProfile[] = [
     role: 'Estudante',
     gatNumber: '05',
     gatName: 'Pequi',
-    pin: '1234',
     createdAt: '2026-09-01T00:00:00.000Z'
   }
 ];
@@ -121,6 +97,12 @@ export function deduplicateProfiles(profiles: UserProfile[]): UserProfile[] {
   return Array.from(seen.values());
 }
 
+function removeLegacyPin(profile: UserProfile & { pin?: unknown }): UserProfile {
+  const cleanProfile = { ...profile };
+  delete cleanProfile.pin;
+  return cleanProfile;
+}
+
 // ============================================================
 // GESTÃO DE PERFIS (USUÁRIOS)
 // ============================================================
@@ -136,9 +118,13 @@ export function getStoredProfiles(): UserProfile[] {
     const parsed = JSON.parse(data);
     if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PROFILES;
 
-    // Auto-desduplicação para garantir integridade e resolver casos como imagem 1
-    const deduplicated = deduplicateProfiles(parsed);
-    if (deduplicated.length !== parsed.length) {
+    // Remove o PIN legado de perfil e desduplica os registros locais.
+    const hadLegacyPin = parsed.some(
+      (profile) => typeof profile === 'object' && profile !== null && 'pin' in profile
+    );
+    const sanitized = parsed.map(removeLegacyPin);
+    const deduplicated = deduplicateProfiles(sanitized);
+    if (hadLegacyPin || deduplicated.length !== parsed.length) {
       localStorage.setItem(PROFILES_KEY, JSON.stringify(deduplicated));
     }
     return deduplicated;
@@ -149,7 +135,7 @@ export function getStoredProfiles(): UserProfile[] {
 
 export function saveProfiles(profiles: UserProfile[]): void {
   if (typeof window === 'undefined') return;
-  const clean = deduplicateProfiles(profiles);
+  const clean = deduplicateProfiles(profiles.map(removeLegacyPin));
   localStorage.setItem(PROFILES_KEY, JSON.stringify(clean));
 }
 
@@ -175,7 +161,6 @@ export function registerProfile(data: {
   email?: string;
   role: UserRole;
   gatNumber: string;
-  pin?: string;
 }): { success: boolean; user?: UserProfile; error?: string } {
   const profiles = getStoredProfiles();
   const trimmedName = data.name.trim();
@@ -213,7 +198,6 @@ export function registerProfile(data: {
     role: data.role,
     gatNumber: data.gatNumber,
     gatName: gatInfo.name,
-    pin: data.pin?.trim() || '1234',
     createdAt: new Date().toISOString()
   };
 
@@ -348,29 +332,38 @@ export function getStoredTemplates(): ActivityTemplate[] {
   try {
     const raw = localStorage.getItem(TEMPLATES_KEY);
     if (!raw) return DEFAULT_TEMPLATES;
-    const parsed = JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_TEMPLATES;
 
     // Migração de schema legado caso existam templates salvos anteriormente sem 'name'
-    const migrated: ActivityTemplate[] = parsed.map((item: any, idx: number) => {
-      const name =
-        item.name ||
-        item.descriptionTemplate ||
-        item.description ||
-        `Atividade Modelo ${idx + 1}`;
+    const migrated: ActivityTemplate[] = parsed.map((item: unknown, idx: number) => {
+      const legacy =
+        typeof item === 'object' && item !== null
+          ? (item as Record<string, unknown>)
+          : {};
+      const storedName = [legacy.name, legacy.descriptionTemplate, legacy.description].find(
+        (value): value is string => typeof value === 'string' && value.trim().length > 0
+      );
+      const name = storedName || `Atividade Modelo ${idx + 1}`;
 
       const isGatSpecific =
-        Boolean(item.isGatSpecific) ||
+        Boolean(legacy.isGatSpecific) ||
         name.includes('{gatNumber}') ||
         name.includes('{gatLabel}') ||
         name.toLowerCase().includes('reunião do gat');
 
+      const modality =
+        legacy.modality === 'Síncrona presencial' ||
+        legacy.modality === 'Assíncrona virtual'
+          ? legacy.modality
+          : 'Síncrona virtual';
+
       return {
-        id: item.id || `tpl-${idx + 1}`,
+        id: typeof legacy.id === 'string' && legacy.id ? legacy.id : `tpl-${idx + 1}`,
         name: isGatSpecific && !name.includes('{gatNumber}')
           ? 'Reunião do GAT {gatNumber} ({gatName})'
           : name,
-        modality: item.modality || 'Síncrona virtual',
+        modality,
         isGatSpecific
       };
     });
@@ -503,7 +496,7 @@ export function exportUserData(user: UserProfile, monthKey: string): string {
   const data = {
     version: '1.0',
     exportedAt: new Date().toISOString(),
-    user,
+    user: removeLegacyPin(user),
     monthKey,
     activities
   };
@@ -522,7 +515,7 @@ export function importUserData(jsonStr: string): {
     if (!data.user || !data.user.name || !Array.isArray(data.activities)) {
       return { success: false, error: 'Arquivo de cópia de folha inválido.' };
     }
-    const user: UserProfile = data.user;
+    const user = removeLegacyPin(data.user);
     const monthKey: string = data.monthKey || '2026-09';
     const activities: Activity[] = data.activities;
 
