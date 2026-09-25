@@ -623,7 +623,8 @@ export default function Home() {
             className="text-slate-200 font-semibold underline underline-offset-2 hover:text-[#008D4C] dark:hover:text-[#10B981] transition-colors"
           >
             Robert Taveira
-          </a>
+          </a>{" "}
+          • Licença MIT
         </p>
         <div className="mt-2.5 flex items-center justify-center gap-4 text-[11px] text-slate-400">
           <button
