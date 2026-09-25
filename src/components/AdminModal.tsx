@@ -500,9 +500,6 @@ export function AdminModal({
               <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-md">
                 Digite o PIN para acessar as configurações de templates, GATs e funções deste navegador.
               </p>
-              <p className="text-xs text-amber-300/90 mt-3 max-w-lg">
-                Este bloqueio limita acesso casual. Os dados permanecem no localStorage e podem ser alterados por quem controla este navegador.
-              </p>
             </div>
 
             {accessStatus === 'unconfigured' ? (
