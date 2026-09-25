@@ -229,5 +229,5 @@ Este software é livre e de código aberto, publicado sob os termos da [Licença
 ---
 
 <p align="center">
-  PET-Saúde Clima: Folha de Frequência Mensal &copy; 2026 &bull; Desenvolvido por <a href="https://www.linkedin.com/in/vvvvvdal/">Felipe Vidal</a> & <a href="https://www.linkedin.com/in/robert-taveira/">Robert Taveira</a>
+  PET-Saúde Clima: Folha de Frequência Mensal &copy; 2026 &bull; Desenvolvido por <a href="https://www.linkedin.com/in/vvvvvdal/">Felipe Vidal</a> & <a href="https://www.linkedin.com/in/robert-taveira/">Robert Taveira</a> &bull; Licença MIT
 </p>
