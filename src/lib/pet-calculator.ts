@@ -1,3 +1,5 @@
+import { Activity } from '@/types';
+
 /**
  * Regra Matemática Oficial do PET-Saúde Clima UFG:
  * Cada hora do relógio iniciada conta como 1 hora cheia.
@@ -75,4 +77,62 @@ export function formatActivityForSheet(desc: string, modality?: string): string 
   if (!baseDesc) return '';
   if (!modality) return baseDesc;
   return `${baseDesc} (${modality.trim()})`;
+}
+
+/**
+ * Compara duas atividades por critério estritamente cronológico:
+ * 1. Data (YYYY-MM-DD)
+ * 2. Horário de início / entrada (HH:MM)
+ * 3. Horário de término / saída (HH:MM)
+ */
+export function compareActivities(a: Activity, b: Activity): number {
+  if (a.date !== b.date) {
+    return a.date.localeCompare(b.date);
+  }
+  if (a.start !== b.start) {
+    return a.start.localeCompare(b.start);
+  }
+  return a.end.localeCompare(b.end);
+}
+
+/**
+ * Ordenação cronológica estável utilizando o algoritmo Merge Sort (Divisão e Conquista).
+ * Complexidade temporal: O(n log n) garantida.
+ */
+export function sortActivitiesChronologically(activities: Activity[]): Activity[] {
+  if (activities.length <= 1) return [...activities];
+
+  const mid = Math.floor(activities.length / 2);
+  const left = sortActivitiesChronologically(activities.slice(0, mid));
+  const right = sortActivitiesChronologically(activities.slice(mid));
+
+  return mergeActivities(left, right);
+}
+
+function mergeActivities(left: Activity[], right: Activity[]): Activity[] {
+  const result: Activity[] = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < left.length && j < right.length) {
+    if (compareActivities(left[i], right[j]) <= 0) {
+      result.push(left[i]);
+      i++;
+    } else {
+      result.push(right[j]);
+      j++;
+    }
+  }
+
+  while (i < left.length) {
+    result.push(left[i]);
+    i++;
+  }
+
+  while (j < right.length) {
+    result.push(right[j]);
+    j++;
+  }
+
+  return result;
 }

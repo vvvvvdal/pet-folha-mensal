@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Activity, UserProfile } from '@/types';
-import { formatDateBR, formatActivityForSheet } from '@/lib/pet-calculator';
+import { formatDateBR, formatActivityForSheet, sortActivitiesChronologically } from '@/lib/pet-calculator';
 
 interface OfficialSheetProps {
   user?: UserProfile;
@@ -19,7 +19,11 @@ export function OfficialSheet({
   totalHours = 0,
   isBlankTemplate = false
 }: OfficialSheetProps) {
-  const emptyRowsCount = isBlankTemplate ? 10 : Math.max(0, 10 - activities.length);
+  const sortedActivities = React.useMemo(
+    () => (isBlankTemplate ? [] : sortActivitiesChronologically(activities)),
+    [activities, isBlankTemplate]
+  );
+  const emptyRowsCount = isBlankTemplate ? 10 : Math.max(0, 10 - sortedActivities.length);
 
   return (
     <div
@@ -104,7 +108,7 @@ export function OfficialSheet({
         </thead>
         <tbody>
           {!isBlankTemplate &&
-            activities.map((act) => (
+            sortedActivities.map((act) => (
               <tr key={act.id} className="h-7">
                 <td className="border border-black px-2 py-1 text-center align-middle font-normal whitespace-nowrap">
                   {formatDateBR(act.date)}

@@ -7,7 +7,7 @@ import {
   DEFAULT_ROLES,
   ActivityTemplate
 } from '@/types';
-import { calcPetHours, cleanActivityDescription } from './pet-calculator';
+import { calcPetHours, cleanActivityDescription, sortActivitiesChronologically } from './pet-calculator';
 
 const PROFILES_KEY = 'pet_folha_profiles_v2';
 const ACTIVE_PROFILE_ID_KEY = 'pet_folha_active_profile_id_v2';
@@ -420,7 +420,7 @@ export function generateSeedActivities(
     { day: 22, start: '19:00', end: '20:40' }
   ];
 
-  return templates.map((tpl, index) => {
+  const generated = templates.map((tpl, index) => {
     const slot = defaultSlots[index % defaultSlots.length];
     const dayStr = String(slot.day).padStart(2, '0');
     const date = `${monthKey}-${dayStr}`;
@@ -437,6 +437,8 @@ export function generateSeedActivities(
       hours: calcPetHours(slot.start, slot.end)
     };
   });
+
+  return sortActivitiesChronologically(generated);
 }
 
 export function getActivitiesForMonth(profileId: string, monthKey: string): Activity[] {
@@ -453,7 +455,8 @@ export function getActivitiesForMonth(profileId: string, monthKey: string): Acti
       }
       return [];
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? sortActivitiesChronologically(parsed) : [];
   } catch {
     return [];
   }
@@ -483,7 +486,8 @@ export function saveActivitiesForMonth(
 ): void {
   if (typeof window === 'undefined') return;
   const key = `${ACTIVITIES_PREFIX}${profileId}_${monthKey}`;
-  localStorage.setItem(key, JSON.stringify(activities));
+  const sorted = sortActivitiesChronologically(activities);
+  localStorage.setItem(key, JSON.stringify(sorted));
 }
 
 // ============================================================

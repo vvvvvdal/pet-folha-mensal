@@ -18,7 +18,13 @@ import {
   getStoredTemplates,
   registerProfile
 } from '@/lib/storage';
-import { calcPetHours, getMonthYearLabel, formatDateBR, cleanActivityDescription } from '@/lib/pet-calculator';
+import {
+  calcPetHours,
+  getMonthYearLabel,
+  formatDateBR,
+  cleanActivityDescription,
+  sortActivitiesChronologically
+} from '@/lib/pet-calculator';
 import { Navbar } from '@/components/Navbar';
 import { ProfileModal } from '@/components/ProfileModal';
 import { AdminModal } from '@/components/AdminModal';
@@ -121,7 +127,7 @@ export default function Home() {
     if (active) {
       setActiveUser(active);
       const acts = getActivitiesForMonth(active.id, monthKey);
-      setActivities(acts);
+      setActivities(sortActivitiesChronologically(acts));
     } else {
       setActiveUser(null);
     }
@@ -136,7 +142,7 @@ export default function Home() {
     setActiveUser(user);
     setActiveProfileId(user.id);
     const acts = getActivitiesForMonth(user.id, monthKey);
-    setActivities(acts);
+    setActivities(sortActivitiesChronologically(acts));
     setEditingActivity(null);
     setHasChanges(false);
   };
@@ -191,8 +197,9 @@ export default function Home() {
       showToast('Atividade adicionada.');
     }
 
-    setActivities(updatedActivities);
-    saveActivitiesForMonth(activeUser.id, monthKey, updatedActivities);
+    const sorted = sortActivitiesChronologically(updatedActivities);
+    setActivities(sorted);
+    saveActivitiesForMonth(activeUser.id, monthKey, sorted);
     setHasChanges(true);
   };
 
@@ -223,7 +230,9 @@ export default function Home() {
   const handleLoadSamples = () => {
     if (!activeUser) return;
     const samples = loadSampleActivitiesForUser(activeUser.id, monthKey);
-    setActivities(samples);
+    const sorted = sortActivitiesChronologically(samples);
+    setActivities(sorted);
+    saveActivitiesForMonth(activeUser.id, monthKey, sorted);
     setHasChanges(true);
     showToast(`Atividades de exemplo do GAT ${activeUser.gatNumber} carregadas.`);
   };
@@ -302,7 +311,7 @@ export default function Home() {
         setProfiles(getStoredProfiles());
         setActiveUser(result.user);
         if (result.monthKey) setMonthKey(result.monthKey);
-        setActivities(result.activities);
+        setActivities(sortActivitiesChronologically(result.activities));
         showToast('Backup da folha restaurado com sucesso!');
       } else {
         await alert({
