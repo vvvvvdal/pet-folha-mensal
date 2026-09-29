@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Activity, ModalityType, ActivityTemplate } from '@/types';
-import { calcPetHours } from '@/lib/pet-calculator';
+import { calcPetHours, cleanActivityDescription } from '@/lib/pet-calculator';
 import { X, Calendar, Clock, Check, Edit3 } from 'lucide-react';
 import { useDialog } from '@/context/DialogContext';
 import { useTheme } from '@/lib/theme';
@@ -40,22 +40,8 @@ export function EditActivityModal({
       setDate(activity.date);
       setStart(activity.start);
       setEnd(activity.end);
-
-      let coreDesc = activity.description;
-      if (coreDesc.includes('(Síncrona virtual)')) {
-        setModality('Síncrona virtual');
-        coreDesc = coreDesc.replace('(Síncrona virtual)', '').trim();
-      } else if (coreDesc.includes('(Síncrona presencial)')) {
-        setModality('Síncrona presencial');
-        coreDesc = coreDesc.replace('(Síncrona presencial)', '').trim();
-      } else if (coreDesc.includes('(Assíncrona virtual)')) {
-        setModality('Assíncrona virtual');
-        coreDesc = coreDesc.replace('(Assíncrona virtual)', '').trim();
-      } else {
-        setModality(activity.modality);
-      }
-
-      setDescription(coreDesc);
+      setModality(activity.modality);
+      setDescription(cleanActivityDescription(activity.description));
     }
   }, [activity, isOpen]);
 
@@ -84,10 +70,7 @@ export function EditActivityModal({
       return;
     }
 
-    let finalDesc = description.trim();
-    if (!finalDesc.includes(`(${modality})`)) {
-      finalDesc = `${finalDesc} (${modality})`;
-    }
+    const cleanDesc = cleanActivityDescription(description);
 
     onSave(
       {
@@ -95,7 +78,7 @@ export function EditActivityModal({
         start,
         end,
         modality,
-        description: finalDesc
+        description: cleanDesc
       },
       activity.id
     );
@@ -142,9 +125,11 @@ export function EditActivityModal({
                 const found = templates.find((t) => t.id === tplId);
                 if (found) {
                   const rawName = found.name || (found as any).descriptionTemplate || '';
-                  const finalTitle = rawName
-                    .replace('{gatNumber}', defaultGatNumber)
-                    .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`);
+                  const finalTitle = cleanActivityDescription(
+                    rawName
+                      .replace('{gatNumber}', defaultGatNumber)
+                      .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`)
+                  );
                   setDescription(finalTitle);
                   setModality(found.modality);
                 }
@@ -301,6 +286,9 @@ export function EditActivityModal({
               placeholder="Ex: Reunião do GAT 04, Oficina formativa..."
               className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors resize-none"
             />
+            <p className="text-[11px] text-slate-400 mt-1">
+              O tipo da atividade selecionado acima é incluído automaticamente na Folha oficial.
+            </p>
           </div>
 
           {/* Footer Actions */}

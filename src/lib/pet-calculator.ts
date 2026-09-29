@@ -52,3 +52,27 @@ export function getMonthYearLabel(monthKey: string): string {
   };
   return `${monthNames[month] || month}/${year}`;
 }
+
+/**
+ * Normaliza e limpa a descrição da atividade removendo sufixo redundante de modalidade
+ * Ex: "Reunião de Alinhamento (Síncrona virtual)" -> "Reunião de Alinhamento"
+ * "Reunião do GAT 04 (Mangaba)" -> "Reunião do GAT 04 (Mangaba)" (preserva parênteses legítimos)
+ */
+export function cleanActivityDescription(desc: string): string {
+  if (!desc) return '';
+  return desc
+    .replace(/\s*\(\s*(s[íi]ncrona\s+virtual|s[íi]ncrona\s+presencial|ass[íi]ncrona\s+virtual)\s*\)\s*$/i, '')
+    .trim();
+}
+
+/**
+ * Formata a descrição da atividade para a Folha de Frequência oficial (PDF/Impressão),
+ * garantindo que a modalidade oficial selecionada esteja sempre anexada ao final entre parênteses.
+ * Ex: "Reunião do GAT 04 (Mangaba)" + "Síncrona virtual" -> "Reunião do GAT 04 (Mangaba) (Síncrona virtual)"
+ */
+export function formatActivityForSheet(desc: string, modality?: string): string {
+  const baseDesc = cleanActivityDescription(desc);
+  if (!baseDesc) return '';
+  if (!modality) return baseDesc;
+  return `${baseDesc} (${modality.trim()})`;
+}

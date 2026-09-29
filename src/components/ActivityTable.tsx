@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Activity, UserProfile } from '@/types';
-import { formatDateBR } from '@/lib/pet-calculator';
+import { formatDateBR, cleanActivityDescription } from '@/lib/pet-calculator';
 import { Edit2, Trash2, Sparkles, RotateCcw, Calendar, Clock, ListChecks, LogOut } from 'lucide-react';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
@@ -142,7 +142,7 @@ export function ActivityTable({
 
                   {/* Descrição Completa */}
                   <p className="text-sm text-slate-100 font-medium leading-relaxed break-words">
-                    {act.description}
+                    {cleanActivityDescription(act.description)}
                   </p>
 
                   {/* Ações Mobile com 44px min-height */}
@@ -263,7 +263,7 @@ export function ActivityTable({
                         {getModalityBadge(act.modality)}
                       </td>
                       <td className="py-3.5 px-4 text-slate-100 font-medium leading-relaxed">
-                        <span>{act.description}</span>
+                        <span>{cleanActivityDescription(act.description)}</span>
                       </td>
                       <td className="py-3.5 px-4 text-right font-extrabold text-base text-[#10B981] whitespace-nowrap">
                         {act.hours}h

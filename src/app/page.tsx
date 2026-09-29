@@ -18,7 +18,7 @@ import {
   getStoredTemplates,
   registerProfile
 } from '@/lib/storage';
-import { calcPetHours, getMonthYearLabel, formatDateBR } from '@/lib/pet-calculator';
+import { calcPetHours, getMonthYearLabel, formatDateBR, cleanActivityDescription } from '@/lib/pet-calculator';
 import { Navbar } from '@/components/Navbar';
 import { ProfileModal } from '@/components/ProfileModal';
 import { AdminModal } from '@/components/AdminModal';
@@ -202,7 +202,7 @@ export default function Home() {
     const confirmed = await confirm({
       title: 'Excluir Atividade?',
       message: act
-        ? `Deseja realmente remover o registro "${act.description}" de ${formatDateBR(act.date)} (${act.hours}h)?`
+        ? `Deseja realmente remover o registro "${cleanActivityDescription(act.description)}" de ${formatDateBR(act.date)} (${act.hours}h)?`
         : 'Deseja realmente remover esta atividade da sua folha mensal?',
       confirmText: 'Sim, excluir',
       cancelText: 'Cancelar',

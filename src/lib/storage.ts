@@ -7,7 +7,7 @@ import {
   DEFAULT_ROLES,
   ActivityTemplate
 } from '@/types';
-import { calcPetHours } from './pet-calculator';
+import { calcPetHours, cleanActivityDescription } from './pet-calculator';
 
 const PROFILES_KEY = 'pet_folha_profiles_v2';
 const ACTIVE_PROFILE_ID_KEY = 'pet_folha_active_profile_id_v2';
@@ -424,10 +424,9 @@ export function generateSeedActivities(
     const slot = defaultSlots[index % defaultSlots.length];
     const dayStr = String(slot.day).padStart(2, '0');
     const date = `${monthKey}-${dayStr}`;
-    let description = tpl.name.replace('{gatNumber}', gatNumber).replace('{gatName}', gatName);
-    if (!description.includes('(') && !description.includes(')')) {
-      description = `${description} (${tpl.modality})`;
-    }
+    const description = cleanActivityDescription(
+      tpl.name.replace('{gatNumber}', gatNumber).replace('{gatName}', gatName)
+    );
     return {
       id: `act-seed-${index + 1}-${Date.now().toString(36).slice(-3)}`,
       date,

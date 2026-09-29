@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Activity, ModalityType, ActivityTemplate } from '@/types';
-import { calcPetHours } from '@/lib/pet-calculator';
+import { calcPetHours, cleanActivityDescription } from '@/lib/pet-calculator';
 import { Plus, Check, Calendar, Clock } from 'lucide-react';
 import { useDialog } from '@/context/DialogContext';
 import { useTheme } from '@/lib/theme';
@@ -37,22 +37,8 @@ export function ActivityForm({
       setDate(editingActivity.date);
       setStart(editingActivity.start);
       setEnd(editingActivity.end);
-
-      let coreDesc = editingActivity.description;
-      if (coreDesc.includes('(Síncrona virtual)')) {
-        setModality('Síncrona virtual');
-        coreDesc = coreDesc.replace('(Síncrona virtual)', '').trim();
-      } else if (coreDesc.includes('(Síncrona presencial)')) {
-        setModality('Síncrona presencial');
-        coreDesc = coreDesc.replace('(Síncrona presencial)', '').trim();
-      } else if (coreDesc.includes('(Assíncrona virtual)')) {
-        setModality('Assíncrona virtual');
-        coreDesc = coreDesc.replace('(Assíncrona virtual)', '').trim();
-      } else {
-        setModality(editingActivity.modality);
-      }
-
-      setDescription(coreDesc);
+      setModality(editingActivity.modality);
+      setDescription(cleanActivityDescription(editingActivity.description));
     }
   }, [editingActivity]);
 
@@ -69,10 +55,7 @@ export function ActivityForm({
       return;
     }
 
-    let finalDesc = description.trim();
-    if (!finalDesc.includes('(') && !finalDesc.includes(')')) {
-      finalDesc = `${finalDesc} (${modality})`;
-    }
+    const cleanDesc = cleanActivityDescription(description);
 
     onSave(
       {
@@ -80,7 +63,7 @@ export function ActivityForm({
         start,
         end,
         modality,
-        description: finalDesc
+        description: cleanDesc
       },
       editingActivity ? editingActivity.id : undefined
     );
@@ -117,9 +100,11 @@ export function ActivityForm({
                   const found = templates.find((t) => t.id === tplId);
                   if (found) {
                     const rawName = found.name || (found as any).descriptionTemplate || '';
-                    const finalTitle = rawName
-                      .replace('{gatNumber}', defaultGatNumber)
-                      .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`);
+                    const finalTitle = cleanActivityDescription(
+                      rawName
+                        .replace('{gatNumber}', defaultGatNumber)
+                        .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`)
+                    );
                     setDescription(finalTitle);
                     setModality(found.modality);
                   }
@@ -288,6 +273,9 @@ export function ActivityForm({
               required
               className="w-full min-h-[44px] px-4 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
             />
+            <p className="text-[11px] text-slate-400 mt-1">
+              O tipo da atividade selecionado acima é incluído automaticamente na Folha oficial.
+            </p>
           </div>
 
           <div className="flex items-center gap-2 pt-1 sm:pt-0">

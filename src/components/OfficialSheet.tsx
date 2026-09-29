@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Activity, UserProfile } from '@/types';
-import { formatDateBR } from '@/lib/pet-calculator';
+import { formatDateBR, formatActivityForSheet } from '@/lib/pet-calculator';
 
 interface OfficialSheetProps {
   user?: UserProfile;
@@ -116,7 +116,7 @@ export function OfficialSheet({
                   {act.end}
                 </td>
                 <td className="border border-black px-2 py-1 text-left align-middle font-normal break-words">
-                  {act.description}
+                  {formatActivityForSheet(act.description, act.modality)}
                 </td>
               </tr>
             ))}
