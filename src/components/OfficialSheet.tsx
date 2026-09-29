@@ -19,16 +19,18 @@ export function OfficialSheet({
   totalHours = 0,
   isBlankTemplate = false
 }: OfficialSheetProps) {
-  const emptyRowsCount = isBlankTemplate ? 10 : Math.max(0, 7 - activities.length);
-  const totalDisplayRows = isBlankTemplate ? 10 : Math.max(7, activities.length);
+  const emptyRowsCount = isBlankTemplate ? 10 : Math.max(0, 10 - activities.length);
 
   return (
     <div
-      className="official-sheet bg-white text-black p-4 sm:p-6 md:p-7 font-sans w-full max-w-[297mm] mx-auto box-border"
-      style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+      className="official-sheet bg-white text-black p-4 sm:p-6 md:p-7 w-full max-w-[297mm] mx-auto box-border"
+      style={{ fontFamily: '"Times New Roman", Times, serif' }}
     >
       {/* Cabeçalho Tríplice Oficial */}
-      <div className="flex justify-between items-center mb-2">
+      <div
+        className="flex justify-between items-center mb-3"
+        style={{ fontFamily: 'Calibri, "Segoe UI", Arial, sans-serif' }}
+      >
         <div className="w-[32%] text-center text-[8.5pt] leading-tight text-black font-normal">
           Ministério da Saúde<br />
           Secretaria de Gestão do Trabalho e da Educação na Saúde<br />
@@ -50,115 +52,111 @@ export function OfficialSheet({
       </div>
 
       {/* Título */}
-      <h1 className="text-center text-[15pt] md:text-[16pt] font-bold text-black my-1 tracking-tight">
+      <h1 className="text-center text-[15pt] md:text-[16pt] font-bold text-black my-2 tracking-tight">
         Folha de Frequência Mensal*
       </h1>
 
       {/* Metadados */}
-      {isBlankTemplate ? (
-        <div className="text-[9.5pt] md:text-[10pt] text-black mb-2 leading-relaxed">
-          <div className="mb-1 flex items-baseline">
-            <span className="font-bold mr-1 shrink-0">Nome:</span>
-            <span className="flex-1 border-b border-black h-3.5"></span>
+      <div className="text-[10pt] text-black mb-3">
+        {/* Linha 1: Nome */}
+        <div className="mb-2 flex items-baseline">
+          <span className="font-bold mr-1 shrink-0">Nome:</span>
+          <span className="flex-1 border-b border-black font-normal px-2 pb-0.5 min-h-[1.2rem]">
+            {isBlankTemplate ? '' : (user?.name || '')}
+          </span>
+        </div>
+        {/* Linha 2: Perfil**, Nº do GAT, Mês/ano */}
+        <div className="flex items-baseline justify-between gap-6">
+          <div className="flex-[2] flex items-baseline min-w-0">
+            <span className="font-bold mr-1 shrink-0">Perfil**:</span>
+            <span className="flex-1 border-b border-black font-normal px-2 pb-0.5 min-h-[1.2rem] truncate">
+              {isBlankTemplate ? '' : (user?.role || '')}
+            </span>
           </div>
-          <div className="flex justify-between items-baseline gap-4">
-            <span className="flex-1 flex items-baseline">
-              <span className="font-bold mr-1 shrink-0">Perfil**:</span>
-              <span className="flex-1 border-b border-black h-3.5"></span>
+          <div className="w-44 flex items-baseline shrink-0">
+            <span className="font-bold mr-1 shrink-0">Nº do GAT:</span>
+            <span className="flex-1 border-b border-black font-normal px-2 pb-0.5 min-h-[1.2rem] text-center">
+              {isBlankTemplate ? '' : (user?.gatNumber || '')}
             </span>
-            <span className="w-36 flex items-baseline">
-              <span className="font-bold mr-1 shrink-0">Nº do GAT:</span>
-              <span className="flex-1 border-b border-black h-3.5"></span>
-            </span>
-            <span className="w-48 flex items-baseline">
-              <span className="font-bold mr-1 shrink-0">Mês/ano:</span>
-              <span className="flex-1 border-b border-black h-3.5"></span>
+          </div>
+          <div className="w-56 flex items-baseline shrink-0">
+            <span className="font-bold mr-1 shrink-0">Mês/ano:</span>
+            <span className="flex-1 border-b border-black font-normal px-2 pb-0.5 min-h-[1.2rem] text-center">
+              {isBlankTemplate ? '' : monthLabel}
             </span>
           </div>
         </div>
-      ) : (
-        <div className="text-[9.5pt] md:text-[10pt] text-black mb-2 leading-relaxed">
-          <div className="mb-0.5">
-            <span className="font-bold">Nome:</span> {user?.name || ''}
-          </div>
-          <div className="flex justify-between">
-            <span>
-              <span className="font-bold">Perfil:</span> {user?.role || ''}
-            </span>
-            <span>
-              <span className="font-bold">Nº do GAT:</span> {user?.gatNumber || ''}
-            </span>
-            <span>
-              <span className="font-bold">Mês/ano:</span> {monthLabel}
-            </span>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Tabela de Lançamentos */}
-      <table className="official-table w-full border-collapse border-[1.5px] border-black text-[9pt] text-black mb-1.5">
+      <table className="official-table w-full border-collapse border-[1.5px] border-black text-[9.5pt] text-black mb-1.5">
         <thead>
           <tr className="bg-white font-bold">
-            <th className="border border-black px-2 py-1 text-center w-[11%]">Data</th>
-            <th className="border border-black px-2 py-1 text-center w-[12%]">Horário de Chegada</th>
-            <th className="border border-black px-2 py-1 text-center w-[12%]">Horário de Saída</th>
-            <th className="border border-black px-2 py-1 text-center w-[47%]">Atividade</th>
-            <th className="border border-black px-2 py-1 text-center w-[18%]">Assinatura</th>
+            <th className="border border-black px-2 py-1.5 text-center w-[12%] align-middle">Data</th>
+            <th className="border border-black px-2 py-1.5 text-center w-[13%] align-middle leading-tight">
+              Horário de<br />Chegada
+            </th>
+            <th className="border border-black px-2 py-1.5 text-center w-[13%] align-middle leading-tight">
+              Horário de<br />Saída
+            </th>
+            <th className="border border-black px-2 py-1.5 text-center w-[62%] align-middle">Atividade</th>
           </tr>
         </thead>
         <tbody>
           {!isBlankTemplate &&
-            activities.map((act, index) => {
-              const isLast = index === totalDisplayRows - 1 && emptyRowsCount === 0;
-              return (
-                <tr key={act.id}>
-                  <td className={`border border-black px-2 py-1 text-center ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}>
-                    {formatDateBR(act.date)}
-                  </td>
-                  <td className={`border border-black px-2 py-1 text-center ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}>
-                    {act.start}
-                  </td>
-                  <td className={`border border-black px-2 py-1 text-center ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}>
-                    {act.end} ({act.hours}h)
-                  </td>
-                  <td className={`border border-black px-2 py-1 text-left ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}>
-                    {act.description}
-                  </td>
-                  <td className={`border border-black px-2 py-1 text-center ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}></td>
-                </tr>
-              );
-            })}
+            activities.map((act) => (
+              <tr key={act.id} className="h-7">
+                <td className="border border-black px-2 py-1 text-center align-middle font-normal whitespace-nowrap">
+                  {formatDateBR(act.date)}
+                </td>
+                <td className="border border-black px-2 py-1 text-center align-middle font-normal whitespace-nowrap">
+                  {act.start}
+                </td>
+                <td className="border border-black px-2 py-1 text-center align-middle font-normal whitespace-nowrap">
+                  {act.end}
+                </td>
+                <td className="border border-black px-2 py-1 text-left align-middle font-normal break-words">
+                  {act.description}
+                </td>
+              </tr>
+            ))}
 
           {/* Linhas em branco de preenchimento */}
-          {Array.from({ length: emptyRowsCount }).map((_, i) => {
-            const isLast = i === emptyRowsCount - 1;
-            return (
-              <tr key={`empty-${i}`}>
-                <td className={`border border-black px-2 py-1 text-center h-6 ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}></td>
-                <td className={`border border-black px-2 py-1 text-center ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}></td>
-                <td className={`border border-black px-2 py-1 text-center ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}></td>
-                <td className={`border border-black px-2 py-1 text-left ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}></td>
-                <td className={`border border-black px-2 py-1 text-center ${isLast ? 'border-b-[1.5px] border-b-black' : ''}`}></td>
-              </tr>
-            );
-          })}
+          {Array.from({ length: emptyRowsCount }).map((_, i) => (
+            <tr key={`empty-${i}`} className="h-7">
+              <td className="border border-black px-2 py-1 text-center align-middle"></td>
+              <td className="border border-black px-2 py-1 text-center align-middle"></td>
+              <td className="border border-black px-2 py-1 text-center align-middle"></td>
+              <td className="border border-black px-2 py-1 text-left align-middle"></td>
+            </tr>
+          ))}
         </tbody>
       </table>
 
-      {/* Total de Horas */}
-      <div className="text-[10.5pt] md:text-[11pt] font-bold text-black my-1">
-        TOTAL: {isBlankTemplate ? 0 : totalHours} horas
+      {/* Total de Horas (exibido apenas quando preenchido para validação das 32h) */}
+      {!isBlankTemplate && (
+        <div className="text-[10pt] font-bold text-black mt-1 mb-2">
+          TOTAL: {totalHours} horas
+        </div>
+      )}
+
+      {/* Assinaturas Digitais (Espaço dedicado para carimbos e assinaturas do Gov.br) */}
+      <div className="flex justify-between items-end mt-12 mb-4 px-10">
+        <div className="w-[42%] text-center">
+          <div className="text-[10pt] font-normal text-black">
+            Assinatura do Participante
+          </div>
+        </div>
+        <div className="w-[42%] text-center">
+          <div className="text-[10pt] font-normal text-black">
+            Assinatura da Supervisão do GAT
+          </div>
+        </div>
       </div>
 
-      {/* Notas de Rodapé Oficiais */}
-      <div className="text-[7.5pt] text-gray-800 border-t border-gray-300 pt-1.5 leading-tight">
-        <p>
-          * Envio obrigatório até primeiro dia útil do mês posterior as atividades para o e-mail oficial do projeto. O não
-          envio desta ficha devidamente preenchida no prazo estabelecido acarretará a não validação da bolsa.
-        </p>
-        <p className="mt-0.5">
-          **Estudante, Orientador de Serviço, Preceptor, Tutor, Coordenador de GAT
-        </p>
+      {/* Nota de Rodapé Oficial */}
+      <div className="text-[7.5pt] text-black leading-tight mt-6">
+        <p>**Estudante, Orientador de Serviço, Preceptor, Tutor, Coordenador de GAT</p>
       </div>
     </div>
   );
