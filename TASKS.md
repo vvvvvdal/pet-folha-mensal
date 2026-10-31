@@ -28,3 +28,9 @@
 
 ## Próximos Passos (Postergados para Etapa Futura)
 - [ ] **Deploy na Vercel**: Configuração e publicação remota (ignorado temporariamente a pedido do usuário).
+
+## Refinamento de UI/UX (31/10/2026)
+- [x] Entrada com acesso prioritário, prévia visual e FAQ; rodapé compartilhado e ajuda no painel.
+- [x] Temas por tokens semânticos, navegação responsiva, campos associados e modais nativos.
+- [x] Verificação de tipos, lint e compilação de produção; regressão de cálculo e cópias de segurança.
+- [ ] Revisão no navegador em 360/768/1440 px, teclado e impressão efetiva (acesso local recusado nesta sessão).

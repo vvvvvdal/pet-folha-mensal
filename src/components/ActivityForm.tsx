@@ -1,14 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Activity, ModalityType, ActivityTemplate } from '@/types';
-import { calcPetHours, cleanActivityDescription } from '@/lib/pet-calculator';
-import { Plus, Check, Calendar, Clock } from 'lucide-react';
-import { useDialog } from '@/context/DialogContext';
-import { useTheme } from '@/lib/theme';
+import React, { useState, useEffect } from "react";
+import { Activity, ModalityType, ActivityTemplate } from "@/types";
+import { calcPetHours, cleanActivityDescription } from "@/lib/pet-calculator";
+import { Plus, Check, Calendar, Clock } from "lucide-react";
+import { useDialog } from "@/context/DialogContext";
 
 interface ActivityFormProps {
-  onSave: (data: Omit<Activity, 'id' | 'hours'>, editingId?: string) => void;
+  onSave: (data: Omit<Activity, "id" | "hours">, editingId?: string) => void;
   editingActivity?: Activity | null;
   onCancelEdit?: () => void;
   defaultGatNumber?: string;
@@ -20,20 +19,20 @@ export function ActivityForm({
   onSave,
   editingActivity = null,
   onCancelEdit,
-  defaultGatNumber = '04',
-  defaultGatName = 'Mangaba',
-  templates = []
+  defaultGatNumber = "04",
+  defaultGatName = "Mangaba",
+  templates = [],
 }: ActivityFormProps) {
-  const { theme } = useTheme();
   const { alert } = useDialog();
-  const [date, setDate] = useState('2026-09-23');
-  const [start, setStart] = useState('19:00');
-  const [end, setEnd] = useState('20:40');
-  const [modality, setModality] = useState<ModalityType>('Síncrona virtual');
-  const [description, setDescription] = useState('');
+  const [date, setDate] = useState("2026-09-23");
+  const [start, setStart] = useState("19:00");
+  const [end, setEnd] = useState("20:40");
+  const [modality, setModality] = useState<ModalityType>("Síncrona virtual");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     if (editingActivity) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset the existing form when an activity is selected for editing.
       setDate(editingActivity.date);
       setStart(editingActivity.start);
       setEnd(editingActivity.end);
@@ -48,9 +47,10 @@ export function ActivityForm({
     e.preventDefault();
     if (!date || !start || !end || !description.trim()) {
       await alert({
-        title: 'Campos Incompletos',
-        message: 'Por favor, preencha a data, horários e a descrição da atividade.',
-        variant: 'warning'
+        title: "Campos Incompletos",
+        message:
+          "Por favor, preencha a data, horários e a descrição da atividade.",
+        variant: "warning",
       });
       return;
     }
@@ -63,26 +63,33 @@ export function ActivityForm({
         start,
         end,
         modality,
-        description: cleanDesc
+        description: cleanDesc,
       },
-      editingActivity ? editingActivity.id : undefined
+      editingActivity ? editingActivity.id : undefined,
     );
 
     if (!editingActivity) {
-      setDescription('');
+      setDescription("");
     }
   };
 
   return (
-    <div className="p-4 sm:p-6 rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-xs mb-6 transition-all">
+    <div
+      id="nova-atividade"
+      className="activity-form p-4 sm:p-6 rounded-2xl border border-line bg-surface shadow-[var(--page-shadow)] mb-6 transition-all"
+    >
       {/* Top Header: Title & Quick Presets */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800/60">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-line">
         <div className="flex items-center gap-2">
-          <div className="size-6 rounded-md bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] flex items-center justify-center font-bold text-xs">
-            {editingActivity ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
+          <div className="size-6 rounded-md bg-accent/15 text-accent  flex items-center justify-center font-bold text-xs">
+            {editingActivity ? (
+              <Check className="size-3.5" />
+            ) : (
+              <Plus className="size-3.5" />
+            )}
           </div>
-          <span className="text-xs sm:text-sm font-semibold text-slate-200">
-            {editingActivity ? 'Editar Lançamento' : 'Novo Lançamento de Atividade'}
+          <span className="text-xs sm:text-sm font-semibold text-body">
+            {editingActivity ? "Editar Lançamento" : "Nova atividade"}
           </span>
         </div>
 
@@ -90,36 +97,54 @@ export function ActivityForm({
         <div className="w-full sm:w-auto flex items-center gap-2">
           {templates && templates.length > 0 && (
             <div className="w-full sm:w-auto flex items-center gap-2">
-              <span className="text-xs text-slate-400 hidden md:inline">
-                Preenchimento rápido de atividades frequentes:
+              <span className="text-xs text-muted hidden md:inline">
+                Atividade frequente?
               </span>
               <select
+                aria-label="Modelo de atividade para preenchimento rápido"
                 onChange={(e) => {
                   const tplId = e.target.value;
                   if (!tplId) return;
                   const found = templates.find((t) => t.id === tplId);
                   if (found) {
-                    const rawName = found.name || (found as any).descriptionTemplate || '';
+                    const rawName =
+                      found.name ||
+                      (
+                        found as ActivityTemplate & {
+                          descriptionTemplate?: string;
+                        }
+                      ).descriptionTemplate ||
+                      "";
                     const finalTitle = cleanActivityDescription(
                       rawName
-                        .replace('{gatNumber}', defaultGatNumber)
-                        .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`)
+                        .replace("{gatNumber}", defaultGatNumber)
+                        .replace(
+                          "{gatName}",
+                          defaultGatName || `GAT ${defaultGatNumber}`,
+                        ),
                     );
                     setDescription(finalTitle);
                     setModality(found.modality);
                   }
-                  e.target.value = '';
+                  e.target.value = "";
                 }}
                 defaultValue=""
-                className="w-full sm:w-auto min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-700/70 text-slate-200 text-sm sm:text-xs outline-none cursor-pointer focus:border-[#008D4C] hover:border-slate-600 transition-colors"
+                className="w-full sm:w-auto min-h-[44px] px-3.5 py-2 rounded-xl bg-canvas border border-line text-body text-sm sm:text-xs outline-none cursor-pointer focus:border-accent hover:border-slate-600 transition-colors"
                 title="Selecione uma atividade para preencher o nome e a modalidade automaticamente"
               >
                 <option value="" disabled>
                   Selecionar modelo pré-configurado...
                 </option>
                 {templates.map((tpl) => {
-                  const tplName = tpl?.name || (tpl as any)?.descriptionTemplate || 'Atividade';
-                  const isGat = Boolean(tpl?.isGatSpecific) || tplName.includes('{gatNumber}') || tplName.includes('{gatLabel}');
+                  const tplName =
+                    tpl?.name ||
+                    (tpl as ActivityTemplate & { descriptionTemplate?: string })
+                      ?.descriptionTemplate ||
+                    "Atividade";
+                  const isGat =
+                    Boolean(tpl?.isGatSpecific) ||
+                    tplName.includes("{gatNumber}") ||
+                    tplName.includes("{gatLabel}");
                   const label = isGat
                     ? `Reunião do GAT ${defaultGatNumber} (${tpl.modality})`
                     : `${tplName} (${tpl.modality})`;
@@ -141,147 +166,180 @@ export function ActivityForm({
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
           {/* Data */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Data</label>
+            <label
+              htmlFor="activityform-wrapped-1"
+              className="block text-xs sm:text-sm font-medium text-body mb-1.5"
+            >
+              Data
+            </label>
             <div className="relative flex items-center">
               <input
+                id="activityform-wrapped-1"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 onClick={(e) => {
                   try {
-                    (e.target as any).showPicker?.();
+                    e.currentTarget.showPicker?.();
                   } catch {}
                 }}
                 required
-                style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
               />
-              <Calendar className="absolute right-3.5 size-4 text-slate-200 pointer-events-none z-1" />
+              <Calendar className="absolute right-3.5 size-4 text-body pointer-events-none z-1" />
             </div>
           </div>
 
-          {/* Horário Entrada */}
+          {/* Entrada */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Horário Entrada</label>
+            <label
+              htmlFor="activityform-wrapped-2"
+              className="block text-xs sm:text-sm font-medium text-body mb-1.5"
+            >
+              Entrada
+            </label>
             <div className="relative flex items-center">
               <input
+                id="activityform-wrapped-2"
                 type="time"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
                 onClick={(e) => {
                   try {
-                    (e.target as any).showPicker?.();
+                    e.currentTarget.showPicker?.();
                   } catch {}
                 }}
                 required
-                style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
               />
-              <Clock className="absolute right-3.5 size-4 text-slate-200 pointer-events-none z-1" />
+              <Clock className="absolute right-3.5 size-4 text-body pointer-events-none z-1" />
             </div>
           </div>
 
-          {/* Horário Saída */}
+          {/* Saída */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Horário Saída</label>
+            <label
+              htmlFor="activityform-wrapped-3"
+              className="block text-xs sm:text-sm font-medium text-body mb-1.5"
+            >
+              Saída
+            </label>
             <div className="relative flex items-center">
               <input
+                id="activityform-wrapped-3"
                 type="time"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
                 onClick={(e) => {
                   try {
-                    (e.target as any).showPicker?.();
+                    e.currentTarget.showPicker?.();
                   } catch {}
                 }}
                 required
-                style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+                className="w-full min-h-[44px] pl-3.5 pr-10 py-2.5 text-base sm:text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
               />
-              <Clock className="absolute right-3.5 size-4 text-slate-200 pointer-events-none z-1" />
+              <Clock className="absolute right-3.5 size-4 text-body pointer-events-none z-1" />
             </div>
           </div>
 
           {/* Duração Calculada */}
-          <div className="min-h-[44px] p-2.5 sm:p-3 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-medium text-slate-400">Duração:</span>
-            <span className="text-sm sm:text-base font-bold text-[#10B981]">
-              {previewHours}h {previewHours === 1 ? 'hora' : 'horas'}
+          <div className="min-h-[44px] p-2.5 sm:p-3 rounded-xl bg-canvas border border-line flex items-center justify-between">
+            <span className="text-xs sm:text-sm font-medium text-muted">
+              Duração:
+            </span>
+            <span className="text-sm sm:text-base font-bold text-accent">
+              {previewHours}h {previewHours === 1 ? "hora" : "horas"}
             </span>
           </div>
         </div>
 
         {/* Row 2: Modalidade da Atividade - Tons equilibrados de Azul */}
-        <div>
-          <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">Modalidade</label>
+        <fieldset>
+          <legend className="block text-xs sm:text-sm font-medium text-body mb-1.5">
+            Modalidade
+          </legend>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* Síncrona Virtual: Azul Turquesa / Cyan */}
             <button
               type="button"
-              onClick={() => setModality('Síncrona virtual')}
+              aria-pressed={modality === "Síncrona virtual"}
+              onClick={() => setModality("Síncrona virtual")}
               className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                modality === 'Síncrona virtual'
-                  ? 'bg-[#00A3E0]/15 border-[#00A3E0]/50 text-[#00A3E0] dark:text-[#7DD3FC] shadow-xs font-semibold'
-                  : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
+                modality === "Síncrona virtual"
+                  ? "bg-[#00A3E0]/15 border-info/50 text-info  shadow-[var(--page-shadow)] font-semibold"
+                  : "bg-canvas border-line text-muted hover:text-body hover:bg-canvas"
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Síncrona virtual' ? 'bg-[#00A3E0]' : 'bg-slate-600'}`} />
+              <span
+                className={`size-2 rounded-full ${modality === "Síncrona virtual" ? "bg-[#00A3E0]" : "bg-line"}`}
+              />
               <span>Síncrona Virtual</span>
             </button>
 
             {/* Síncrona Presencial: Azul Cobalto / Royal Blue */}
             <button
               type="button"
-              onClick={() => setModality('Síncrona presencial')}
+              aria-pressed={modality === "Síncrona presencial"}
+              onClick={() => setModality("Síncrona presencial")}
               className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                modality === 'Síncrona presencial'
-                  ? 'bg-blue-600/20 border-blue-500/50 text-blue-600 dark:text-blue-300 shadow-xs font-semibold'
-                  : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
+                modality === "Síncrona presencial"
+                  ? "bg-info/10 border-info/50 text-info  shadow-[var(--page-shadow)] font-semibold"
+                  : "bg-canvas border-line text-muted hover:text-body hover:bg-canvas"
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Síncrona presencial' ? 'bg-blue-500' : 'bg-slate-600'}`} />
+              <span
+                className={`size-2 rounded-full ${modality === "Síncrona presencial" ? "bg-info" : "bg-line"}`}
+              />
               <span>Síncrona Presencial</span>
             </button>
 
             {/* Assíncrona Virtual: Azul Índigo / Slate Blue */}
             <button
               type="button"
-              onClick={() => setModality('Assíncrona virtual')}
+              aria-pressed={modality === "Assíncrona virtual"}
+              onClick={() => setModality("Assíncrona virtual")}
               className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                modality === 'Assíncrona virtual'
-                  ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-300 shadow-xs font-semibold'
-                  : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-950'
+                modality === "Assíncrona virtual"
+                  ? "bg-info/10 border-info/50 text-info  shadow-[var(--page-shadow)] font-semibold"
+                  : "bg-canvas border-line text-muted hover:text-body hover:bg-canvas"
               }`}
             >
-              <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-indigo-500' : 'bg-slate-600'}`} />
+              <span
+                className={`size-2 rounded-full ${modality === "Assíncrona virtual" ? "bg-info" : "bg-line"}`}
+              />
               <span>Assíncrona Virtual</span>
             </button>
           </div>
-        </div>
+        </fieldset>
 
         {/* Row 3: Descrição e Ações */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 pt-1">
           <div className="flex-1">
-            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
+            <label
+              htmlFor="activityform-field-1"
+              className="block text-xs sm:text-sm font-medium text-body mb-1.5"
+            >
               Descrição da Atividade
             </label>
             <input
+              id="activityform-field-1"
               type="text"
               placeholder="Ex: Reunião do GAT 04, Oficina formativa..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="w-full min-h-[44px] px-4 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors"
+              className="w-full min-h-[44px] px-4 py-2.5 text-base sm:text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors"
             />
-            <p className="text-[11px] text-slate-400 mt-1">
-              O tipo da atividade selecionado acima é incluído automaticamente na Folha oficial.
+            <p className="text-[11px] text-muted mt-1">
+              O tipo da atividade selecionado acima é incluído automaticamente
+              na Folha oficial.
             </p>
           </div>
 
           <div className="flex items-center gap-2 pt-1 sm:pt-0">
             <button
               type="submit"
-              className="flex-1 sm:flex-none min-h-[44px] px-6 py-2.5 rounded-xl text-sm sm:text-base font-bold bg-[#008D4C] text-white hover:bg-[#00733E] cursor-pointer transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#008D4C]/25"
+              className="flex-1 sm:flex-none min-h-[44px] px-6 py-2.5 rounded-xl text-sm sm:text-base font-bold bg-primary text-white hover:bg-[var(--primary-hover)] cursor-pointer transition-all flex items-center justify-center gap-2 shadow-[var(--page-shadow)]"
             >
               {editingActivity ? (
                 <>
@@ -291,7 +349,7 @@ export function ActivityForm({
               ) : (
                 <>
                   <Plus className="size-4" />
-                  <span>Adicionar à Folha</span>
+                  <span>Adicionar atividade</span>
                 </>
               )}
             </button>
@@ -299,7 +357,7 @@ export function ActivityForm({
               <button
                 type="button"
                 onClick={onCancelEdit}
-                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 text-sm font-semibold cursor-pointer transition-all"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-line text-body hover:text-ink hover:bg-raised text-sm font-semibold cursor-pointer transition-all"
               >
                 Cancelar
               </button>

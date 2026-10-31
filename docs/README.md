@@ -23,3 +23,7 @@ Este diretório concentra a documentação técnica, arquitetural e normativa da
 * **Plano de Ação em Saúde de Belém (BHAP)** (COP30)
 * **Decreto Federal nº 11.908/2024** (Programa Brasil Saudável - Unir para Cuidar)
 * **Mudanças Climáticas para Profissionais da Saúde: Guia de Bolso** (2ª edição revisada, Ministério da Saúde, 2026)
+
+## Interface e usabilidade
+
+- [Interface, componentes e verificação](ui-ux.md): organização das telas, temas, ajuda compartilhada e limites de verificação desta entrega.

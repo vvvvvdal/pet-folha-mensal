@@ -40,8 +40,8 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
 
 ### 2.1. Interface de Usuário (`src/components/`)
 
-- **`Navbar.tsx`**: Barra de navegação responsiva em dois níveis no smartphone e nível único no desktop. Gerencia identificação do usuário ativo, troca de abas (`Lançamentos` vs `Folha Oficial`), alternância de temas (Gentle Dark e Soft Light), feedback e acesso ao painel de administração.
-- **`LandingPage.tsx`**: Tela de boas-vindas com lista de participantes recentes, botão de novo cadastro e importação direta de cópia de segurança em `.json`.
+- **`Navbar.tsx`**: Navegação em duas faixas com identificação, seções da folha, ajuda e configurações. As ações de salvar/restaurar cópia permanecem visíveis no computador e no celular.
+- **`LandingPage.tsx`**: Entrada com criação de perfil ou restauração, prévia visual de dados fictícios, FAQ e rodapé compartilhado.
 - **`StatsGrid.tsx`**: Painel com 3 cards de métricas (Horas Apuradas, Média Semanal de 8h e Status da Frequência), calculando o progresso percentual e a distância para a meta mensal.
 - **`ActivityForm.tsx`**: Formulário de inclusão e edição de atividades, com cálculo instantâneo da regra de horas do PET, seleção de modalidade (Síncrona Virtual, Síncrona Presencial e Assíncrona Virtual) e templates dinâmicos por GAT.
 - **`ActivityTable.tsx`**: Componente híbrido inteligente:
@@ -127,3 +127,7 @@ export interface GATInfo {
 3. **Limite de confiança**: O painel altera somente o `localStorage` do navegador. A sessão reduz acesso casual à interface, mas não impede o proprietário do navegador de editar dados, scripts, backups ou folhas. Autoridade institucional real exige persistência, autenticação e autorização server-side sobre cada mutação.
 4. **Zero Rastreamento Invasivo**: A telemetria de uso é fornecida pelo `@vercel/analytics`, que opera de maneira puramente estatística sem uso de cookies e sem coleta de IP ou dados identificáveis.
 5. **Contenção de Viewport**: A interface implementa proteção estrita contra overflow horizontal (`overflow-x: hidden; max-width: 100vw;`) e dimensões fluidas, garantindo que navegadores móveis (Safari iOS e Chrome Android) mantenham a escala correta `1:1`.
+
+## Refinamento de interface (31/10/2026)
+
+A interface usa tokens semânticos e componentes compartilhados de marca, rodapé e ajuda. Os modais utilizam o elemento nativo `dialog`, e o tema é sincronizado com `useSyncExternalStore`, preservando a preferência no navegador. Não há alteração de contratos de dados nem de autenticação. Consulte [ui-ux.md](ui-ux.md) para detalhes e verificação.
