@@ -5,72 +5,35 @@ import {
   GATInfo,
   DEFAULT_GATS,
   DEFAULT_ROLES,
-  ActivityTemplate
-} from '@/types';
-import { calcPetHours, cleanActivityDescription, sortActivitiesChronologically } from './pet-calculator';
+  ActivityTemplate,
+} from "@/types";
+import {
+  calcPetHours,
+  cleanActivityDescription,
+  sortActivitiesChronologically,
+} from "./pet-calculator";
 
-const PROFILES_KEY = 'pet_folha_profiles_v2';
-const ACTIVE_PROFILE_ID_KEY = 'pet_folha_active_profile_id_v2';
-const ACTIVITIES_PREFIX = 'pet_folha_activities_v2_';
-const GATS_KEY = 'pet_folha_config_gats_v2';
-const ROLES_KEY = 'pet_folha_config_roles_v2';
-const TEMPLATES_KEY = 'pet_folha_config_templates_v2';
+const PROFILES_KEY = "pet_folha_profiles_v2";
+const ACTIVE_PROFILE_ID_KEY = "pet_folha_active_profile_id_v2";
+const ACTIVITIES_PREFIX = "pet_folha_activities_v2_";
+const GATS_KEY = "pet_folha_config_gats_v2";
+const ROLES_KEY = "pet_folha_config_roles_v2";
+const TEMPLATES_KEY = "pet_folha_config_templates_v2";
 
-export const DEFAULT_PROFILES: UserProfile[] = [
-  {
-    id: 'felipe-vidal',
-    name: 'Felipe Gonçalves Vidal',
-    role: 'Estudante',
-    gatNumber: '04',
-    gatName: 'Mangaba',
-    createdAt: '2026-09-01T00:00:00.000Z'
-  },
-  {
-    id: 'mariana-rios',
-    name: 'Mariana Dias Rios',
-    role: 'Estudante',
-    gatNumber: '01',
-    gatName: 'Araticum',
-    createdAt: '2026-09-01T00:00:00.000Z'
-  },
-  {
-    id: 'carlos-meireles',
-    name: 'Carlos Eduardo Meireles',
-    role: 'Preceptor',
-    gatNumber: '02',
-    gatName: 'Buriti',
-    createdAt: '2026-09-01T00:00:00.000Z'
-  },
-  {
-    id: 'dra-juliana',
-    name: 'Dra. Juliana Peixoto',
-    role: 'Tutor',
-    gatNumber: '03',
-    gatName: 'Ipê-amarelo',
-    createdAt: '2026-09-01T00:00:00.000Z'
-  },
-  {
-    id: 'lucas-alencar',
-    name: 'Lucas Alencar Ferreira',
-    role: 'Estudante',
-    gatNumber: '05',
-    gatName: 'Pequi',
-    createdAt: '2026-09-01T00:00:00.000Z'
-  }
-];
+export const DEFAULT_PROFILES: UserProfile[] = [];
 
 export const DEFAULT_TEMPLATES: ActivityTemplate[] = [
   {
-    id: 'tpl-1',
-    name: 'Reunião do GAT {gatNumber} ({gatName})',
-    modality: 'Síncrona virtual',
-    isGatSpecific: true
+    id: "tpl-1",
+    name: "Reunião do GAT {gatNumber} ({gatName})",
+    modality: "Síncrona virtual",
+    isGatSpecific: true,
   },
   {
-    id: 'tpl-2',
-    name: 'Reunião geral do PET',
-    modality: 'Síncrona presencial'
-  }
+    id: "tpl-2",
+    name: "Reunião geral do PET",
+    modality: "Síncrona presencial",
+  },
 ];
 
 // ============================================================
@@ -81,9 +44,9 @@ export function normalizeName(name: string): string {
   return name
     .trim()
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ');
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
 }
 
 export function deduplicateProfiles(profiles: UserProfile[]): UserProfile[] {
@@ -97,7 +60,9 @@ export function deduplicateProfiles(profiles: UserProfile[]): UserProfile[] {
   return Array.from(seen.values());
 }
 
-function removeLegacyPin(profile: UserProfile & { pin?: unknown }): UserProfile {
+function removeLegacyPin(
+  profile: UserProfile & { pin?: unknown },
+): UserProfile {
   const cleanProfile = { ...profile };
   delete cleanProfile.pin;
   return cleanProfile;
@@ -108,7 +73,7 @@ function removeLegacyPin(profile: UserProfile & { pin?: unknown }): UserProfile 
 // ============================================================
 
 export function getStoredProfiles(): UserProfile[] {
-  if (typeof window === 'undefined') return DEFAULT_PROFILES;
+  if (typeof window === "undefined") return DEFAULT_PROFILES;
   try {
     const data = localStorage.getItem(PROFILES_KEY);
     if (!data) {
@@ -116,11 +81,12 @@ export function getStoredProfiles(): UserProfile[] {
       return DEFAULT_PROFILES;
     }
     const parsed = JSON.parse(data);
-    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PROFILES;
+    if (!Array.isArray(parsed)) return DEFAULT_PROFILES;
 
     // Remove o PIN legado de perfil e desduplica os registros locais.
     const hadLegacyPin = parsed.some(
-      (profile) => typeof profile === 'object' && profile !== null && 'pin' in profile
+      (profile) =>
+        typeof profile === "object" && profile !== null && "pin" in profile,
     );
     const sanitized = parsed.map(removeLegacyPin);
     const deduplicated = deduplicateProfiles(sanitized);
@@ -134,13 +100,13 @@ export function getStoredProfiles(): UserProfile[] {
 }
 
 export function saveProfiles(profiles: UserProfile[]): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   const clean = deduplicateProfiles(profiles.map(removeLegacyPin));
   localStorage.setItem(PROFILES_KEY, JSON.stringify(clean));
 }
 
 export function getActiveProfile(): UserProfile | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   const profiles = getStoredProfiles();
   const activeId = localStorage.getItem(ACTIVE_PROFILE_ID_KEY);
   if (!activeId) return null;
@@ -148,7 +114,7 @@ export function getActiveProfile(): UserProfile | null {
 }
 
 export function setActiveProfileId(profileId: string | null): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   if (profileId) {
     localStorage.setItem(ACTIVE_PROFILE_ID_KEY, profileId);
   } else {
@@ -161,16 +127,25 @@ export function registerProfile(data: {
   email?: string;
   role: UserRole;
   gatNumber: string;
-}): { success: boolean; user?: UserProfile; error?: string } {
+}): {
+  success: boolean;
+  user?: UserProfile;
+  existingUser?: UserProfile;
+  error?: string;
+} {
   const profiles = getStoredProfiles();
   const trimmedName = data.name.trim();
 
   // Validação Anti-Duplicidade por Nome
   const normalizedNew = normalizeName(trimmedName);
-  if (profiles.some((p) => normalizeName(p.name) === normalizedNew)) {
+  const existingUser = profiles.find(
+    (p) => normalizeName(p.name) === normalizedNew,
+  );
+  if (existingUser) {
     return {
       success: false,
-      error: `Já existe um participante cadastrado como "${trimmedName}".`
+      existingUser,
+      error: `Já existe um participante cadastrado como "${trimmedName}".`,
     };
   }
 
@@ -178,7 +153,10 @@ export function registerProfile(data: {
   if (data.email) {
     const cleanEmail = data.email.trim().toLowerCase();
     if (profiles.some((p) => p.email && p.email.toLowerCase() === cleanEmail)) {
-      return { success: false, error: 'Já existe um participante cadastrado com este e-mail.' };
+      return {
+        success: false,
+        error: "Já existe um participante cadastrado com este e-mail.",
+      };
     }
   }
 
@@ -186,9 +164,9 @@ export function registerProfile(data: {
   const gatInfo = gats[data.gatNumber] || { name: `GAT ${data.gatNumber}` };
   const baseId = trimmedName
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
   const uniqueId = `${baseId}-${Date.now().toString(36).slice(-4)}`;
 
   const newProfile: UserProfile = {
@@ -198,7 +176,7 @@ export function registerProfile(data: {
     role: data.role,
     gatNumber: data.gatNumber,
     gatName: gatInfo.name,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
 
   const updated = [...profiles, newProfile];
@@ -209,7 +187,7 @@ export function registerProfile(data: {
 }
 
 export function deleteUserProfile(profileId: string): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   const profiles = getStoredProfiles().filter((p) => p.id !== profileId);
   saveProfiles(profiles);
 
@@ -223,13 +201,23 @@ export function deleteUserProfile(profileId: string): void {
   }
 }
 
-export function updateUserProfileAdmin(updated: UserProfile): { success: boolean; error?: string } {
+export function updateUserProfileAdmin(updated: UserProfile): {
+  success: boolean;
+  error?: string;
+} {
   const profiles = getStoredProfiles();
   const normalizedNew = normalizeName(updated.name);
 
   // Verifica duplicidade com outro usuário que não seja ele mesmo
-  if (profiles.some((p) => p.id !== updated.id && normalizeName(p.name) === normalizedNew)) {
-    return { success: false, error: `Já existe outro participante com o nome "${updated.name}".` };
+  if (
+    profiles.some(
+      (p) => p.id !== updated.id && normalizeName(p.name) === normalizedNew,
+    )
+  ) {
+    return {
+      success: false,
+      error: `Já existe outro participante com o nome "${updated.name}".`,
+    };
   }
 
   const gats = getStoredGats();
@@ -237,10 +225,12 @@ export function updateUserProfileAdmin(updated: UserProfile): { success: boolean
   const finalUser = {
     ...updated,
     name: updated.name.trim(),
-    gatName: gatInfo?.name || updated.gatName || `GAT ${updated.gatNumber}`
+    gatName: gatInfo?.name || updated.gatName || `GAT ${updated.gatNumber}`,
   };
 
-  const updatedProfiles = profiles.map((p) => (p.id === updated.id ? finalUser : p));
+  const updatedProfiles = profiles.map((p) =>
+    p.id === updated.id ? finalUser : p,
+  );
   saveProfiles(updatedProfiles);
   return { success: true };
 }
@@ -250,24 +240,26 @@ export function updateUserProfileAdmin(updated: UserProfile): { success: boolean
 // ============================================================
 
 export function getStoredGats(): Record<string, GATInfo> {
-  if (typeof window === 'undefined') return DEFAULT_GATS;
+  if (typeof window === "undefined") return DEFAULT_GATS;
   try {
     const raw = localStorage.getItem(GATS_KEY);
     if (!raw) return DEFAULT_GATS;
     const parsed = JSON.parse(raw);
-    return typeof parsed === 'object' && parsed !== null ? parsed : DEFAULT_GATS;
+    return typeof parsed === "object" && parsed !== null
+      ? parsed
+      : DEFAULT_GATS;
   } catch {
     return DEFAULT_GATS;
   }
 }
 
 export function saveGats(gats: Record<string, GATInfo>): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   localStorage.setItem(GATS_KEY, JSON.stringify(gats));
 }
 
 export function updateGatInfo(oldNumber: string, updatedGat: GATInfo): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   const gats = getStoredGats();
   if (oldNumber !== updatedGat.number) {
     delete gats[oldNumber];
@@ -281,7 +273,7 @@ export function updateGatInfo(oldNumber: string, updatedGat: GATInfo): void {
       return {
         ...p,
         gatNumber: updatedGat.number,
-        gatName: updatedGat.name
+        gatName: updatedGat.name,
       };
     }
     return p;
@@ -294,7 +286,7 @@ export function updateGatInfo(oldNumber: string, updatedGat: GATInfo): void {
 // ============================================================
 
 export function getStoredRoles(): string[] {
-  if (typeof window === 'undefined') return DEFAULT_ROLES;
+  if (typeof window === "undefined") return DEFAULT_ROLES;
   try {
     const raw = localStorage.getItem(ROLES_KEY);
     if (!raw) return DEFAULT_ROLES;
@@ -306,19 +298,19 @@ export function getStoredRoles(): string[] {
 }
 
 export function saveRoles(roles: string[]): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
 }
 
 export function updateRoleName(oldRole: string, newRole: string): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   const roles = getStoredRoles();
   const updatedRoles = roles.map((r) => (r === oldRole ? newRole.trim() : r));
   saveRoles(updatedRoles);
 
   const profiles = getStoredProfiles();
   const updatedProfiles = profiles.map((p) =>
-    p.role === oldRole ? { ...p, role: newRole.trim() } : p
+    p.role === oldRole ? { ...p, role: newRole.trim() } : p,
   );
   saveProfiles(updatedProfiles);
 }
@@ -328,7 +320,7 @@ export function updateRoleName(oldRole: string, newRole: string): void {
 // ============================================================
 
 export function getStoredTemplates(): ActivityTemplate[] {
-  if (typeof window === 'undefined') return DEFAULT_TEMPLATES;
+  if (typeof window === "undefined") return DEFAULT_TEMPLATES;
   try {
     const raw = localStorage.getItem(TEMPLATES_KEY);
     if (!raw) return DEFAULT_TEMPLATES;
@@ -336,46 +328,57 @@ export function getStoredTemplates(): ActivityTemplate[] {
     if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_TEMPLATES;
 
     // Migração de schema legado caso existam templates salvos anteriormente sem 'name'
-    const migrated: ActivityTemplate[] = parsed.map((item: unknown, idx: number) => {
-      const legacy =
-        typeof item === 'object' && item !== null
-          ? (item as Record<string, unknown>)
-          : {};
-      const storedName = [legacy.name, legacy.descriptionTemplate, legacy.description].find(
-        (value): value is string => typeof value === 'string' && value.trim().length > 0
-      );
-      const name = storedName || `Atividade Modelo ${idx + 1}`;
+    const migrated: ActivityTemplate[] = parsed.map(
+      (item: unknown, idx: number) => {
+        const legacy =
+          typeof item === "object" && item !== null
+            ? (item as Record<string, unknown>)
+            : {};
+        const storedName = [
+          legacy.name,
+          legacy.descriptionTemplate,
+          legacy.description,
+        ].find(
+          (value): value is string =>
+            typeof value === "string" && value.trim().length > 0,
+        );
+        const name = storedName || `Atividade Modelo ${idx + 1}`;
 
-      const isGatSpecific =
-        Boolean(legacy.isGatSpecific) ||
-        name.includes('{gatNumber}') ||
-        name.includes('{gatLabel}') ||
-        name.toLowerCase().includes('reunião do gat');
+        const isGatSpecific =
+          Boolean(legacy.isGatSpecific) ||
+          name.includes("{gatNumber}") ||
+          name.includes("{gatLabel}") ||
+          name.toLowerCase().includes("reunião do gat");
 
-      const modality =
-        legacy.modality === 'Síncrona presencial' ||
-        legacy.modality === 'Assíncrona virtual'
-          ? legacy.modality
-          : 'Síncrona virtual';
+        const modality =
+          legacy.modality === "Síncrona presencial" ||
+          legacy.modality === "Assíncrona virtual"
+            ? legacy.modality
+            : "Síncrona virtual";
 
-      return {
-        id: typeof legacy.id === 'string' && legacy.id ? legacy.id : `tpl-${idx + 1}`,
-        name: isGatSpecific && !name.includes('{gatNumber}')
-          ? 'Reunião do GAT {gatNumber} ({gatName})'
-          : name,
-        modality,
-        isGatSpecific
-      };
-    });
+        return {
+          id:
+            typeof legacy.id === "string" && legacy.id
+              ? legacy.id
+              : `tpl-${idx + 1}`,
+          name:
+            isGatSpecific && !name.includes("{gatNumber}")
+              ? "Reunião do GAT {gatNumber} ({gatName})"
+              : name,
+          modality,
+          isGatSpecific,
+        };
+      },
+    );
 
     const filtered = migrated.filter((item) => {
       const name = item.name.toLowerCase();
       if (
-        name.includes('redcap') ||
-        name.includes('sustentabilidade') ||
-        name.includes('cavernas como arquivo') ||
-        name.includes('conselho federal de psicologia') ||
-        name.includes('síntese analítica')
+        name.includes("redcap") ||
+        name.includes("sustentabilidade") ||
+        name.includes("cavernas como arquivo") ||
+        name.includes("conselho federal de psicologia") ||
+        name.includes("síntese analítica")
       ) {
         return false;
       }
@@ -394,7 +397,7 @@ export function getStoredTemplates(): ActivityTemplate[] {
 }
 
 export function saveTemplates(templates: ActivityTemplate[]): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
 }
 
@@ -405,27 +408,27 @@ export function saveTemplates(templates: ActivityTemplate[]): void {
 export function generateSeedActivities(
   gatNumber: string,
   gatName: string,
-  monthKey: string = '2026-09'
+  monthKey: string = "2026-09",
 ): Activity[] {
   const templates = getStoredTemplates();
 
   const defaultSlots = [
-    { day: 8, start: '19:00', end: '21:00' },
-    { day: 10, start: '10:00', end: '12:00' },
-    { day: 11, start: '13:30', end: '17:30' },
-    { day: 21, start: '15:00', end: '19:20' },
-    { day: 17, start: '19:00', end: '20:07' },
-    { day: 16, start: '20:00', end: '21:27' },
-    { day: 22, start: '15:00', end: '16:00' },
-    { day: 22, start: '19:00', end: '20:40' }
+    { day: 8, start: "19:00", end: "21:00" },
+    { day: 10, start: "10:00", end: "12:00" },
+    { day: 11, start: "13:30", end: "17:30" },
+    { day: 21, start: "15:00", end: "19:20" },
+    { day: 17, start: "19:00", end: "20:07" },
+    { day: 16, start: "20:00", end: "21:27" },
+    { day: 22, start: "15:00", end: "16:00" },
+    { day: 22, start: "19:00", end: "20:40" },
   ];
 
   const generated = templates.map((tpl, index) => {
     const slot = defaultSlots[index % defaultSlots.length];
-    const dayStr = String(slot.day).padStart(2, '0');
+    const dayStr = String(slot.day).padStart(2, "0");
     const date = `${monthKey}-${dayStr}`;
     const description = cleanActivityDescription(
-      tpl.name.replace('{gatNumber}', gatNumber).replace('{gatName}', gatName)
+      tpl.name.replace("{gatNumber}", gatNumber).replace("{gatName}", gatName),
     );
     return {
       id: `act-seed-${index + 1}-${Date.now().toString(36).slice(-3)}`,
@@ -434,22 +437,25 @@ export function generateSeedActivities(
       end: slot.end,
       modality: tpl.modality,
       description,
-      hours: calcPetHours(slot.start, slot.end)
+      hours: calcPetHours(slot.start, slot.end),
     };
   });
 
   return sortActivitiesChronologically(generated);
 }
 
-export function getActivitiesForMonth(profileId: string, monthKey: string): Activity[] {
-  if (typeof window === 'undefined') return [];
+export function getActivitiesForMonth(
+  profileId: string,
+  monthKey: string,
+): Activity[] {
+  if (typeof window === "undefined") return [];
   const key = `${ACTIVITIES_PREFIX}${profileId}_${monthKey}`;
   try {
     const raw = localStorage.getItem(key);
     if (!raw) {
       // Apenas o perfil inicial de demonstração (felipe-vidal) recebe atividades semente automaticamente
-      if (monthKey === '2026-09' && profileId === 'felipe-vidal') {
-        const initialActs = generateSeedActivities('04', 'Mangaba', '2026-09');
+      if (monthKey === "2026-09" && profileId === "felipe-vidal") {
+        const initialActs = generateSeedActivities("04", "Mangaba", "2026-09");
         saveActivitiesForMonth(profileId, monthKey, initialActs);
         return initialActs;
       }
@@ -462,19 +468,25 @@ export function getActivitiesForMonth(profileId: string, monthKey: string): Acti
   }
 }
 
-export function loadSampleActivitiesForUser(profileId: string, monthKey: string): Activity[] {
+export function loadSampleActivitiesForUser(
+  profileId: string,
+  monthKey: string,
+): Activity[] {
   const profiles = getStoredProfiles();
   const user = profiles.find((p) => p.id === profileId);
   const gats = getStoredGats();
-  const gatNumber = user?.gatNumber || '04';
-  const gatName = user?.gatName || gats[gatNumber]?.name || 'PET';
+  const gatNumber = user?.gatNumber || "04";
+  const gatName = user?.gatName || gats[gatNumber]?.name || "PET";
   const samples = generateSeedActivities(gatNumber, gatName, monthKey);
   saveActivitiesForMonth(profileId, monthKey, samples);
   return samples;
 }
 
-export function clearActivitiesForMonth(profileId: string, monthKey: string): void {
-  if (typeof window === 'undefined') return;
+export function clearActivitiesForMonth(
+  profileId: string,
+  monthKey: string,
+): void {
+  if (typeof window === "undefined") return;
   const key = `${ACTIVITIES_PREFIX}${profileId}_${monthKey}`;
   localStorage.setItem(key, JSON.stringify([]));
 }
@@ -482,9 +494,9 @@ export function clearActivitiesForMonth(profileId: string, monthKey: string): vo
 export function saveActivitiesForMonth(
   profileId: string,
   monthKey: string,
-  activities: Activity[]
+  activities: Activity[],
 ): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   const key = `${ACTIVITIES_PREFIX}${profileId}_${monthKey}`;
   const sorted = sortActivitiesChronologically(activities);
   localStorage.setItem(key, JSON.stringify(sorted));
@@ -497,46 +509,197 @@ export function saveActivitiesForMonth(
 export function exportUserData(user: UserProfile, monthKey: string): string {
   const activities = getActivitiesForMonth(user.id, monthKey);
   const data = {
-    version: '1.0',
+    version: "1.0",
     exportedAt: new Date().toISOString(),
     user: removeLegacyPin(user),
     monthKey,
-    activities
+    activities,
   };
   return JSON.stringify(data, null, 2);
 }
 
-export function importUserData(jsonStr: string): {
+export type RestoreCode =
+  | "RESTORED"
+  | "INVALID_JSON"
+  | "INVALID_BACKUP"
+  | "UNSUPPORTED_VERSION"
+  | "PROFILE_CONFLICT"
+  | "STORAGE_FAILED"
+  | "ROLLBACK_FAILED";
+export type RestoreResult = {
   success: boolean;
   user?: UserProfile;
   monthKey?: string;
   activities?: Activity[];
   error?: string;
-} {
+  code: RestoreCode;
+};
+
+const restoreMessages: Record<RestoreCode, string> = {
+  RESTORED: "Cópia restaurada.",
+  INVALID_JSON:
+    "Não foi possível ler esta cópia. Selecione o arquivo .json salvo pelo sistema; o PDF não restaura os registros.",
+  INVALID_BACKUP:
+    "A cópia está incompleta ou contém registros inválidos. Selecione outra cópia. Seus registros não foram alterados.",
+  UNSUPPORTED_VERSION:
+    "Esta versão de cópia não é compatível. Use uma cópia no formato 1.0. Seus registros não foram alterados.",
+  PROFILE_CONFLICT:
+    "Já existe um perfil com este nome e outra identificação neste navegador. Continue com o perfil local ou peça ajuda antes de restaurar.",
+  STORAGE_FAILED:
+    "O navegador não conseguiu guardar a cópia. Verifique o espaço disponível e as permissões de armazenamento. Os registros anteriores foram preservados.",
+  ROLLBACK_FAILED:
+    "A restauração não foi concluída e não foi possível recuperar todo o estado anterior. Guarde seu arquivo original e peça ajuda antes de continuar.",
+};
+
+function restoreFailure(code: RestoreCode): RestoreResult {
+  return { success: false, code, error: restoreMessages[code] };
+}
+
+const nonempty = (value: unknown): value is string =>
+  typeof value === "string" && value.trim().length > 0;
+const validDate = (value: unknown): value is string =>
+  typeof value === "string" &&
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  !Number.isNaN(Date.parse(value)) &&
+  new Date(value).toISOString().slice(0, 10) === value;
+const validTime = (value: unknown): value is string =>
+  typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+
+// Validate the entire legacy 1.0 format before any browser write.
+export function inspectUserData(jsonStr: string): RestoreResult {
+  let data;
   try {
-    const data = JSON.parse(jsonStr);
-    if (!data.user || !data.user.name || !Array.isArray(data.activities)) {
-      return { success: false, error: 'Arquivo de cópia de folha inválido.' };
-    }
-    const user = removeLegacyPin(data.user);
-    const monthKey: string = data.monthKey || '2026-09';
-    const activities: Activity[] = data.activities;
-
-    const profiles = getStoredProfiles();
-    const existingIndex = profiles.findIndex((p) => p.id === user.id);
-    let updatedProfiles: UserProfile[];
-    if (existingIndex >= 0) {
-      updatedProfiles = [...profiles];
-      updatedProfiles[existingIndex] = user;
-    } else {
-      updatedProfiles = [...profiles, user];
-    }
-    saveProfiles(updatedProfiles);
-    setActiveProfileId(user.id);
-    saveActivitiesForMonth(user.id, monthKey, activities);
-
-    return { success: true, user, monthKey, activities };
+    data = JSON.parse(jsonStr);
   } catch {
-    return { success: false, error: 'Falha ao processar arquivo de folha.' };
+    return restoreFailure("INVALID_JSON");
   }
+  if (!data || typeof data !== "object")
+    return restoreFailure("INVALID_BACKUP");
+  if (data.version !== undefined && data.version !== "1.0")
+    return restoreFailure("UNSUPPORTED_VERSION");
+  const profile = data.user;
+  if (
+    !profile ||
+    !["id", "name", "role", "gatNumber", "createdAt"].every((key) =>
+      nonempty(profile[key]),
+    ) ||
+    typeof data.monthKey !== "string" ||
+    !/^\d{4}-(0[1-9]|1[0-2])$/.test(data.monthKey) ||
+    !Array.isArray(data.activities)
+  )
+    return restoreFailure("INVALID_BACKUP");
+  const ids = new Set<string>();
+  const activities: Activity[] = [];
+  for (const record of data.activities) {
+    if (
+      !record ||
+      !nonempty(record.id) ||
+      ids.has(record.id) ||
+      !validDate(record.date) ||
+      !validTime(record.start) ||
+      !validTime(record.end) ||
+      record.end <= record.start ||
+      !nonempty(record.description) ||
+      ![
+        "Síncrona virtual",
+        "Síncrona presencial",
+        "Assíncrona virtual",
+      ].includes(record.modality)
+    )
+      return restoreFailure("INVALID_BACKUP");
+    ids.add(record.id);
+    activities.push({
+      id: record.id,
+      date: record.date,
+      start: record.start,
+      end: record.end,
+      description: record.description,
+      modality: record.modality,
+      hours: calcPetHours(record.start, record.end),
+    });
+  }
+  const user: UserProfile = {
+    id: profile.id,
+    name: profile.name.trim(),
+    role: profile.role,
+    gatNumber: profile.gatNumber,
+    createdAt: profile.createdAt,
+  };
+  if (typeof profile.gatName === "string") user.gatName = profile.gatName;
+  if (typeof profile.email === "string") user.email = profile.email;
+  return {
+    success: true,
+    code: "RESTORED",
+    user,
+    monthKey: data.monthKey,
+    activities: sortActivitiesChronologically(activities),
+  };
+}
+
+export function importUserData(jsonStr: string): RestoreResult {
+  const result = inspectUserData(jsonStr);
+  if (!result.success || !result.user || !result.monthKey || !result.activities)
+    return result;
+  if (typeof window === "undefined") return restoreFailure("STORAGE_FAILED");
+  const { user, monthKey, activities } = result;
+  const activityKey = `${ACTIVITIES_PREFIX}${user.id}_${monthKey}`;
+  const keys = [activityKey, PROFILES_KEY, ACTIVE_PROFILE_ID_KEY];
+  const previous = new Map<string, string | null>();
+  const written: string[] = [];
+  try {
+    for (const key of keys) previous.set(key, localStorage.getItem(key));
+    // Read without running migration writes inside this transaction.
+    const rawProfiles = previous.get(PROFILES_KEY);
+    const profiles: UserProfile[] = rawProfiles ? JSON.parse(rawProfiles) : [];
+    if (!Array.isArray(profiles)) return restoreFailure("STORAGE_FAILED");
+    if (
+      profiles.some(
+        (profile) =>
+          profile.id !== user.id &&
+          normalizeName(profile.name) === normalizeName(user.name),
+      )
+    )
+      return restoreFailure("PROFILE_CONFLICT");
+    const updated = profiles.some((profile) => profile.id === user.id)
+      ? profiles.map((profile) =>
+          profile.id === user.id ? user : removeLegacyPin(profile),
+        )
+      : [...profiles.map(removeLegacyPin), user];
+    const values = [
+      JSON.stringify(activities),
+      JSON.stringify(updated),
+      user.id,
+    ];
+    for (let index = 0; index < keys.length; index++) {
+      localStorage.setItem(keys[index], values[index]);
+      written.push(keys[index]);
+    }
+    return result;
+  } catch {
+    let rollbackFailed = false;
+    for (const key of written.reverse()) {
+      try {
+        const value = previous.get(key);
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      } catch {
+        rollbackFailed = true;
+      }
+    }
+    return restoreFailure(
+      rollbackFailed ? "ROLLBACK_FAILED" : "STORAGE_FAILED",
+    );
+  }
+}
+
+// Allowlisted, local support details. Never include file content or raw exceptions.
+export function getRestoreDiagnostic(code: RestoreCode): string {
+  const safeCode = Object.hasOwn(restoreMessages, code)
+    ? code
+    : "INVALID_BACKUP";
+  return JSON.stringify(
+    { operation: "restore_backup", code: safeCode, supportedSchema: "1.0" },
+    null,
+    2,
+  );
 }

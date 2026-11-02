@@ -14,7 +14,7 @@ interface ProfileModalProps {
   allProfiles: UserProfile[];
   gats: Record<string, GATInfo>;
   roles: string[];
-  onSaveProfile: (updated: UserProfile) => void;
+  onSaveProfile: (updated: UserProfile) => boolean | void;
 }
 
 export function ProfileModal({
@@ -63,14 +63,21 @@ export function ProfileModal({
     }
 
     const gatInfo = gats[gatNumber];
-    onSaveProfile({
+    const saved = onSaveProfile({
       ...currentUser,
       name: name.trim(),
       role,
       gatNumber,
       gatName: gatInfo?.name || `GAT ${gatNumber}`,
     });
-    onClose();
+    if (saved !== false) onClose();
+    else
+      await alert({
+        title: "Identificação não salva",
+        message:
+          "Não foi possível gravar. O preenchimento foi mantido. Verifique o armazenamento do navegador e tente novamente.",
+        variant: "warning",
+      });
   };
 
   return (

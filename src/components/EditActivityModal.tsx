@@ -11,10 +11,14 @@ interface EditActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
   activity: Activity | null;
-  onSave: (data: Omit<Activity, "id" | "hours">, editingId?: string) => void;
+  onSave: (
+    data: Omit<Activity, "id" | "hours">,
+    editingId?: string,
+  ) => boolean | void;
   defaultGatNumber?: string;
   defaultGatName?: string;
   templates?: ActivityTemplate[];
+  monthKey?: string;
 }
 
 export function EditActivityModal({
@@ -25,6 +29,7 @@ export function EditActivityModal({
   defaultGatNumber = "04",
   defaultGatName = "Mangaba",
   templates = [],
+  monthKey,
 }: EditActivityModalProps) {
   const { alert } = useDialog();
 
@@ -72,7 +77,16 @@ export function EditActivityModal({
 
     const cleanDesc = cleanActivityDescription(description);
 
-    onSave(
+    if (monthKey && !date.startsWith(monthKey)) {
+      await alert({
+        title: "Confira a data",
+        message: "Escolha uma data no mês desta folha.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    const saved = onSave(
       {
         date,
         start,
@@ -83,7 +97,14 @@ export function EditActivityModal({
       activity.id,
     );
 
-    onClose();
+    if (saved !== false) onClose();
+    else
+      await alert({
+        title: "Atividade não salva",
+        message:
+          "Não foi possível gravar. O preenchimento foi mantido. Verifique o armazenamento do navegador e tente novamente.",
+        variant: "warning",
+      });
   };
 
   return (

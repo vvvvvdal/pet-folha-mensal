@@ -1,4 +1,4 @@
-import { Activity } from '@/types';
+import { Activity } from "@/types";
 
 /**
  * Regra Matemática Oficial do PET-Saúde Clima UFG:
@@ -9,9 +9,9 @@ import { Activity } from '@/types';
 
 export function calcPetHours(startTimeStr: string, endTimeStr: string): number {
   if (!startTimeStr || !endTimeStr) return 0;
-  
-  const [sh, sm] = startTimeStr.split(':').map(Number);
-  const [eh, em] = endTimeStr.split(':').map(Number);
+
+  const [sh, sm] = startTimeStr.split(":").map(Number);
+  const [eh, em] = endTimeStr.split(":").map(Number);
 
   if (isNaN(sh) || isNaN(sm) || isNaN(eh) || isNaN(em)) return 0;
 
@@ -27,8 +27,8 @@ export function calcPetHours(startTimeStr: string, endTimeStr: string): number {
 }
 
 export function formatDateBR(dateStr: string): string {
-  if (!dateStr) return '';
-  const parts = dateStr.split('-');
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
   if (parts.length === 3) {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
@@ -37,20 +37,20 @@ export function formatDateBR(dateStr: string): string {
 
 export function getMonthYearLabel(monthKey: string): string {
   // monthKey: "2026-09"
-  const [year, month] = monthKey.split('-');
+  const [year, month] = monthKey.split("-");
   const monthNames: Record<string, string> = {
-    '01': 'Janeiro',
-    '02': 'Fevereiro',
-    '03': 'Março',
-    '04': 'Abril',
-    '05': 'Maio',
-    '06': 'Junho',
-    '07': 'Julho',
-    '08': 'Agosto',
-    '09': 'Setembro',
-    '10': 'Outubro',
-    '11': 'Novembro',
-    '12': 'Dezembro'
+    "01": "Janeiro",
+    "02": "Fevereiro",
+    "03": "Março",
+    "04": "Abril",
+    "05": "Maio",
+    "06": "Junho",
+    "07": "Julho",
+    "08": "Agosto",
+    "09": "Setembro",
+    "10": "Outubro",
+    "11": "Novembro",
+    "12": "Dezembro",
   };
   return `${monthNames[month] || month}/${year}`;
 }
@@ -61,9 +61,12 @@ export function getMonthYearLabel(monthKey: string): string {
  * "Reunião do GAT 04 (Mangaba)" -> "Reunião do GAT 04 (Mangaba)" (preserva parênteses legítimos)
  */
 export function cleanActivityDescription(desc: string): string {
-  if (!desc) return '';
+  if (!desc) return "";
   return desc
-    .replace(/\s*\(\s*(s[íi]ncrona\s+virtual|s[íi]ncrona\s+presencial|ass[íi]ncrona\s+virtual)\s*\)\s*$/i, '')
+    .replace(
+      /\s*\(\s*(s[íi]ncrona\s+virtual|s[íi]ncrona\s+presencial|ass[íi]ncrona\s+virtual)\s*\)\s*$/i,
+      "",
+    )
     .trim();
 }
 
@@ -72,9 +75,12 @@ export function cleanActivityDescription(desc: string): string {
  * garantindo que a modalidade oficial selecionada esteja sempre anexada ao final entre parênteses.
  * Ex: "Reunião do GAT 04 (Mangaba)" + "Síncrona virtual" -> "Reunião do GAT 04 (Mangaba) (Síncrona virtual)"
  */
-export function formatActivityForSheet(desc: string, modality?: string): string {
+export function formatActivityForSheet(
+  desc: string,
+  modality?: string,
+): string {
   const baseDesc = cleanActivityDescription(desc);
-  if (!baseDesc) return '';
+  if (!baseDesc) return "";
   if (!modality) return baseDesc;
   return `${baseDesc} (${modality.trim()})`;
 }
@@ -99,7 +105,9 @@ export function compareActivities(a: Activity, b: Activity): number {
  * Ordenação cronológica estável utilizando o algoritmo Merge Sort (Divisão e Conquista).
  * Complexidade temporal: O(n log n) garantida.
  */
-export function sortActivitiesChronologically(activities: Activity[]): Activity[] {
+export function sortActivitiesChronologically(
+  activities: Activity[],
+): Activity[] {
   if (activities.length <= 1) return [...activities];
 
   const mid = Math.floor(activities.length / 2);
@@ -135,4 +143,26 @@ function mergeActivities(left: Activity[], right: Activity[]): Activity[] {
   }
 
   return result;
+}
+
+export const PROJECT_MONTHS = Array.from({ length: 25 }, (_, index) => {
+  const date = new Date(2026, 7 + index, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+});
+
+export function getCurrentMonth(now = new Date()): string {
+  const current = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  return current < PROJECT_MONTHS[0]
+    ? PROJECT_MONTHS[0]
+    : current > PROJECT_MONTHS[24]
+      ? PROJECT_MONTHS[24]
+      : current;
+}
+
+export function getDefaultActivityDate(
+  monthKey: string,
+  now = new Date(),
+): string {
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return today.startsWith(monthKey) ? today : `${monthKey}-01`;
 }

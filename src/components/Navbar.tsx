@@ -7,12 +7,12 @@ import {
   Download,
   FileText,
   HelpCircle,
-  LayoutDashboard,
-  LogOut,
+  ListChecks,
   Moon,
   Settings2,
   Sun,
   Upload,
+  ArrowRight,
 } from "lucide-react";
 import { Brand } from "./Brand";
 
@@ -44,7 +44,6 @@ export function Navbar({
 }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const fileRef = useRef<HTMLInputElement>(null);
-  const gat = user.gatName || GATS[user.gatNumber]?.name || "PET";
   return (
     <header className="workspace-nav">
       <a href="#conteudo" className="skip-link">
@@ -57,11 +56,12 @@ export function Navbar({
           onClick={onOpenProfileModal}
           title="Editar identificação"
         >
-          <span>{user.gatNumber}</span>
+          <span aria-hidden="true">{user.gatNumber}</span>
           <span>
             <strong>{user.name}</strong>
             <small>
-              {user.role} · GAT {user.gatNumber} · {gat}
+              {user.role} · GAT {user.gatNumber} ·{" "}
+              {user.gatName || GATS[user.gatNumber]?.name || "PET"}
             </small>
           </span>
         </button>
@@ -71,7 +71,7 @@ export function Navbar({
             onClick={onOpenHelp}
             aria-label="Abrir ajuda"
           >
-            <HelpCircle size={18} />
+            <HelpCircle size={20} />
           </button>
           <button
             className="icon-button"
@@ -80,14 +80,14 @@ export function Navbar({
               theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"
             }
           >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           <button
             className="icon-button"
             onClick={onOpenAdmin}
             aria-label="Abrir configurações locais"
           >
-            <Settings2 size={18} />
+            <Settings2 size={20} />
           </button>
         </div>
       </div>
@@ -97,36 +97,35 @@ export function Navbar({
             aria-pressed={activeTab === "dashboard"}
             onClick={() => onTabChange("dashboard")}
           >
-            <LayoutDashboard size={16} />
-            Lançamentos
+            <ListChecks size={18} />
+            Minha frequência
           </button>
           <button
             aria-pressed={activeTab === "official"}
             onClick={() => onTabChange("official")}
           >
-            <FileText size={16} />
+            <FileText size={18} />
             Folha oficial
           </button>
         </nav>
         <div className="backup-tools" aria-label="Cópia de segurança">
           <button onClick={onExportBackup}>
-            <Download size={15} />
+            <Download size={17} />
             Salvar cópia
           </button>
           <button onClick={() => fileRef.current?.click()}>
-            <Upload size={15} />
+            <Upload size={17} />
             Restaurar cópia
           </button>
-          <span className="h-4 border-l border-line mx-1" aria-hidden="true" />
-          <button onClick={onOpenExitModal}>
-            <LogOut size={15} />
+          <button className="conclude-button" onClick={onOpenExitModal}>
             Concluir
             {hasChanges && (
               <span
-                className="size-1.5 bg-warning rounded-full"
+                className="change-indicator"
                 aria-label="Alterações nesta sessão"
               />
             )}
+            <ArrowRight size={17} />
           </button>
           <input
             ref={fileRef}

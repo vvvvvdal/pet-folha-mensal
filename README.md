@@ -110,7 +110,7 @@ O **PET Folha Mensal** foi desenvolvido para solucionar esses problemas de forma
 ## Como Executar Localmente
 
 ### Pré-requisitos
-- Node.js 18.18+ (recomendado Node.js 20 ou 22 LTS)
+- Node.js 22 (versão definida em `.nvmrc`)
 - Gerenciador de pacotes npm
 
 ### Passos de Instalação
@@ -120,8 +120,9 @@ O **PET Folha Mensal** foi desenvolvido para solucionar esses problemas de forma
 git clone https://github.com/vvvvvdal/pet-folha-mensal.git
 cd pet-folha-mensal
 
-# 2. Instalar as dependências
-npm install
+# 2. Usar a versão de Node do projeto e instalar pelo lockfile
+nvm use
+npm ci
 
 # 3. Opcional: habilitar o painel de configurações
 cp .env.example .env.local
@@ -142,13 +143,20 @@ Antes de qualquer entrega ou submissão para deploy, execute os comandos de veri
 
 ```bash
 # Verificação estática de tipos (TypeScript)
-npx tsc --noEmit
+npm run typecheck
 
 # Compilação completa para produção com Turbopack
 npm run build
 
 # Análise estática de código e boas práticas
 npm run lint
+
+# Cálculo, persistência, restauração e estrutura da interface
+npm run test:ui
+
+# Instalar o navegador de teste e conferir a jornada em desktop/celular
+npx playwright install chromium
+npm run test:e2e
 ```
 
 ---

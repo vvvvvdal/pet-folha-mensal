@@ -37,7 +37,12 @@ for (const ext of [".ts", ".tsx"]) {
 }
 const React = load("react");
 const { renderToStaticMarkup } = load("react-dom/server");
-const { calcPetHours } = load("./src/lib/pet-calculator.ts");
+const {
+  calcPetHours,
+  getCurrentMonth,
+  getDefaultActivityDate,
+  PROJECT_MONTHS,
+} = load("./src/lib/pet-calculator.ts");
 const storage = load("./src/lib/storage.ts");
 const { DEFAULT_GATS, DEFAULT_ROLES } = load("./src/types/index.ts");
 const { SystemPreview } = load("./src/components/SystemPreview.tsx");
@@ -142,6 +147,35 @@ test("arquivos inválidos não alteram os registros existentes", () => {
   for (const invalid of ["não é json", "{}", '{"user":{"name":"Teste"}}'])
     assert.equal(storage.importUserData(invalid).success, false);
   assert.equal(JSON.stringify([...records]), before);
+});
+
+test("cadastro repetido oferece o perfil local e preserva o mês anterior sem JSON", () => {
+  isolatedStorage();
+  storage.saveProfiles([sampleUser]);
+  storage.saveActivitiesForMonth(sampleUser.id, "2026-10", [sampleActivity]);
+  storage.setActiveProfileId(null);
+  const result = storage.registerProfile({
+    name: "  PARTICIPANTE DE TESTE ",
+    role: "Tutor",
+    gatNumber: "01",
+  });
+  assert.equal(result.success, false);
+  assert.equal(result.existingUser?.id, sampleUser.id);
+  assert.equal(storage.getStoredProfiles().length, 1);
+  storage.setActiveProfileId(result.existingUser.id);
+  assert.equal(storage.getActiveProfile().id, sampleUser.id);
+  assert.equal(
+    storage.getActivitiesForMonth(sampleUser.id, "2026-10").length,
+    1,
+  );
+  assert.deepEqual(storage.getActivitiesForMonth(sampleUser.id, "2026-11"), []);
+});
+
+test("navegador novo e lista vazia não recebem participantes de exemplo", () => {
+  isolatedStorage();
+  assert.deepEqual(storage.getStoredProfiles(), []);
+  storage.saveProfiles([]);
+  assert.deepEqual(storage.getStoredProfiles(), []);
 });
 
 test("prévia é somente visual e não acessa nem grava armazenamento", () => {
@@ -308,15 +342,167 @@ test("CSS mantém impressão A4 paisagem isolada, temas e redução de movimento
   assert.doesNotMatch(css.slice(0, css.indexOf("@page")), /!important/);
 });
 
-
-test('lista oferece primeiro registro e exemplos opcionais; tabela e cartões mantêm edição e exclusão', () => {
-  const props = { activities: [], totalHours: 0, editingId: null, onEdit: noop, onDelete: noop, user: sampleUser, monthLabel: 'Outubro/2026', onLoadSamples: noop, onClearMonth: noop };
+test("lista oferece primeiro registro e exemplos opcionais; tabela e cartões mantêm edição e exclusão", () => {
+  const props = {
+    activities: [],
+    totalHours: 0,
+    editingId: null,
+    onEdit: noop,
+    onDelete: noop,
+    user: sampleUser,
+    monthLabel: "Outubro/2026",
+    onLoadSamples: noop,
+    onClearMonth: noop,
+  };
   const empty = render(React.createElement(ActivityTable, props));
   assert.match(empty, /Registrar primeira atividade/);
   assert.match(empty, /Carregar exemplos do GAT/);
-  const filled = render(React.createElement(ActivityTable, { ...props, activities: [sampleActivity], totalHours: 2 }));
+  const filled = render(
+    React.createElement(ActivityTable, {
+      ...props,
+      activities: [sampleActivity],
+      totalHours: 2,
+    }),
+  );
   assert.match(filled, /<table/);
-  assert.match(filled, /aria-label="Editar atividade"/);
-  assert.match(filled, /aria-label="Excluir atividade"/);
+  assert.match(filled, /aria-label="Editar atividade:/);
+  assert.match(filled, /aria-label="Excluir atividade:/);
   assert.match(filled, /Atividade de teste/);
+});
+
+test("datas acompanham o mês escolhido e cobrem toda a vigência", () => {
+  assert.equal(getCurrentMonth(new Date(2026, 10, 2)), "2026-11");
+  assert.equal(getCurrentMonth(new Date(2025, 0, 1)), "2026-08");
+  assert.equal(getCurrentMonth(new Date(2029, 0, 1)), "2028-08");
+  assert.equal(PROJECT_MONTHS.length, 25);
+  assert.equal(
+    getDefaultActivityDate("2026-11", new Date(2026, 10, 2)),
+    "2026-11-02",
+  );
+  assert.equal(
+    getDefaultActivityDate("2026-10", new Date(2026, 10, 2)),
+    "2026-10-01",
+  );
+});
+
+test("validação completa da cópia ocorre antes de qualquer escrita", () => {
+  const records = isolatedStorage();
+  storage.saveProfiles([sampleUser]);
+  const before = JSON.stringify([...records]);
+  const valid = {
+    version: "1.0",
+    user: sampleUser,
+    monthKey: "2026-10",
+    activities: [sampleActivity],
+  };
+  for (const data of [
+    { ...valid, activities: [null] },
+    { ...valid, user: { name: "Incompleto" } },
+    { ...valid, monthKey: "2026-99" },
+    { ...valid, version: "99" },
+    { ...valid, activities: [{ ...sampleActivity, date: "2026-02-30" }] },
+    { ...valid, activities: [{ ...sampleActivity, start: "29:00" }] },
+    { ...valid, activities: [sampleActivity, sampleActivity] },
+  ])
+    assert.equal(storage.importUserData(JSON.stringify(data)).success, false);
+  assert.equal(JSON.stringify([...records]), before);
+});
+
+test("falha intermediária na restauração reverte todas as escritas já concluídas", () => {
+  const records = isolatedStorage();
+  storage.saveProfiles([sampleUser]);
+  storage.setActiveProfileId(sampleUser.id);
+  storage.saveActivitiesForMonth(sampleUser.id, "2026-10", [sampleActivity]);
+  const before = JSON.stringify([...records]);
+  const original = localStorage.setItem;
+  let writes = 0;
+  localStorage.setItem = (key, value) => {
+    if (++writes === 2) throw new Error("quota");
+    original(key, value);
+  };
+  const result = storage.importUserData(
+    JSON.stringify({
+      version: "1.0",
+      user: sampleUser,
+      monthKey: "2026-10",
+      activities: [],
+    }),
+  );
+  assert.equal(result.code, "STORAGE_FAILED");
+  assert.equal(JSON.stringify([...records]), before);
+});
+
+test("falha da recuperação é explícita e detalhes de suporte não levam dados pessoais", () => {
+  isolatedStorage();
+  storage.saveProfiles([sampleUser]);
+  const original = localStorage.setItem;
+  let writes = 0;
+  localStorage.setItem = (key, value) => {
+    if (++writes > 1) throw new Error("SENTINELA_PRIVADA");
+    original(key, value);
+  };
+  // Existing activity value forces rollback through setItem rather than removeItem.
+  original(
+    "pet_folha_activities_v2_test-ui_2026-10",
+    JSON.stringify([sampleActivity]),
+  );
+  const result = storage.importUserData(
+    JSON.stringify({
+      version: "1.0",
+      user: sampleUser,
+      monthKey: "2026-10",
+      activities: [],
+    }),
+  );
+  assert.equal(result.code, "ROLLBACK_FAILED");
+  const diagnostic = storage.getRestoreDiagnostic(result.code);
+  assert.doesNotMatch(
+    diagnostic,
+    /SENTINELA|Participante|test-ui|Atividade|14:00/,
+  );
+  assert.deepEqual(Object.keys(JSON.parse(diagnostic)), [
+    "operation",
+    "code",
+    "supportedSchema",
+  ]);
+});
+
+test("cópia com nome igual e ID diferente não mescla participantes", () => {
+  const records = isolatedStorage();
+  storage.saveProfiles([sampleUser]);
+  const before = JSON.stringify([...records]);
+  const result = storage.importUserData(
+    JSON.stringify({
+      version: "1.0",
+      user: { ...sampleUser, id: "other" },
+      monthKey: "2026-10",
+      activities: [],
+    }),
+  );
+  assert.equal(result.code, "PROFILE_CONFLICT");
+  assert.equal(JSON.stringify([...records]), before);
+});
+
+test("entrada oferece os perfis locais sem exigir cópia e resumo não promete aptidão", () => {
+  const html = render(
+    React.createElement(LandingPage, {
+      profiles: [sampleUser],
+      onSelectProfile: noop,
+      onLoginWithJson: noop,
+      onCreateProfile: noop,
+      gats: DEFAULT_GATS,
+      roles: DEFAULT_ROLES,
+      onOpenAdmin: noop,
+      onOpenFeedback: noop,
+    }),
+  );
+  assert.match(html, /Continuar/);
+  assert.match(html, /sem o arquivo anterior/);
+  assert.match(html, /Participante de teste/);
+  const { StatsGrid } = load("./src/components/StatsGrid.tsx");
+  const summary = renderToStaticMarkup(
+    React.createElement(StatsGrid, { totalHours: 32, activitiesCount: 8 }),
+  );
+  assert.doesNotMatch(summary, /Apta|Média semanal/);
+  assert.match(summary, /distribuição semanal/);
 });

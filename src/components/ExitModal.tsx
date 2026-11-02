@@ -1,16 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { Download, FileText, X, ArrowRight } from "lucide-react";
 import { Modal } from "./Modal";
-import React, { useState, useEffect } from "react";
-import {
-  Download,
-  FileText,
-  CheckCircle2,
-  X,
-  ArrowRight,
-  AlertTriangle,
-} from "lucide-react";
-import { useDialog } from "@/context/DialogContext";
 
 interface ExitModalProps {
   isOpen: boolean;
@@ -22,7 +14,12 @@ interface ExitModalProps {
   hasChanges?: boolean;
 }
 
-export function ExitModal({
+export function ExitModal(props: ExitModalProps) {
+  if (!props.isOpen) return null;
+  return <Conclusion {...props} />;
+}
+
+function Conclusion({
   isOpen,
   onClose,
   onConfirmExit,
@@ -31,178 +28,118 @@ export function ExitModal({
   userName,
   hasChanges = false,
 }: ExitModalProps) {
-  const { confirm } = useDialog();
   const [jsonTriggered, setJsonTriggered] = useState(false);
   const [pdfTriggered, setPdfTriggered] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Download indicators belong to each opening of the exit dialog.
-      setJsonTriggered(false);
-      setPdfTriggered(false);
+  const [exitWarning, setExitWarning] = useState(false);
+  const [busy, setBusy] = useState(false);
+  async function download(kind: "json" | "pdf") {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const result = await (kind === "json"
+        ? onDownloadJson()
+        : onDownloadPdf());
+      if (result !== false) {
+        if (kind === "json") setJsonTriggered(true);
+        else setPdfTriggered(true);
+      }
+    } finally {
+      setBusy(false);
     }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  const handleDownloadJson = async () => {
-    const success = await onDownloadJson();
-    if (success !== false) {
-      setJsonTriggered(true);
-    }
-  };
-
-  const handleDownloadPdf = async () => {
-    const success = await onDownloadPdf();
-    if (success !== false) {
-      setPdfTriggered(true);
-    }
-  };
-
-  const handleExitClick = async () => {
-    // 1. Se não houve nenhuma alteração nesta sessão, conclui diretamente sem barreiras
-    if (!hasChanges) {
-      onConfirmExit();
+  }
+  function leave() {
+    if (hasChanges && !jsonTriggered) {
+      setExitWarning(true);
       return;
     }
-
-    // 2. Se houve alterações, solicita confirmação consciente ao usuário
-    const confirmed = await confirm({
-      title: "Atenção aos Dados",
-      message:
-        "Os registros ficam neste navegador. Salve uma cópia de segurança para recuperá-los se os dados locais forem apagados.\n\nVocê já salvou seu arquivo .json e deseja realmente concluir a sessão?",
-      confirmText: "Sim, Concluir e Sair",
-      cancelText: "Voltar e Salvar",
-      variant: "warning",
-    });
-
-    if (confirmed) {
-      onConfirmExit();
-    }
-  };
-
+    onConfirmExit();
+  }
   return (
     <Modal isOpen={isOpen} onClose={onClose} label="Salvar folha e concluir">
-      <div
-        className="w-full max-w-xl sm:max-w-2xl max-h-[92dvh] overflow-y-auto rounded-3xl border border-line bg-surface p-6 sm:p-8 shadow-[var(--page-shadow)] transition-all"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3.5 sm:gap-4">
-            <div>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-ink leading-snug">
-                Concluir folha
-              </h3>
-              <p className="text-xs sm:text-sm text-body mt-0.5 sm:mt-1">
-                {userName}
-              </p>
-            </div>
+      <section className="conclusion-panel">
+        <div className="form-panel-heading">
+          <div>
+            <p className="section-kicker">Finalizar</p>
+            <h2>Guarde sua folha</h2>
+            <p className="access-hint">{userName}</p>
           </div>
-          <button
-            aria-label="Fechar"
-            onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl text-muted hover:text-ink hover:bg-raised cursor-pointer transition-colors"
-            title="Fechar"
-          >
-            <X className="size-5 sm:size-6" />
+          <button className="icon-button" onClick={onClose} aria-label="Fechar">
+            <X size={20} />
           </button>
         </div>
-
-        {/* Status da sessão */}
-        {!hasChanges ? (
-          <div className="mb-5 px-4 py-3 rounded-2xl bg-[#003d5c]/20 border border-info/20 text-info text-xs sm:text-sm flex items-center gap-2.5">
-            <CheckCircle2 className="size-5 text-info shrink-0" />
-            <span>Nenhuma alteração nesta sessão.</span>
+        <div className="conclusion-option">
+          <Download size={24} aria-hidden="true" />
+          <div>
+            <h3>Cópia de segurança</h3>
+            <p>
+              Arquivo .json para continuar editando ou abrir sua folha em outro
+              aparelho.
+            </p>
+            {jsonTriggered && (
+              <p role="status">
+                Ação de salvar acionada. Confira o arquivo na pasta escolhida.
+              </p>
+            )}
           </div>
-        ) : (
-          <div className="mb-5 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-warning text-xs sm:text-sm flex items-center gap-2.5">
-            <AlertTriangle className="size-5 text-warning shrink-0" />
-            <span>Salve uma cópia das alterações antes de sair.</span>
+          <button
+            className="secondary-button"
+            disabled={busy}
+            onClick={() => void download("json")}
+          >
+            {jsonTriggered ? "Salvar outra cópia" : "Salvar cópia"}
+          </button>
+        </div>
+        <div className="conclusion-option">
+          <FileText size={24} aria-hidden="true" />
+          <div>
+            <h3>Folha para assinatura</h3>
+            <p>
+              Confira os registros e use A4 em paisagem na janela de impressão.
+            </p>
+            {pdfTriggered && (
+              <p role="status">
+                Impressão aberta. Salve o PDF ou imprima na janela do navegador.
+              </p>
+            )}
+          </div>
+          <button
+            className="secondary-button"
+            disabled={busy}
+            onClick={() => void download("pdf")}
+          >
+            Imprimir / salvar PDF
+          </button>
+        </div>
+        <p className="local-note">
+          Os registros permanecem neste navegador ao sair. Guarde a cópia para
+          se proteger de limpezas dos dados locais.
+        </p>
+        {exitWarning && (
+          <div className="operation-notice" role="alert">
+            <p>
+              Há alterações nesta sessão e você ainda não acionou a cópia.
+              Deseja sair mesmo assim?
+            </p>
+            <button className="secondary-button" onClick={onConfirmExit}>
+              Sair sem salvar cópia
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => setExitWarning(false)}
+            >
+              Voltar e salvar
+            </button>
           </div>
         )}
-
-        {/* Ações de Download / Exportação */}
-        <div className="space-y-3.5 mb-6">
-          {/* Card 1: JSON */}
-          <div className="p-4 sm:p-5 rounded-2xl border border-line bg-canvas flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="size-11 sm:size-12 rounded-xl bg-[#00A3E0]/10 border border-info/20 flex items-center justify-center text-info shrink-0">
-                <Download className="size-5 sm:size-6" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm sm:text-base font-bold text-ink truncate">
-                  Cópia de segurança (.json)
-                </div>
-                <div className="text-xs sm:text-sm text-body truncate mt-0.5">
-                  {jsonTriggered
-                    ? "Download acionado: guarde em local seguro"
-                    : "Guarde para restaurar sua folha em outro dispositivo"}
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleDownloadJson}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-raised hover:bg-hover text-ink hover:text-ink border border-line hover:border-slate-600 text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2 shrink-0 shadow-[var(--page-shadow)]"
-            >
-              <Download className="size-4 text-info" />
-              <span>{jsonTriggered ? "Baixar Novamente" : "Salvar cópia"}</span>
-            </button>
-          </div>
-
-          {/* Card 2: PDF */}
-          <div className="p-4 sm:p-5 rounded-2xl border border-line bg-canvas flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="size-11 sm:size-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent  shrink-0">
-                <FileText className="size-5 sm:size-6" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm sm:text-base font-bold text-ink truncate">
-                  Folha oficial em PDF
-                </div>
-                <div className="text-xs sm:text-sm text-body truncate mt-0.5">
-                  {pdfTriggered
-                    ? "Impressão/PDF acionada: salve ou imprima"
-                    : "Documento oficial pronto para assinar"}
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl bg-raised hover:bg-hover text-ink hover:text-ink border border-line hover:border-slate-600 text-xs sm:text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2 shrink-0 shadow-[var(--page-shadow)]"
-            >
-              <FileText className="size-4 text-accent " />
-              <span>
-                {pdfTriggered ? "Gerar Novamente" : "Imprimir / salvar PDF"}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-line">
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-[46px] px-5 py-3 rounded-xl border border-line text-sm font-semibold text-body hover:text-ink hover:bg-raised cursor-pointer transition-colors"
-          >
-            Continuar Editando
+        <div className="conclusion-actions">
+          <button className="secondary-button" onClick={onClose}>
+            Continuar editando
           </button>
-
-          <button
-            aria-label="Concluir a sessão"
-            type="button"
-            onClick={handleExitClick}
-            className="min-h-[46px] px-6 py-3 rounded-xl text-sm sm:text-base font-bold cursor-pointer transition-all flex items-center justify-center gap-2 bg-primary hover:bg-[var(--primary-hover)] text-white shadow-[var(--page-shadow)]"
-            title="Concluir a sessão"
-          >
-            <span>Concluir e Sair</span>
-            <ArrowRight className="size-4" />
+          <button className="primary-button" disabled={busy} onClick={leave}>
+            Sair / trocar participante <ArrowRight size={18} />
           </button>
         </div>
-      </div>
+      </section>
     </Modal>
   );
 }

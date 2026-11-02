@@ -41,9 +41,9 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
 ### 2.1. Interface de Usuário (`src/components/`)
 
 - **`Navbar.tsx`**: Navegação em duas faixas com identificação, seções da folha, ajuda e configurações. As ações de salvar/restaurar cópia permanecem visíveis no computador e no celular.
-- **`LandingPage.tsx`**: Entrada com criação de perfil ou restauração, prévia visual de dados fictícios, FAQ e rodapé compartilhado.
-- **`StatsGrid.tsx`**: Painel com 3 cards de métricas (Horas Apuradas, Média Semanal de 8h e Status da Frequência), calculando o progresso percentual e a distância para a meta mensal.
-- **`ActivityForm.tsx`**: Formulário de inclusão e edição de atividades, com cálculo instantâneo da regra de horas do PET, seleção de modalidade (Síncrona Virtual, Síncrona Presencial e Assíncrona Virtual) e templates dinâmicos por GAT.
+- **`LandingPage.tsx`**: Entrada com retomada dos perfis deste navegador, primeiro acesso e restauração. Perfil repetido oferece continuação explícita, preservando os meses existentes; novos navegadores não recebem perfis de exemplo. Prévia recolhida, FAQ e rodapé compartilhado.
+- **`StatsGrid.tsx`**: Resumo único com horas, quantidade de atividades e referência mensal aproximada. Não declara aptidão nem usa média mensal como comprovação da obrigação semanal.
+- **`ActivityForm.tsx`**: Formulário de inclusão de atividades, com cálculo instantâneo da regra de horas do PET, seleção de modalidade (Síncrona Virtual, Síncrona Presencial e Assíncrona Virtual) e templates dinâmicos por GAT.
 - **`ActivityTable.tsx`**: Componente híbrido inteligente:
   - **Smartphone (`sm:hidden`)**: Renderiza uma lista de cartões empilhados completos, com touch targets mínimos de 44x44px (WCAG 2.5.5), texto legível sem zoom involuntário e ações de editar ou excluir.
   - **Desktop (`hidden sm:block`)**: Apresenta a tabela tabular densa com 7 colunas (`Data`, `Entrada`, `Saída`, `Tipo`, `Descrição`, `Horas` e `Ações`), incluindo edição e exclusão com confirmação.
@@ -60,7 +60,7 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
   Contém também formatadores para datas no padrão brasileiro (`DD/MM/YYYY`) e rotulagem de meses de referência.
 - **`storage.ts`**: Camada de abstração do `localStorage`. Implementa:
   - Isolamento de dados por perfil de usuário e por mês (`pet_folha_activities_v2_${userId}_${monthKey}`).
-  - Exportação e importação de backups completos (`exportUserData`, `importUserData`).
+  - Exportação no formato 1.0 e restauração após validação integral (`inspectUserData`, `importUserData`), com confirmação na interface, preservação de registros em falhas recuperáveis e diagnóstico local sem conteúdo pessoal.
   - Remoção automática do campo legado `pin` dos perfis armazenados e importados.
   - Suporte a templates e funções dinâmicas.
 - **`admin-auth.ts` + `/api/admin/session`**: Camada exclusivamente server-side que valida `ADMIN_PIN_HASH` com comparação constante, emite sessão assinada de 8 horas em cookie `HttpOnly`, `SameSite=Strict` e falha de forma fechada quando a configuração está ausente.
@@ -131,3 +131,29 @@ export interface GATInfo {
 ## Refinamento de interface (31/10/2026)
 
 A interface usa tokens semânticos e componentes compartilhados de marca, rodapé e ajuda. Os modais utilizam o elemento nativo `dialog`, e o tema é sincronizado com `useSyncExternalStore`, preservando a preferência no navegador. Não há alteração de contratos de dados nem de autenticação. Consulte [ui-ux.md](ui-ux.md) para detalhes e verificação.
+
+
+## Reestruturação do percurso (02/11/2026)
+
+A entrada permite continuar sem JSON quando o perfil permanece neste navegador.
+As áreas centrais são Minha frequência e Folha oficial. Datas acompanham o mês
+selecionado; a lista de meses cobre agosto/2026 a agosto/2028 e mantém visível
+um mês válido de backup legado fora desse intervalo. O cálculo canônico e o
+formato de exportação 1.0 permanecem.
+
+A importação valida todos os registros antes de escrever, recusa colisão de nome
+com ID diferente e registra os valores anteriores das três chaves afetadas.
+Falha intermediária tenta recuperar as escritas já concluídas; falha dessa
+recuperação é anunciada separadamente. Há teste das duas situações. O relatório
+opcional contém somente operação, código permitido e versão suportada, sem envio
+remoto. O estado React só confirma uma gravação concluída.
+
+A camada de leitura usa texto principal/campos em 16px e auxiliares a partir de
+14px. A tipografia do documento mantém tamanhos em pontos e entrelinha própria.
+Uma conferência de altura impede abrir a impressão de conteúdo acima do espaço
+A4 disponível, preservando os registros para revisão. Resultado de impressão ou
+download acionado não é apresentado como confirmação de arquivo salvo.
+
+O CI está definido em `.github/workflows/ci.yml`, com Node 22, instalação pelo
+lockfile, lint, testes, build, tipagem e percurso Playwright. A documentação de
+[UI/UX](ui-ux.md) concentra as evidências e limites de homologação.

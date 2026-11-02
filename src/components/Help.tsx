@@ -6,19 +6,19 @@ import { Modal } from "./Modal";
 const questions = [
   [
     "Como começo minha folha?",
-    "Escolha “Criar minha folha” e informe nome, função e GAT. Depois, adicione as atividades no painel.",
+    "No primeiro acesso, informe nome, função e GAT. Nos próximos meses, use “Continuar” neste mesmo navegador e escolha o mês. Você não precisa do arquivo anterior para abrir um novo mês.",
   ],
   [
     "Como restauro uma folha?",
-    "Use “Restaurar minha folha” ou “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
+    "Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
   ],
   [
     "Onde ficam meus dados?",
     "Neste navegador. Use “Salvar cópia” para baixar o arquivo .json; limpar os dados do navegador pode apagar seus registros. Guarde a cópia em local seguro.",
   ],
   [
-    "Posso trocar de dispositivo?",
-    "Sim. Salve a cópia .json e restaure no outro aparelho. Não há sincronização automática.",
+    "Perdi a cópia. Posso continuar?",
+    "Se usou este navegador, abra seu perfil em “Continuar”: os meses anteriores continuam locais. Em outro aparelho ou após limpar os dados, você pode criar uma folha para o novo mês; os registros antigos dependem da cópia ou do navegador original. Não há sincronização automática.",
   ],
   [
     "Como as horas são calculadas?",

@@ -1,40 +1,115 @@
 # Interface e experiência de uso
 
-Refinamento de 31/10/2026. Toda a interface permanece em PT-BR.
+## Percurso entregue — 02/11/2026
 
-## Organização
+A prioridade é preencher a frequência com poucos passos, inclusive no celular:
+abrir perfil → escolher mês → lançar/revisar → conferir folha → guardar cópia e PDF.
+A direção e as referências estão no [plano](ui-ux-restructure-plan.md).
 
-A entrada apresenta identificação do projeto e acesso por criação ou restauração antes das explicações. A prévia abaixo do acesso é somente visual, com dados fictícios locais ao componente: não consulta perfis, não grava atividades e não simula controles.
+### Entrada e retomada sem JSON
 
-O painel mantém a sequência identificação e mês → resumo → formulário → lançamentos. As ações “Salvar cópia” e “Restaurar cópia” aparecem em todos os tamanhos de tela. Exclusão e limpeza do mês continuam com confirmação.
+“Continuar” lista os perfis que permanecem neste navegador. O participante pode
+abrir outro mês sem restaurar o arquivo anterior. Primeiro acesso cria um perfil;
+novos navegadores começam sem participantes de exemplo. Uma tentativa com nome
+já cadastrado oferece “Continuar com este perfil”, mostrando a identificação
+existente, sem recriar, alterar sua função/GAT ou apagar os meses anteriores.
 
-O tema escuro usa cinza e grafite, sem superfícies esverdeadas. Foram removidos slogans, blocos promocionais, textos repetidos e a exibição da licença no rodapé. O FAQ possui seis assuntos e é reutilizado no diálogo de ajuda do painel. O rodapé é compartilhado, com créditos e links essenciais. O canal de avaliação existente e os créditos foram preservados.
+A restauração atende à troca de aparelho. A interface explica que os registros
+antigos dependem do navegador original ou da cópia .json; um PDF não os restaura.
+A prévia demonstrativa fica recolhida, e FAQ/ajuda continuam disponíveis.
 
-## Componentes e estilos
+### Minha frequência
 
-- As cores da interface usam tokens semânticos de fundo, superfície, texto, borda, destaque, informação, aviso e erro. O tema claro não depende mais de sobrescritas globais com `!important`.
-- Inter é usada no conteúdo; Plus Jakarta Sans nos títulos. Os títulos do documento oficial preservam a fonte do próprio documento.
-- `Modal` usa o elemento nativo `dialog`. A contenção do foco e o comportamento de diálogos sobrepostos ficam a cargo do navegador; Escape atualiza o estado React e o fechamento restaura o foco. Os painéis têm altura limitada e rolagem interna.
-- Campos têm rótulos associados; a modalidade usa `fieldset` e `legend`, com estado selecionado anunciado.
-- `useTheme` usa `useSyncExternalStore` para manter os componentes sincronizados. A preferência continua usando a chave `pet_theme`, com compatibilidade com o parâmetro `theme` da URL.
-- Animações são discretas e respeitam `prefers-reduced-motion`.
+Mês, participante e GAT definem o contexto. O mês inicial acompanha a data atual,
+limitado aos meses da vigência. A seleção cobre agosto/2026 a agosto/2028. Um mês
+válido restaurado fora desse intervalo continua selecionável, preservando a
+compatibilidade. A data inicial da atividade acompanha o mês escolhido.
 
-## Compatibilidade
+O resumo mostra horas, atividades e referência mensal aproximada de 32h. Não usa
+média por quatro semanas como validação semanal nem declara “Apta para envio”.
+O formulário mostra o cálculo PET antes de adicionar, oferece modelos opcionais
+e mantém o preenchimento diante de erro. Troca de mês/seção pede confirmação
+antes de descartar um formulário ainda não adicionado.
 
-Não foram alterados o armazenamento, os tipos de perfis e atividades, o formato dos arquivos de cópia, o cálculo de horas ou as rotas de autenticação administrativa. Não há novas dependências de produção.
+Formulário e registros ficam lado a lado quando há espaço e em uma coluna no
+celular. A tabela usa quatro colunas; listas em cartões atendem espaços menores.
+Editar/excluir têm nomes acessíveis com a descrição do registro. Limpar mês exige
+confirmação; exemplos são opcionais e identificados como fictícios.
 
-O componente `OfficialSheet` permanece inalterado. As regras de impressão existentes foram preservadas; a interface, a ajuda e o rodapé são excluídos da impressão.
+### Tipografia e conforto
 
-## Verificação
+A escala deriva da orientação `frontend-design-ultimate` e dos controles e
+formulários documentados no Frequência Hub, adaptados à identidade PET:
+
+| Uso | Tamanho |
+| --- | --- |
+| Texto principal, campos, rótulos e ações usuais | 16px |
+| Informações auxiliares, metadados e rodapé | Pelo menos 14px |
+| Navegação compacta no celular | 15–16px |
+| Títulos de blocos | 20–24px |
+| Título da área de trabalho | 28px |
+
+A entrelinha do texto é de 1,5–1,65. As superfícies são claras ou grafite; a ação
+principal usa verde PET acessível. Contornos de campos são distintos das bordas
+estruturais. Foco visível, alvos de pelo menos 44×44px e movimento reduzido são
+preservados. A folha oficial mantém sua escala em pontos e entrelinha própria.
+
+### Cópia, restauração e conclusão
+
+“Salvar cópia” produz o JSON para continuar editando. “Imprimir / salvar PDF”
+abre a impressão da folha para assinatura. A conclusão distingue as duas ações e
+mantém confirmação de saída quando existem alterações sem cópia acionada.
+Os avisos descrevem a ação iniciada, sem afirmar que um download/PDF foi salvo
+quando o navegador não fornece essa confirmação.
+
+Antes da restauração, a interface mostra participante, mês, quantidade de
+atividades e o efeito da substituição. Todos os registros são validados antes
+de gravar. Colisão de nome com outro ID é recusada. A restauração recupera as
+escritas anteriores se uma etapa falhar; se a recuperação também falhar, informa
+isso explicitamente. Outros perfis e meses permanecem fora da operação.
+
+Erro exibe orientação e detalhes opcionais selecionáveis para suporte: operação,
+código permitido e formato suportado. Conteúdo, identificadores pessoais, nomes,
+atividades, horários e exceções brutas não entram nesse relatório. Não há envio
+automático. Edição de perfil/atividade conserva o diálogo e o preenchimento
+quando a gravação falha.
+
+### Folha e impressão
+
+`OfficialSheet.tsx` e o modelo oficial permanecem preservados. Uma medição com
+geometria A4 impede abrir a impressão se o conteúdo ultrapassar uma página,
+orientando revisão sem apagar registros. A impressão força papel branco também
+quando a interface usa tema escuro. A prévia tem rolagem própria, sem alargar a
+página inteira.
+
+## Validação e limites
+
+Com Node 22 e instalação pelo lockfile:
 
 ```text
 npm run test:ui
-npx tsc --noEmit
 npm run lint
 npm run build
+npm run typecheck
+npx playwright install chromium
+npm run test:e2e
 ```
 
-A suíte `test:ui` executa os módulos reais com armazenamento isolado em memória e renderização estática de React, sem abrir navegador nem acessar dados do usuário. Cobre cálculo, criação de perfil, persistência, edição/exclusão por mês, isolamento de participante, exportação/restauração, arquivo inválido, prévia sem acesso a armazenamento, FAQ, campos e estrutura do documento oficial.
+A suíte local cobre cálculo, isolamento, formato de cópia, retomada sem JSON,
+validação antes de escrita, falha intermediária/recuperação e estrutura da UI.
+Playwright cobre o percurso real, download/restauração, edição/exclusão, foco,
+rascunhos, falha de armazenamento e conteúdo acima do limite de impressão, em
+Chromium desktop e celular emulado. A matriz inclui 360/390/768/1440px e os dois
+temas. HTML estático não é tratado como teste de interação.
 
-Nesta entrega, a abertura de `http://localhost:5000` no navegador de verificação foi recusada pela permissão de acesso. Portanto, os testes acima não substituem a revisão visual em 360, 768 e 1440 pixels nos dois temas, os testes reais de teclado/foco e a impressão efetiva em uma página A4 paisagem. Esses itens continuam pendentes. Nenhuma publicação em produção foi realizada.
+Resultados, capturas, PDFs e limites de homologação estão em
+[evidências da reestruturação](validation/ui-ux-20261102/README.md).
+O CI está preparado; sua primeira execução remota depende do push humano.
+Conferência física de smartphone, zoom real de 200% e impressora continuam
+pendentes. O piloto Maestri tem sua homologação própria e não bloqueia esta UI.
 
+## Referências
+
+- [Design do Frequência Hub](</mnt/hddw/Users/felip/Documents/GitHub/frequencia-hub/docs/UI-DESIGN.md>) e [formulários refinados](</mnt/hddw/Users/felip/Documents/GitHub/frequencia-hub/docs/validation/design-refinement/README.md>).
+- [Unslop, Damir Sokolovsky, revisão a6f121e](https://github.com/heydamir/unslop/blob/a6f121eee5f29c2f74976b75456feae8b66afb3a/skills/unslop/SKILL.md), CC BY 4.0: direção do produto e passes de refinamento adaptados ao PET.
+- [Referências Oracle](oracle-ci-logs-unslop.md) para CI e diagnóstico local.

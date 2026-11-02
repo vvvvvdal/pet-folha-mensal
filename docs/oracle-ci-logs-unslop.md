@@ -9,9 +9,19 @@
 
 ## Retomada
 
+Prioridade definida pelo mantenedor em 02/11/2026: reestruturar UI/UX como
+ferramenta enxuta, cobrindo o fluxo inteiro, celular e impressão. Seguir o
+[plano integrado](ui-ux-restructure-plan.md), com CI como apoio inicial e
+diagnóstico junto do backup/restauração. O refinamento recebido no pull muda
+a base de comparação; os 19 erros/5 avisos abaixo são históricos de `208e663`.
+
 Ao pedir “Vamos planejar usando as referências/skills que o Oracle deixou”,
 escolher **OR-CI**, **OR-LOG** ou **OR-UI** e preparar o plano executável.
-As melhorias abaixo ainda não foram implementadas. Ambiente e papéis em
+A reestruturação da interface, o diagnóstico de restauração e o workflow de CI
+foram implementados conforme [UI/UX](ui-ux.md). A primeira execução remota do CI
+e a homologação física permanecem pendentes. As seções abaixo preservam o plano
+original e a baseline histórica; resultados atuais ficam nas
+[evidências](validation/ui-ux-20261102/README.md). Ambiente e papéis em
 [AGENT-WORKFLOW](AGENT-WORKFLOW.md). Avaliação dos dez posts e fontes fixadas no
 [Oracle](</home/felipe/Documentos/Obsidian Vault/Oracle/09 - CI, Logs, Unslop e Maestri.md>).
 

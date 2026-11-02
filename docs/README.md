@@ -30,3 +30,7 @@ Este diretório concentra a documentação técnica, arquitetural e normativa da
 ## Interface e usabilidade
 
 - [Interface, componentes e verificação](ui-ux.md): organização das telas, temas, ajuda compartilhada e limites de verificação desta entrega.
+
+O [plano da reestruturação](ui-ux-restructure-plan.md) e suas
+[evidências de UI/UX](validation/ui-ux-20261102/README.md) detalham a retomada sem
+JSON, a escala de leitura, o diagnóstico local e a validação de impressão.

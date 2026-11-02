@@ -27,8 +27,10 @@
 - [x] Execução autossuficiente em `http://localhost:5000` com persistência local (`localStorage`).
 
 ## Próximos Passos (Postergados para Etapa Futura)
-- [ ] Regularizar o baseline de lint reproduzido em `208e663`: 19 erros/5 avisos; tipagem e build aprovados. Precondição do futuro CI e da integração da configuração Maestri. [Evidência e limites](docs/oracle-ci-logs-unslop.md#or-ci--criar-uma-base-pequena-antes-de-otimizar).
-- [ ] Planejar uma frente OR-CI, OR-LOG ou OR-UI com as [referências do Oracle](docs/oracle-ci-logs-unslop.md), preservando localStorage e folha oficial. Melhorias ainda não implementadas.
+- [x] Conferir a base após o pull: baseline antiga de 19 erros/5 avisos superada. Lint atual sem erros, com 3 avisos legados; demais gates e ambiente nas [evidências](docs/validation/ui-ux-20261102/README.md).
+- [x] Implementar o [plano de reestruturação UI/UX](docs/ui-ux-restructure-plan.md): retomada de perfil sem JSON, tipografia maior, formulário/lista, referência de horas, diagnóstico/restauração e impressão protegida. [Comportamento](docs/ui-ux.md) e [evidências/limites](docs/validation/ui-ux-20261102/README.md).
+- [ ] Conferir a primeira execução remota do CI após push humano: workflow preparado com tipagem, lint, testes locais, build e Playwright.
+- [ ] Homologar a nova UI em smartphone físico, zoom real de 200% e impressora; matriz local emulada e PDFs conferidos. [Escopo](docs/validation/ui-ux-20261102/README.md).
 - [ ] Homologar o primeiro fluxo do [Maestri com Codex/Gemini Argon 4](docs/AGENT-WORKFLOW.md): confirmar modelo, comunicação, limites de escrita e gates reais.
 - [ ] **Deploy na Vercel**: Configuração e publicação remota (ignorado temporariamente a pedido do usuário).
 
@@ -36,4 +38,4 @@
 - [x] Entrada com acesso prioritário, prévia visual e FAQ; rodapé compartilhado e ajuda no painel.
 - [x] Temas por tokens semânticos, navegação responsiva, campos associados e modais nativos.
 - [x] Verificação de tipos, lint e compilação de produção; regressão de cálculo e cópias de segurança.
-- [ ] Revisão no navegador em 360/768/1440 px, teclado e impressão efetiva (acesso local recusado nesta sessão).
+- [x] Revisão posterior no navegador em 360/390/768/1440 px, claro/escuro, teclado/foco e PDF A4. A limitação da sessão de 31/10 foi superada na validação local de 02/11; homologação física permanece no item próprio acima.

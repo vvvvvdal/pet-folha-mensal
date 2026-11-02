@@ -101,6 +101,18 @@ npm run lint
 
 ---
 
+### 4.4. Regressão do percurso e dos arquivos
+
+Use Node 22 (`nvm use`) e `npm ci`. Execute `npm run test:ui` para cálculo,
+isolamento por perfil/mês, retomada local e restauração com falha de gravação.
+Para mudanças de interface, fluxo ou persistência, execute `npm run test:e2e`
+(após `npx playwright install chromium`). A suíte inicia uma instância isolada
+na porta 5013 e usa somente participantes sintéticos. O CI também executa esses
+checks em PRs e atualizações da main. O primeiro resultado remoto depende do
+push humano; build aprovado não substitui revisão visual e impressão.
+
+---
+
 ## 5. Estrutura de Arquivos
 
 Pastas do repositório indicam a especialidade do código:

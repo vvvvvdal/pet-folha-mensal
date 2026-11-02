@@ -47,3 +47,7 @@ next-env.d.ts
 /.maestri/roles/*/.claude/
 /.maestri/roles/*/.codex/
 /.maestri/roles/*/.gemini/
+
+# Evidências locais de testes de navegador
+/test-results/
+/playwright-report/

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   UserProfile,
   Activity,
@@ -16,9 +16,11 @@ import {
   getActivitiesForMonth,
   saveActivitiesForMonth,
   loadSampleActivitiesForUser,
-  clearActivitiesForMonth,
   exportUserData,
   importUserData,
+  inspectUserData,
+  getRestoreDiagnostic,
+  type RestoreCode,
   getStoredGats,
   getStoredRoles,
   getStoredTemplates,
@@ -30,6 +32,8 @@ import {
   formatDateBR,
   cleanActivityDescription,
   sortActivitiesChronologically,
+  getCurrentMonth,
+  PROJECT_MONTHS,
 } from "@/lib/pet-calculator";
 import { Navbar } from "@/components/Navbar";
 import { ProfileModal } from "@/components/ProfileModal";
@@ -62,7 +66,17 @@ export default function Home() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  const [monthKey, setMonthKey] = useState("2026-09");
+  const [monthKey, setMonthKey] = useState(getCurrentMonth);
+  const [ready, setReady] = useState(false);
+  const [draftDirty, setDraftDirty] = useState(false);
+  const [storageError, setStorageError] = useState("");
+  const [restoreIssue, setRestoreIssue] = useState<{
+    code: RestoreCode;
+    message: string;
+  } | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const importInProgress = useRef(false);
+  const [formRevision, setFormRevision] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeTab, setActiveTab] = useState<"dashboard" | "official">(
     "dashboard",
@@ -79,82 +93,42 @@ export default function Home() {
 
   // Inicialização Local-First
   useEffect(() => {
-    const loadedProfiles = getStoredProfiles();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Browser records are hydrated after SSR to preserve the existing local storage contract.
-    setProfiles(loadedProfiles);
+    try {
+      const loadedProfiles = getStoredProfiles();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Browser records are hydrated after SSR to preserve the existing local storage contract.
+      setProfiles(loadedProfiles);
 
-    const loadedGats = getStoredGats();
-    setGats(loadedGats);
+      const loadedGats = getStoredGats();
+      setGats(loadedGats);
 
-    const loadedRoles = getStoredRoles();
-    setRoles(loadedRoles);
+      const loadedRoles = getStoredRoles();
+      setRoles(loadedRoles);
 
-    const loadedTemplates = getStoredTemplates();
-    setTemplates(loadedTemplates);
+      const loadedTemplates = getStoredTemplates();
+      setTemplates(loadedTemplates);
 
-    const urlParams =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search)
-        : null;
-    if (urlParams?.get("admin") === "1") {
-      setIsAdminModalOpen(true);
-    }
+      const urlParams =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search)
+          : null;
+      if (urlParams?.get("admin") === "1") {
+        setIsAdminModalOpen(true);
+      }
 
-    if (urlParams?.get("demo") === "1") {
-      const demoUser = loadedProfiles[0] || {
-        id: "usr-felipe",
-        name: "Felipe Gonçalves Vidal",
-        role: "Estudante",
-        gatNumber: "04",
-        gatName: "Mangaba",
-        createdAt: new Date().toISOString(),
-      };
-      setActiveUser(demoUser);
-      setActiveProfileId(demoUser.id);
-      const acts = getActivitiesForMonth(demoUser.id, monthKey);
-      setActivities(
-        acts.length > 0
-          ? acts
-          : [
-              {
-                id: "act-1",
-                date: "2026-08-05",
-                start: "19:00",
-                end: "21:00",
-                description: "Reunião do GAT 04 (Mangaba)",
-                modality: "Síncrona virtual",
-                hours: 2,
-              },
-              {
-                id: "act-2",
-                date: "2026-08-12",
-                start: "08:00",
-                end: "12:00",
-                description: "Ação territorial na USF",
-                modality: "Síncrona presencial",
-                hours: 4,
-              },
-              {
-                id: "act-3",
-                date: "2026-08-18",
-                start: "14:00",
-                end: "16:00",
-                description: "Estudo do Guia de Bolso MS",
-                modality: "Assíncrona virtual",
-                hours: 2,
-              },
-            ],
+      setReady(true);
+      const active = getActiveProfile();
+      if (active) {
+        setActiveUser(active);
+        const acts = getActivitiesForMonth(active.id, monthKey);
+        setActivities(sortActivitiesChronologically(acts));
+      } else {
+        setActiveUser(null);
+      }
+    } catch {
+      setStorageError(
+        "Leitura indisponível. Permita o armazenamento neste navegador para acessar e salvar sua folha.",
       );
-      return;
-    }
-
-    const active = getActiveProfile();
-    if (active) {
-      setActiveUser(active);
-      const acts = getActivitiesForMonth(active.id, monthKey);
-      setActivities(sortActivitiesChronologically(acts));
-    } else {
-      setActiveUser(null);
+      setReady(true);
     }
   }, [monthKey]);
 
@@ -164,22 +138,88 @@ export default function Home() {
   };
 
   const handleSelectProfile = (user: UserProfile) => {
-    setActiveUser(user);
-    setActiveProfileId(user.id);
-    const acts = getActivitiesForMonth(user.id, monthKey);
-    setActivities(sortActivitiesChronologically(acts));
+    try {
+      setActiveProfileId(user.id);
+      const acts = getActivitiesForMonth(user.id, monthKey);
+      setActiveUser(user);
+      setActivities(sortActivitiesChronologically(acts));
+      setEditingActivity(null);
+      setHasChanges(false);
+      setDraftDirty(false);
+      setStorageError("");
+    } catch {
+      setStorageError(
+        "Não foi possível abrir o perfil. Permita o armazenamento neste navegador e tente novamente.",
+      );
+    }
+  };
+
+  const confirmDraft = async () => {
+    if (!draftDirty) return true;
+    const discard = await confirm({
+      title: "Atividade ainda não adicionada",
+      message:
+        "O formulário tem alterações. Deseja descartá-las para continuar?",
+      confirmText: "Descartar preenchimento",
+      cancelText: "Continuar editando",
+      variant: "warning",
+    });
+    if (discard) {
+      setDraftDirty(false);
+      setFormRevision((revision) => revision + 1);
+    }
+    return discard;
+  };
+
+  const changeMonth = async (value: string) => {
+    if (value === monthKey || !(await confirmDraft())) return;
+    setDraftDirty(false);
     setEditingActivity(null);
-    setHasChanges(false);
+    setMonthKey(value);
+  };
+
+  const openConclusion = async () => {
+    if (await confirmDraft()) {
+      setDraftDirty(false);
+      setIsExitModalOpen(true);
+    }
+  };
+
+  const persistActivities = (next: Activity[], message: string): boolean => {
+    if (!activeUser) return false;
+    try {
+      const sorted = sortActivitiesChronologically(next);
+      saveActivitiesForMonth(activeUser.id, monthKey, sorted);
+      setActivities(sorted);
+      setHasChanges(true);
+      setStorageError("");
+      showToast(message);
+      return true;
+    } catch {
+      setStorageError(
+        "Não foi possível salvar. Verifique o espaço e as permissões do navegador. Seu preenchimento foi mantido; tente novamente.",
+      );
+      return false;
+    }
   };
 
   const handleSaveProfile = (updated: UserProfile) => {
-    const updatedProfiles = profiles.map((p) =>
-      p.id === updated.id ? updated : p,
-    );
-    setProfiles(updatedProfiles);
-    saveProfiles(updatedProfiles);
-    setActiveUser(updated);
-    showToast("Identificação atualizada.");
+    try {
+      const updatedProfiles = profiles.map((profile) =>
+        profile.id === updated.id ? updated : profile,
+      );
+      saveProfiles(updatedProfiles);
+      setProfiles(updatedProfiles);
+      setActiveUser(updated);
+      setHasChanges(true);
+      showToast("Identificação atualizada.");
+      return true;
+    } catch {
+      setStorageError(
+        "Não foi possível salvar a identificação. Verifique o armazenamento e tente novamente.",
+      );
+      return false;
+    }
   };
 
   const handleCreateNewProfile = async (
@@ -187,21 +227,34 @@ export default function Home() {
     gatNumber: string,
     role: UserRole,
   ) => {
-    const res = registerProfile({ name, role, gatNumber });
-    if (!res.success) {
-      await alert({
-        title: "Cadastro Não Realizado",
-        message: res.error || "Erro ao cadastrar participante.",
-        variant: "warning",
-      });
-      return;
-    }
-
-    const updated = getStoredProfiles();
-    setProfiles(updated);
-    if (res.user) {
-      handleSelectProfile(res.user);
-      showToast(`Participante cadastrado: ${name}`);
+    try {
+      const result = registerProfile({ name, role, gatNumber });
+      if (result.existingUser) {
+        const user = result.existingUser;
+        const resume = await confirm({
+          title: "Sua folha já está neste navegador",
+          message: `${user.name} · ${user.role} · GAT ${user.gatNumber}. Você pode continuar com este perfil e escolher o mês, sem precisar do arquivo anterior.`,
+          confirmText: "Continuar com este perfil",
+          cancelText: "Voltar",
+          variant: "info",
+        });
+        if (resume) handleSelectProfile(user);
+        return;
+      }
+      if (!result.success || !result.user) {
+        await alert({
+          title: "Confira a identificação",
+          message: result.error || "Não foi possível criar o perfil.",
+          variant: "warning",
+        });
+        return;
+      }
+      setProfiles(getStoredProfiles());
+      handleSelectProfile(result.user);
+    } catch {
+      setStorageError(
+        "Não foi possível guardar o perfil. Permita o armazenamento neste navegador e tente novamente.",
+      );
     }
   };
 
@@ -210,31 +263,39 @@ export default function Home() {
     data: Omit<Activity, "id" | "hours">,
     editingId?: string,
   ) => {
-    if (!activeUser) return;
-
-    const hours = calcPetHours(data.start, data.end);
-    let updatedActivities: Activity[];
-
-    if (editingId) {
-      updatedActivities = activities.map((act) =>
-        act.id === editingId ? { ...data, id: editingId, hours } : act,
+    if (!activeUser) return false;
+    if (
+      !data.date.startsWith(monthKey) ||
+      calcPetHours(data.start, data.end) <= 0
+    ) {
+      setStorageError(
+        "Confira a data e os horários: a atividade deve pertencer ao mês selecionado e a saída deve ser posterior à entrada.",
       );
-      setEditingActivity(null);
-      showToast("Atividade atualizada.");
-    } else {
-      const newActivity: Activity = {
-        ...data,
-        id: `act-${Date.now().toString(36)}`,
-        hours,
-      };
-      updatedActivities = [...activities, newActivity];
-      showToast("Atividade adicionada.");
+      return false;
     }
-
-    const sorted = sortActivitiesChronologically(updatedActivities);
-    setActivities(sorted);
-    saveActivitiesForMonth(activeUser.id, monthKey, sorted);
-    setHasChanges(true);
+    const hours = calcPetHours(data.start, data.end);
+    const next = editingId
+      ? activities.map((activity) =>
+          activity.id === editingId
+            ? { ...data, id: editingId, hours }
+            : activity,
+        )
+      : [
+          ...activities,
+          {
+            ...data,
+            id:
+              globalThis.crypto?.randomUUID?.() ??
+              `act-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+            hours,
+          },
+        ];
+    const saved = persistActivities(
+      next,
+      editingId ? "Atividade atualizada." : "Atividade adicionada.",
+    );
+    if (saved) setEditingActivity(null);
+    return saved;
   };
 
   const handleDeleteActivity = async (id: string) => {
@@ -254,43 +315,72 @@ export default function Home() {
     if (editingActivity?.id === id) {
       setEditingActivity(null);
     }
-    const updated = activities.filter((act) => act.id !== id);
-    setActivities(updated);
-    saveActivitiesForMonth(activeUser.id, monthKey, updated);
-    setHasChanges(true);
-    showToast("Lançamento excluído.");
+    persistActivities(
+      activities.filter((activity) => activity.id !== id),
+      "Atividade excluída.",
+    );
   };
 
   const handleLoadSamples = () => {
     if (!activeUser) return;
-    const samples = loadSampleActivitiesForUser(activeUser.id, monthKey);
-    const sorted = sortActivitiesChronologically(samples);
-    setActivities(sorted);
-    saveActivitiesForMonth(activeUser.id, monthKey, sorted);
-    setHasChanges(true);
-    showToast(
-      `Atividades de exemplo do GAT ${activeUser.gatNumber} carregadas.`,
-    );
+    try {
+      const samples = loadSampleActivitiesForUser(activeUser.id, monthKey);
+      persistActivities(
+        samples,
+        "Exemplos carregados. Substitua pelos seus registros reais.",
+      );
+    } catch {
+      setStorageError(
+        "Não foi possível carregar os exemplos. Verifique o armazenamento.",
+      );
+    }
   };
 
   const handleClearMonth = () => {
-    if (!activeUser) return;
-    clearActivitiesForMonth(activeUser.id, monthKey);
-    setActivities([]);
-    setEditingActivity(null);
-    setHasChanges(true);
-    showToast(`Folha de ${getMonthYearLabel(monthKey)} zerada.`);
+    if (persistActivities([], "Atividades deste mês removidas."))
+      setEditingActivity(null);
   };
 
   const handlePrint = async (): Promise<boolean> => {
+    const wrapper = document.querySelector<HTMLElement>(".print-only-wrapper");
+    if (!wrapper) return false;
+    // Measure using the same geometry as the protected A4 print stylesheet.
+    wrapper.classList.add("print-check");
+    const height = wrapper.scrollHeight;
+    wrapper.classList.remove("print-check");
+    if (height > (194 * 96) / 25.4) {
+      await alert({
+        title: "O conteúdo ultrapassa uma página",
+        message:
+          "A folha precisa caber em uma página A4 paisagem. Revise a extensão das descrições e a quantidade de registros com a coordenação antes de imprimir. Suas atividades continuam salvas.",
+        variant: "warning",
+      });
+      return false;
+    }
     window.print();
     return true;
+  };
+
+  const printParticipantSheet = async () => {
+    setShowBlankTemplate(false);
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+    return handlePrint();
   };
 
   // Exportar Backup Local em JSON
   const handleExportBackup = async (): Promise<boolean> => {
     if (!activeUser) return false;
-    const jsonString = exportUserData(activeUser, monthKey);
+    let jsonString: string;
+    try {
+      jsonString = exportUserData(activeUser, monthKey);
+    } catch {
+      setStorageError(
+        "Não foi possível ler os registros para criar a cópia. Verifique o armazenamento e tente novamente.",
+      );
+      return false;
+    }
     const blob = new Blob([jsonString], { type: "application/json" });
     const filename = `backup-frequencia-${activeUser.name.toLowerCase().replace(/\s+/g, "-")}-${monthKey}.json`;
 
@@ -332,7 +422,7 @@ export default function Home() {
           showToast("Salvamento cancelado.");
           return false;
         }
-        console.warn("showSaveFilePicker falhou, tentando fallback:", err);
+        // The standard download remains available when the file picker is unsupported.
       }
     }
 
@@ -343,44 +433,120 @@ export default function Home() {
       a.href = url;
       a.download = filename;
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
       showToast("Download da cópia de segurança iniciado.");
       return true;
     } catch {
+      setStorageError(
+        "O download não foi iniciado. Tente salvar a cópia novamente.",
+      );
       return false;
     }
   };
 
   // Importar Backup Local em JSON
-  const handleImportBackup = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const content = e.target?.result as string;
-      if (!content) return;
-      const result = importUserData(content);
-      if (result.success && result.user && result.activities) {
-        setProfiles(getStoredProfiles());
-        setActiveUser(result.user);
-        if (result.monthKey) setMonthKey(result.monthKey);
-        setActivities(sortActivitiesChronologically(result.activities));
-        showToast("Cópia da folha restaurada com sucesso!");
-      } else {
-        await alert({
-          title: "Erro no Arquivo",
-          message:
-            result.error || "Não foi possível restaurar a cópia da folha.",
-          variant: "warning",
-        });
+  const handleImportBackup = async (file: File) => {
+    if (importInProgress.current) return;
+    importInProgress.current = true;
+    if (!(await confirmDraft())) {
+      importInProgress.current = false;
+      return;
+    }
+    setRestoring(true);
+    setRestoreIssue(null);
+    try {
+      const content = await file.text();
+      const preview = inspectUserData(content);
+      if (!preview.success) {
+        setRestoreIssue({ code: preview.code, message: preview.error! });
+        return;
       }
-    };
-    reader.readAsText(file);
+      const existing = profiles.find(
+        (profile) => profile.id === preview.user!.id,
+      );
+      const accepted = await confirm({
+        title: "Restaurar esta cópia?",
+        message: `${preview.user!.name} · ${getMonthYearLabel(preview.monthKey!)} · ${preview.activities!.length} atividades. ${existing ? "Os dados deste perfil e deste mês serão substituídos pela cópia. Os outros meses serão preservados." : "O perfil e os registros desta cópia serão adicionados neste navegador."}`,
+        confirmText: "Restaurar cópia",
+        cancelText: "Cancelar",
+        variant: "warning",
+      });
+      if (!accepted) return;
+      const result = importUserData(content);
+      if (!result.success) {
+        setRestoreIssue({ code: result.code, message: result.error! });
+        return;
+      }
+      setProfiles(getStoredProfiles());
+      setMonthKey(result.monthKey!);
+      setActiveUser(result.user!);
+      setActivities(result.activities!);
+      setDraftDirty(false);
+      setHasChanges(false);
+      setStorageError("");
+      showToast("Cópia restaurada. Confira o mês e os registros.");
+    } catch {
+      setRestoreIssue({
+        code: "STORAGE_FAILED",
+        message:
+          "Não foi possível ler ou abrir a cópia. Verifique o arquivo e as permissões deste navegador e tente novamente.",
+      });
+    } finally {
+      setRestoring(false);
+      importInProgress.current = false;
+    }
   };
+
+  const notices = (
+    <>
+      {storageError && (
+        <div className="operation-notice" role="alert">
+          <p>{storageError}</p>
+        </div>
+      )}
+      {restoring && (
+        <p className="operation-notice" role="status">
+          Lendo e conferindo a cópia…
+        </p>
+      )}
+      {restoreIssue && (
+        <div className="operation-notice" role="alert">
+          <strong>Não foi possível restaurar</strong>
+          <p>{restoreIssue.message}</p>
+          <details>
+            <summary>Detalhes para suporte</summary>
+            <p>
+              Estes detalhes não incluem seus registros. Selecione e copie se
+              precisar pedir ajuda.
+            </p>
+            <pre tabIndex={0}>{getRestoreDiagnostic(restoreIssue.code)}</pre>
+          </details>
+          <button
+            className="secondary-button"
+            onClick={() => setRestoreIssue(null)}
+          >
+            Fechar aviso
+          </button>
+        </div>
+      )}
+    </>
+  );
+
+  if (!ready)
+    return (
+      <main className="loading-sheet" aria-busy="true">
+        Abrindo sua folha…
+      </main>
+    );
 
   // Se não houver participante ativo, exibir Landing Page informativa e privada
   if (!activeUser) {
     return (
       <>
+        {notices}
         <LandingPage
+          profiles={profiles}
+          onSelectProfile={handleSelectProfile}
           onLoginWithJson={handleImportBackup}
           onCreateProfile={handleCreateNewProfile}
           gats={gats}
@@ -435,23 +601,29 @@ export default function Home() {
         <Navbar
           user={activeUser}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={async (tab) => {
+            if (tab === activeTab || (await confirmDraft())) {
+              setDraftDirty(false);
+              setActiveTab(tab);
+            }
+          }}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
           hasChanges={hasChanges}
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
           onOpenAdmin={() => setIsAdminModalOpen(true)}
-          onOpenExitModal={() => setIsExitModalOpen(true)}
+          onOpenExitModal={openConclusion}
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
           onOpenHelp={() => setIsHelpOpen(true)}
         />
 
         <main id="conteudo" className="workspace-main">
+          {notices}
           <div className="workspace-overview">
             <div>
               <h1>
                 {activeTab === "dashboard"
-                  ? "Frequência mensal"
+                  ? "Minha frequência"
                   : "Folha oficial"}
               </h1>
               <p>
@@ -466,47 +638,70 @@ export default function Home() {
               <select
                 aria-label="Mês da folha"
                 value={monthKey}
-                onChange={(e) => setMonthKey(e.target.value)}
+                onChange={(e) => void changeMonth(e.target.value)}
               >
-                <option value="2026-08">Agosto / 2026</option>
-                <option value="2026-09">Setembro / 2026</option>
-                <option value="2026-10">Outubro / 2026</option>
-                <option value="2026-11">Novembro / 2026</option>
-                <option value="2026-12">Dezembro / 2026</option>
+                {Array.from(new Set([...PROJECT_MONTHS, monthKey]))
+                  .sort()
+                  .map((month) => (
+                    <option key={month} value={month}>
+                      {getMonthYearLabel(month)}
+                    </option>
+                  ))}
               </select>
             </label>
           </div>
 
           {/* ABA 1: PAINEL DE LANÇAMENTOS */}
           {activeTab === "dashboard" && (
-            <div className="space-y-4">
+            <div>
               <StatsGrid
                 totalHours={totalHours}
                 activitiesCount={activities.length}
                 targetHours={32}
               />
 
-              <ActivityForm
-                onSave={handleSaveActivity}
-                defaultGatNumber={activeUser.gatNumber}
-                defaultGatName={
-                  activeUser.gatName || gats[activeUser.gatNumber]?.name
-                }
-                templates={templates}
-              />
+              <div className="frequency-workbench">
+                <ActivityForm
+                  key={`${activeUser.id}-${monthKey}-${formRevision}`}
+                  monthKey={monthKey}
+                  onDirtyChange={setDraftDirty}
+                  onSave={handleSaveActivity}
+                  defaultGatNumber={activeUser.gatNumber}
+                  defaultGatName={
+                    activeUser.gatName || gats[activeUser.gatNumber]?.name
+                  }
+                  templates={templates}
+                />
 
-              <ActivityTable
-                activities={activities}
-                totalHours={totalHours}
-                editingId={editingActivity ? editingActivity.id : null}
-                onEdit={(act) => setEditingActivity(act)}
-                onDelete={handleDeleteActivity}
-                user={activeUser}
-                monthLabel={monthLabel}
-                onLoadSamples={handleLoadSamples}
-                onClearMonth={handleClearMonth}
-                onOpenExitModal={() => setIsExitModalOpen(true)}
-              />
+                <ActivityTable
+                  activities={activities}
+                  totalHours={totalHours}
+                  editingId={editingActivity ? editingActivity.id : null}
+                  onEdit={(act) => setEditingActivity(act)}
+                  onDelete={handleDeleteActivity}
+                  user={activeUser}
+                  monthLabel={monthLabel}
+                  onLoadSamples={handleLoadSamples}
+                  onClearMonth={handleClearMonth}
+                />
+              </div>
+              <div className="review-next">
+                <p>
+                  Terminou os lançamentos? Confira os dados da folha antes de
+                  imprimir.
+                </p>
+                <button
+                  className="primary-button"
+                  onClick={async () => {
+                    if (await confirmDraft()) {
+                      setDraftDirty(false);
+                      setActiveTab("official");
+                    }
+                  }}
+                >
+                  Conferir folha <ArrowLeft className="rotate-180" size={18} />
+                </button>
+              </div>
             </div>
           )}
 
@@ -525,7 +720,7 @@ export default function Home() {
                         : "text-muted hover:text-body"
                     }`}
                   >
-                    Minha Folha ({activeUser.name})
+                    Minha folha
                   </button>
                   <button
                     type="button"
@@ -567,8 +762,8 @@ export default function Home() {
                     Voltar
                   </button>
                 </div>
-                <p className="text-[11px] text-muted sm:hidden w-full text-center pt-1">
-                  Dica: no celular, escolha a orientação{" "}
+                <p className="text-sm text-muted w-full">
+                  Na janela de impressão, escolha papel A4 e orientação{" "}
                   <strong>Horizontal</strong> na janela de impressão do sistema.
                 </p>
               </div>
@@ -609,6 +804,7 @@ export default function Home() {
               activeUser.gatName || gats[activeUser.gatNumber]?.name
             }
             templates={templates}
+            monthKey={monthKey}
           />
 
           {/* Modal de configurações locais */}
@@ -635,6 +831,8 @@ export default function Home() {
             isOpen={isExitModalOpen}
             onClose={() => setIsExitModalOpen(false)}
             onConfirmExit={() => {
+              setDraftDirty(false);
+              setActiveTab("dashboard");
               setIsExitModalOpen(false);
               setActiveProfileId(null);
               setActiveUser(null);
@@ -643,7 +841,7 @@ export default function Home() {
               showToast("Sessão encerrada com sucesso.");
             }}
             onDownloadJson={handleExportBackup}
-            onDownloadPdf={handlePrint}
+            onDownloadPdf={printParticipantSheet}
             userName={activeUser.name}
             hasChanges={hasChanges}
           />
