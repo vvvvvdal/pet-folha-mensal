@@ -92,3 +92,22 @@ administrativas continuam com seu contrato existente.
 O portal Maestri não estava disponível no PATH deste terminal; a conferência
 foi executada diretamente com Playwright. A homologação do canvas e do fluxo
 entre agentes permanece independente desta entrega.
+
+## Publicação em produção — 02/11/2026
+
+Merge por avanço direto na `main` local, preservando o commit de implementação
+`d309198fa1cf440267248b944680b4219db0932a` e os checks aprovados. A publicação
+foi explicitamente autorizada pelo mantenedor.
+
+- Projeto: `pet-folha-mensal`, equipe `vvvvvdals-projects`.
+- Deployment: `dpl_DE2axZd65McaV146xzdYUKp3wcmf`, target `production`, estado `READY`, sem erro de alias.
+- Domínio conferido: [pet-folha-mensal.vercel.app](https://pet-folha-mensal.vercel.app/), HTTP 200.
+- Fonte: 46 arquivos de aplicação/configuração/assets do checkout limpo de `d309198`, enviados pela API conectada da Vercel. O registro retornado não expôs metadados Git; a referência do commit é a origem local desse snapshot.
+- O build remoto confirmou Node 22, instalação das dependências e publicação concluída.
+- No domínio publicado, um contexto isolado de Chromium móvel confirmou: primeiro acesso com campo em 16px, perfil repetido retomado sem JSON, mês anterior preservado, mês novo vazio, campos do formulário em 16px, ausência de overflow e zero erros de página. A prévia da folha oficial abriu corretamente.
+
+Os registros sintéticos desse teste ficaram somente no armazenamento do contexto
+isolado do navegador. O teste não enviou folhas, feedback ou dados administrativos.
+A conferência física e a primeira execução do GitHub Actions continuam pendentes.
+O GitHub não recebeu push, conforme a regra do projeto; publicar este snapshot
+pela API não atualiza a `main` remota.

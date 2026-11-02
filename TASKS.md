@@ -32,7 +32,7 @@
 - [ ] Conferir a primeira execução remota do CI após push humano: workflow preparado com tipagem, lint, testes locais, build e Playwright.
 - [ ] Homologar a nova UI em smartphone físico, zoom real de 200% e impressora; matriz local emulada e PDFs conferidos. [Escopo](docs/validation/ui-ux-20261102/README.md).
 - [ ] Homologar o primeiro fluxo do [Maestri com Codex/Gemini Argon 4](docs/AGENT-WORKFLOW.md): confirmar modelo, comunicação, limites de escrita e gates reais.
-- [ ] **Deploy na Vercel**: Configuração e publicação remota (ignorado temporariamente a pedido do usuário).
+- [x] **Deploy na Vercel (02/11/2026)**: snapshot de `d309198` publicado em produção, estado READY e domínio principal conferido. Retomada sem JSON, isolamento entre meses e fontes de 16px aprovados no navegador publicado. [Registro e limites](docs/validation/ui-ux-20261102/README.md#publicação-em-produção--02112026).
 
 ## Refinamento de UI/UX (31/10/2026)
 - [x] Entrada com acesso prioritário, prévia visual e FAQ; rodapé compartilhado e ajuda no painel.

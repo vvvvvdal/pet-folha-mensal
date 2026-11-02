@@ -6,6 +6,13 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
+Publicação atual de 02/11/2026: versão `d309198`, enviada diretamente pela API
+conectada, deployment `dpl_DE2axZd65McaV146xzdYUKp3wcmf`, estado READY. Domínio
+principal e percurso de retomada sem JSON conferidos. O build usou Node 22,
+conforme `package.json`. [Evidência e limites](validation/ui-ux-20261102/README.md#publicação-em-produção--02112026).
+O merge foi realizado na main local; o push e o primeiro CI remoto continuam
+sob responsabilidade do mantenedor.
+
 O projeto está configurado para integração contínua (CI/CD) direta com a branch `main`:
 
 1. Acesse o painel da Vercel: [vercel.com/new](https://vercel.com/new).
