@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Activity, ModalityType, ActivityTemplate } from '@/types';
-import { calcPetHours, cleanActivityDescription } from '@/lib/pet-calculator';
-import { X, Calendar, Clock, Check, Edit3 } from 'lucide-react';
-import { useDialog } from '@/context/DialogContext';
-import { useTheme } from '@/lib/theme';
+import { Modal } from "./Modal";
+import React, { useState, useEffect } from "react";
+import { Activity, ModalityType, ActivityTemplate } from "@/types";
+import { calcPetHours, cleanActivityDescription } from "@/lib/pet-calculator";
+import { X, Calendar, Clock, Check, Edit3 } from "lucide-react";
+import { useDialog } from "@/context/DialogContext";
 
 interface EditActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
   activity: Activity | null;
-  onSave: (data: Omit<Activity, 'id' | 'hours'>, editingId?: string) => void;
+  onSave: (data: Omit<Activity, "id" | "hours">, editingId?: string) => void;
   defaultGatNumber?: string;
   defaultGatName?: string;
   templates?: ActivityTemplate[];
@@ -22,21 +22,21 @@ export function EditActivityModal({
   onClose,
   activity,
   onSave,
-  defaultGatNumber = '04',
-  defaultGatName = 'Mangaba',
-  templates = []
+  defaultGatNumber = "04",
+  defaultGatName = "Mangaba",
+  templates = [],
 }: EditActivityModalProps) {
-  const { theme } = useTheme();
   const { alert } = useDialog();
 
-  const [date, setDate] = useState('');
-  const [start, setStart] = useState('');
-  const [end, setEnd] = useState('');
-  const [modality, setModality] = useState<ModalityType>('Síncrona virtual');
-  const [description, setDescription] = useState('');
+  const [date, setDate] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [modality, setModality] = useState<ModalityType>("Síncrona virtual");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     if (activity) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset modal fields when the selected record or open state changes.
       setDate(activity.date);
       setStart(activity.start);
       setEnd(activity.end);
@@ -54,18 +54,18 @@ export function EditActivityModal({
 
     if (!description.trim()) {
       await alert({
-        title: 'Descrição Obrigatória',
-        message: 'Por favor, informe a descrição detalhada da atividade.',
-        variant: 'warning'
+        title: "Descrição Obrigatória",
+        message: "Por favor, informe a descrição detalhada da atividade.",
+        variant: "warning",
       });
       return;
     }
 
     if (previewHours <= 0) {
       await alert({
-        title: 'Horário Inválido',
-        message: 'O horário de saída deve ser posterior ao horário de entrada.',
-        variant: 'warning'
+        title: "Horário Inválido",
+        message: "O horário de saída deve ser posterior ao horário de entrada.",
+        variant: "warning",
       });
       return;
     }
@@ -78,36 +78,39 @@ export function EditActivityModal({
         start,
         end,
         modality,
-        description: cleanDesc
+        description: cleanDesc,
       },
-      activity.id
+      activity.id,
     );
 
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <Modal isOpen={isOpen} onClose={onClose} label="Editar atividade">
       <div
-        className="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-4 sm:p-6 space-y-5 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto"
+        className="w-full max-w-xl rounded-2xl border border-line bg-surface shadow-[var(--page-shadow)] p-4 sm:p-6 space-y-5 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-line">
           <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-xl bg-[#008D4C]/15 text-[#008D4C] dark:text-[#10B981] flex items-center justify-center font-bold">
+            <div className="size-8 rounded-xl bg-accent/15 text-accent  flex items-center justify-center font-bold">
               <Edit3 className="size-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-100">Editar Atividade</h3>
-              <p className="text-xs text-slate-400">Atualize os horários, modalidade ou descrição do registro</p>
+              <h3 className="text-base font-bold text-ink">Editar Atividade</h3>
+              <p className="text-xs text-muted">
+                Atualize os horários, modalidade ou descrição do registro
+              </p>
             </div>
           </div>
           <button
+            aria-label="Fechar"
             type="button"
             onClick={onClose}
-            className="size-8 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+            className="size-8 rounded-lg border border-line hover:bg-raised text-muted hover:text-body flex items-center justify-center transition-colors cursor-pointer"
             title="Fechar"
           >
             <X className="size-4" />
@@ -116,32 +119,51 @@ export function EditActivityModal({
 
         {/* Modelos rápidos no modal */}
         {templates && templates.length > 0 && (
-          <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-950/40 border border-slate-800/80">
-            <span className="text-xs text-slate-400">Preenchimento rápido:</span>
+          <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-canvas border border-line">
+            <span className="text-xs text-muted">Preenchimento rápido:</span>
             <select
+              aria-label="Modelo de atividade para preenchimento rápido"
               onChange={(e) => {
                 const tplId = e.target.value;
                 if (!tplId) return;
                 const found = templates.find((t) => t.id === tplId);
                 if (found) {
-                  const rawName = found.name || (found as any).descriptionTemplate || '';
+                  const rawName =
+                    found.name ||
+                    (
+                      found as ActivityTemplate & {
+                        descriptionTemplate?: string;
+                      }
+                    ).descriptionTemplate ||
+                    "";
                   const finalTitle = cleanActivityDescription(
                     rawName
-                      .replace('{gatNumber}', defaultGatNumber)
-                      .replace('{gatName}', defaultGatName || `GAT ${defaultGatNumber}`)
+                      .replace("{gatNumber}", defaultGatNumber)
+                      .replace(
+                        "{gatName}",
+                        defaultGatName || `GAT ${defaultGatNumber}`,
+                      ),
                   );
                   setDescription(finalTitle);
                   setModality(found.modality);
                 }
-                e.target.value = '';
+                e.target.value = "";
               }}
               defaultValue=""
-              className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 outline-none cursor-pointer focus:border-[#008D4C]"
+              className="text-xs px-2.5 py-1.5 rounded-lg bg-surface border border-line text-body outline-none cursor-pointer focus:border-accent"
             >
-              <option value="" disabled>Selecionar modelo...</option>
+              <option value="" disabled>
+                Selecionar modelo...
+              </option>
               {templates.map((tpl) => {
-                const tplName = tpl?.name || (tpl as any)?.descriptionTemplate || 'Atividade';
-                const isGat = Boolean(tpl?.isGatSpecific) || tplName.includes('{gatNumber}');
+                const tplName =
+                  tpl?.name ||
+                  (tpl as ActivityTemplate & { descriptionTemplate?: string })
+                    ?.descriptionTemplate ||
+                  "Atividade";
+                const isGat =
+                  Boolean(tpl?.isGatSpecific) ||
+                  tplName.includes("{gatNumber}");
                 const label = isGat
                   ? `Reunião do GAT ${defaultGatNumber} (${tpl.modality})`
                   : `${tplName} (${tpl.modality})`;
@@ -160,149 +182,182 @@ export function EditActivityModal({
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
             {/* Data */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Data</label>
+              <label
+                htmlFor="editactivitymodal-wrapped-1"
+                className="block text-xs font-semibold text-body mb-1.5"
+              >
+                Data
+              </label>
               <div className="relative flex items-center">
                 <input
+                  id="editactivitymodal-wrapped-1"
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   onClick={(e) => {
                     try {
-                      (e.target as any).showPicker?.();
+                      e.currentTarget.showPicker?.();
                     } catch {}
                   }}
                   required
-                  style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
                 />
-                <Calendar className="absolute right-3 size-4 text-slate-200 pointer-events-none z-1" />
+                <Calendar className="absolute right-3 size-4 text-body pointer-events-none z-1" />
               </div>
             </div>
 
             {/* Entrada */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Entrada</label>
+              <label
+                htmlFor="editactivitymodal-wrapped-2"
+                className="block text-xs font-semibold text-body mb-1.5"
+              >
+                Entrada
+              </label>
               <div className="relative flex items-center">
                 <input
+                  id="editactivitymodal-wrapped-2"
                   type="time"
                   value={start}
                   onChange={(e) => setStart(e.target.value)}
                   onClick={(e) => {
                     try {
-                      (e.target as any).showPicker?.();
+                      e.currentTarget.showPicker?.();
                     } catch {}
                   }}
                   required
-                  style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
                 />
-                <Clock className="absolute right-3 size-4 text-slate-200 pointer-events-none z-1" />
+                <Clock className="absolute right-3 size-4 text-body pointer-events-none z-1" />
               </div>
             </div>
 
             {/* Saída */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Saída</label>
+              <label
+                htmlFor="editactivitymodal-wrapped-3"
+                className="block text-xs font-semibold text-body mb-1.5"
+              >
+                Saída
+              </label>
               <div className="relative flex items-center">
                 <input
+                  id="editactivitymodal-wrapped-3"
                   type="time"
                   value={end}
                   onChange={(e) => setEnd(e.target.value)}
                   onClick={(e) => {
                     try {
-                      (e.target as any).showPicker?.();
+                      e.currentTarget.showPicker?.();
                     } catch {}
                   }}
                   required
-                  style={{ colorScheme: theme === 'dark' ? 'dark' : 'light' }}
-                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors cursor-pointer"
+                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
                 />
-                <Clock className="absolute right-3 size-4 text-slate-200 pointer-events-none z-1" />
+                <Clock className="absolute right-3 size-4 text-body pointer-events-none z-1" />
               </div>
             </div>
 
             {/* Duração Calculada */}
-            <div className="min-h-[44px] px-3 py-2 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-400">Duração:</span>
-              <span className="text-sm font-bold text-[#10B981]">
-                {previewHours}h {previewHours === 1 ? 'hora' : 'horas'}
+            <div className="min-h-[44px] px-3 py-2 rounded-xl bg-canvas border border-line flex items-center justify-between">
+              <span className="text-xs font-medium text-muted">Duração:</span>
+              <span className="text-sm font-bold text-accent">
+                {previewHours}h {previewHours === 1 ? "hora" : "horas"}
               </span>
             </div>
           </div>
 
           {/* Row 2: Modalidade */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Modalidade</label>
+          <fieldset>
+            <legend className="block text-xs font-semibold text-body mb-1.5">
+              Modalidade
+            </legend>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => setModality('Síncrona virtual')}
+                aria-pressed={modality === "Síncrona virtual"}
+                onClick={() => setModality("Síncrona virtual")}
                 className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  modality === 'Síncrona virtual'
-                    ? 'bg-[#00A3E0]/15 border-[#00A3E0]/50 text-[#00A3E0] dark:text-[#7DD3FC] font-semibold'
-                    : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200'
+                  modality === "Síncrona virtual"
+                    ? "bg-[#00A3E0]/15 border-info/50 text-info  font-semibold"
+                    : "bg-canvas border-line text-muted hover:text-body"
                 }`}
               >
-                <span className={`size-2 rounded-full ${modality === 'Síncrona virtual' ? 'bg-[#00A3E0]' : 'bg-slate-600'}`} />
+                <span
+                  className={`size-2 rounded-full ${modality === "Síncrona virtual" ? "bg-[#00A3E0]" : "bg-line"}`}
+                />
                 <span>Síncrona Virtual</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setModality('Síncrona presencial')}
+                aria-pressed={modality === "Síncrona presencial"}
+                onClick={() => setModality("Síncrona presencial")}
                 className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  modality === 'Síncrona presencial'
-                    ? 'bg-blue-600/20 border-blue-500/50 text-blue-600 dark:text-blue-300 font-semibold'
-                    : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200'
+                  modality === "Síncrona presencial"
+                    ? "bg-info/10 border-info/50 text-info  font-semibold"
+                    : "bg-canvas border-line text-muted hover:text-body"
                 }`}
               >
-                <span className={`size-2 rounded-full ${modality === 'Síncrona presencial' ? 'bg-blue-500' : 'bg-slate-600'}`} />
+                <span
+                  className={`size-2 rounded-full ${modality === "Síncrona presencial" ? "bg-info" : "bg-line"}`}
+                />
                 <span>Síncrona Presencial</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setModality('Assíncrona virtual')}
+                aria-pressed={modality === "Assíncrona virtual"}
+                onClick={() => setModality("Assíncrona virtual")}
                 className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  modality === 'Assíncrona virtual'
-                    ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-300 font-semibold'
-                    : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200'
+                  modality === "Assíncrona virtual"
+                    ? "bg-info/10 border-info/50 text-info  font-semibold"
+                    : "bg-canvas border-line text-muted hover:text-body"
                 }`}
               >
-                <span className={`size-2 rounded-full ${modality === 'Assíncrona virtual' ? 'bg-indigo-500' : 'bg-slate-600'}`} />
+                <span
+                  className={`size-2 rounded-full ${modality === "Assíncrona virtual" ? "bg-info" : "bg-line"}`}
+                />
                 <span>Assíncrona Virtual</span>
               </button>
             </div>
-          </div>
+          </fieldset>
 
           {/* Row 3: Descrição */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Descrição da Atividade</label>
+            <label
+              htmlFor="editactivitymodal-field-1"
+              className="block text-xs font-semibold text-body mb-1.5"
+            >
+              Descrição da Atividade
+            </label>
             <textarea
+              id="editactivitymodal-field-1"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
               required
               placeholder="Ex: Reunião do GAT 04, Oficina formativa..."
-              className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-200 outline-none focus:border-[#008D4C] transition-colors resize-none"
+              className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors resize-none"
             />
-            <p className="text-[11px] text-slate-400 mt-1">
-              O tipo da atividade selecionado acima é incluído automaticamente na Folha oficial.
+            <p className="text-[11px] text-muted mt-1">
+              O tipo da atividade selecionado acima é incluído automaticamente
+              na Folha oficial.
             </p>
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-line">
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-300 text-sm font-semibold transition-colors cursor-pointer"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl border border-line hover:bg-raised text-body text-sm font-semibold transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#008D4C] hover:bg-[#00733e] text-white text-sm font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer"
+              className="min-h-[44px] px-5 py-2.5 rounded-xl bg-primary hover:bg-[var(--primary-hover)] text-white text-sm font-bold transition-all shadow-[var(--page-shadow)] flex items-center gap-2 cursor-pointer"
             >
               <Check className="size-4" />
               <span>Salvar Alterações</span>
@@ -310,6 +365,6 @@ export function EditActivityModal({
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

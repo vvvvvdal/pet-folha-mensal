@@ -1,37 +1,38 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from "react";
 
-export type ThemeMode = 'dark' | 'light';
+export type ThemeMode = "dark" | "light";
+const themeEvent = "pet-theme-change";
+
+function getSnapshot(): ThemeMode {
+  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+}
+
+function subscribe(callback: () => void) {
+  window.addEventListener(themeEvent, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(themeEvent, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
 
 export function useTheme() {
-  const [theme, setTheme] = useState<ThemeMode>('dark');
-
-  useEffect(() => {
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const urlTheme = urlParams?.get('theme') as ThemeMode;
-    if (urlTheme === 'light' || urlTheme === 'dark') {
-      setTheme(urlTheme);
-      document.documentElement.setAttribute('data-theme', urlTheme);
-      localStorage.setItem('pet_theme', urlTheme);
-      return;
-    }
-
-    const saved = localStorage.getItem('pet_theme') as ThemeMode;
-    if (saved === 'light' || saved === 'dark') {
-      setTheme(saved);
-      document.documentElement.setAttribute('data-theme', saved);
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-  }, []);
-
+  const theme = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    () => "dark" as const,
+  );
   const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    localStorage.setItem('pet_theme', next);
-    document.documentElement.setAttribute('data-theme', next);
+    const next = getSnapshot() === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("pet_theme", next);
+    } catch {
+      /* The theme also works when storage is unavailable. */
+    }
+    window.dispatchEvent(new Event(themeEvent));
   };
-
   return { theme, toggleTheme };
 }

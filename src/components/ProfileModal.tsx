@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { UserProfile, UserRole, GATInfo } from '@/types';
-import { normalizeName } from '@/lib/storage';
-import { X, Check, User } from 'lucide-react';
-import { useDialog } from '@/context/DialogContext';
+import { Modal } from "./Modal";
+import React, { useState, useEffect } from "react";
+import { UserProfile, UserRole, GATInfo } from "@/types";
+import { normalizeName } from "@/lib/storage";
+import { X, Check, User } from "lucide-react";
+import { useDialog } from "@/context/DialogContext";
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export function ProfileModal({
   allProfiles,
   gats,
   roles,
-  onSaveProfile
+  onSaveProfile,
 }: ProfileModalProps) {
   const { alert } = useDialog();
   const [name, setName] = useState(currentUser.name);
@@ -32,6 +33,7 @@ export function ProfileModal({
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Opening the profile editor must discard a previously cancelled draft.
       setName(currentUser.name);
       setRole(currentUser.role);
       setGatNumber(currentUser.gatNumber);
@@ -48,13 +50,14 @@ export function ProfileModal({
     const normalizedNew = normalizeName(name);
     if (
       allProfiles.some(
-        (p) => p.id !== currentUser.id && normalizeName(p.name) === normalizedNew
+        (p) =>
+          p.id !== currentUser.id && normalizeName(p.name) === normalizedNew,
       )
     ) {
       await alert({
-        title: 'Nome Duplicado',
+        title: "Nome Duplicado",
         message: `Já existe outro participante cadastrado com o nome "${name.trim()}".`,
-        variant: 'warning'
+        variant: "warning",
       });
       return;
     }
@@ -65,27 +68,31 @@ export function ProfileModal({
       name: name.trim(),
       role,
       gatNumber,
-      gatName: gatInfo?.name || `GAT ${gatNumber}`
+      gatName: gatInfo?.name || `GAT ${gatNumber}`,
     });
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      label="Identificação do participante"
+    >
       <div
-        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6 shadow-2xl transition-all max-h-[90dvh] overflow-y-auto"
+        className="w-full max-w-md rounded-2xl border border-line bg-surface p-5 sm:p-6 shadow-[var(--page-shadow)] transition-all max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4">
+        <div className="flex items-center justify-between pb-3.5 border-b border-line mb-4">
           <div className="flex items-center gap-2">
-            <User className="size-4.5" style={{ color: '#10B981' }} />
-            <h3 className="text-sm sm:text-base font-bold text-slate-100">
+            <User className="size-4.5" style={{ color: "#10B981" }} />
+            <h3 className="text-sm sm:text-base font-bold text-ink">
               Identificação do Participante
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="size-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+            className="size-8 rounded-lg text-muted hover:text-ink hover:bg-raised flex items-center justify-center cursor-pointer transition-colors"
             aria-label="Fechar"
           >
             <X className="size-4" />
@@ -94,27 +101,35 @@ export function ProfileModal({
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
+            <label
+              htmlFor="profilemodal-field-1"
+              className="block text-xs sm:text-sm font-medium text-body mb-1.5"
+            >
               Nome Completo
             </label>
             <input
+              id="profilemodal-field-1"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] transition-colors"
+              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-canvas border border-line text-ink outline-none focus:border-accent transition-colors"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
+              <label
+                htmlFor="profilemodal-field-2"
+                className="block text-xs sm:text-sm font-medium text-body mb-1.5"
+              >
                 Grupo Tutorial (GAT)
               </label>
               <select
+                id="profilemodal-field-2"
                 value={gatNumber}
                 onChange={(e) => setGatNumber(e.target.value)}
-                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer transition-colors"
+                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-canvas border border-line text-ink outline-none focus:border-accent cursor-pointer transition-colors"
               >
                 {Object.entries(gats).map(([num, info]) => (
                   <option key={num} value={num}>
@@ -125,13 +140,17 @@ export function ProfileModal({
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-1.5">
+              <label
+                htmlFor="profilemodal-field-3"
+                className="block text-xs sm:text-sm font-medium text-body mb-1.5"
+              >
                 Função no SUS
               </label>
               <select
+                id="profilemodal-field-3"
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 outline-none focus:border-[#008D4C] cursor-pointer transition-colors"
+                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-canvas border border-line text-ink outline-none focus:border-accent cursor-pointer transition-colors"
               >
                 {roles.map((r) => (
                   <option key={r} value={r}>
@@ -142,21 +161,22 @@ export function ProfileModal({
             </div>
           </div>
 
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Seus dados são salvos exclusivamente no seu dispositivo (100% no navegador).
+          <p className="text-xs text-muted leading-relaxed">
+            Seus dados são salvos exclusivamente no seu dispositivo (100% no
+            navegador).
           </p>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800/60">
+          <div className="flex justify-end gap-2 pt-2 border-t border-line">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 text-xs sm:text-sm font-medium rounded-xl border border-slate-800 text-slate-300 hover:bg-slate-800 cursor-pointer transition-colors"
+              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 text-xs sm:text-sm font-medium rounded-xl border border-line text-body hover:bg-raised cursor-pointer transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 sm:flex-none min-h-[44px] px-5 py-2 text-xs sm:text-sm font-bold rounded-xl text-white bg-[#008D4C] hover:bg-[#00733E] cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+              className="flex-1 sm:flex-none min-h-[44px] px-5 py-2 text-xs sm:text-sm font-bold rounded-xl text-white bg-primary hover:bg-[var(--primary-hover)] cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-[var(--page-shadow)]"
             >
               <Check className="size-4" />
               <span>Salvar Alterações</span>
@@ -164,6 +184,6 @@ export function ProfileModal({
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { UserProfile, Activity, UserRole, GATInfo, ActivityTemplate } from '@/types';
+import React, { useState, useEffect } from "react";
+import {
+  UserProfile,
+  Activity,
+  UserRole,
+  GATInfo,
+  ActivityTemplate,
+} from "@/types";
 import {
   getStoredProfiles,
   saveProfiles,
@@ -16,40 +22,51 @@ import {
   getStoredGats,
   getStoredRoles,
   getStoredTemplates,
-  registerProfile
-} from '@/lib/storage';
+  registerProfile,
+} from "@/lib/storage";
 import {
   calcPetHours,
   getMonthYearLabel,
   formatDateBR,
   cleanActivityDescription,
-  sortActivitiesChronologically
-} from '@/lib/pet-calculator';
-import { Navbar } from '@/components/Navbar';
-import { ProfileModal } from '@/components/ProfileModal';
-import { AdminModal } from '@/components/AdminModal';
-import { StatsGrid } from '@/components/StatsGrid';
-import { ActivityForm } from '@/components/ActivityForm';
-import { ActivityTable } from '@/components/ActivityTable';
-import { EditActivityModal } from '@/components/EditActivityModal';
-import { OfficialSheet } from '@/components/OfficialSheet';
-import { LandingPage } from '@/components/LandingPage';
-import { ExitModal } from '@/components/ExitModal';
-import { FeedbackModal } from '@/components/FeedbackModal';
-import { Calendar, Download, Printer, CheckCircle2, ArrowLeft, MessageSquareHeart } from 'lucide-react';
-import { useDialog } from '@/context/DialogContext';
+  sortActivitiesChronologically,
+} from "@/lib/pet-calculator";
+import { Navbar } from "@/components/Navbar";
+import { ProfileModal } from "@/components/ProfileModal";
+import { AdminModal } from "@/components/AdminModal";
+import { StatsGrid } from "@/components/StatsGrid";
+import { ActivityForm } from "@/components/ActivityForm";
+import { ActivityTable } from "@/components/ActivityTable";
+import { EditActivityModal } from "@/components/EditActivityModal";
+import { OfficialSheet } from "@/components/OfficialSheet";
+import { LandingPage } from "@/components/LandingPage";
+import { ExitModal } from "@/components/ExitModal";
+import { FeedbackModal } from "@/components/FeedbackModal";
+import { SiteFooter } from "@/components/SiteFooter";
+import { HelpModal } from "@/components/Help";
+import {
+  Calendar,
+  Download,
+  Printer,
+  CheckCircle2,
+  ArrowLeft,
+} from "lucide-react";
+import { useDialog } from "@/context/DialogContext";
 
 export default function Home() {
   const { alert, confirm } = useDialog();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeUser, setActiveUser] = useState<UserProfile | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-  const [monthKey, setMonthKey] = useState('2026-09');
+  const [monthKey, setMonthKey] = useState("2026-09");
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'official'>('dashboard');
+  const [activeTab, setActiveTab] = useState<"dashboard" | "official">(
+    "dashboard",
+  );
   const [showBlankTemplate, setShowBlankTemplate] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -63,6 +80,7 @@ export default function Home() {
   // Inicialização Local-First
   useEffect(() => {
     const loadedProfiles = getStoredProfiles();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Browser records are hydrated after SSR to preserve the existing local storage contract.
     setProfiles(loadedProfiles);
 
     const loadedGats = getStoredGats();
@@ -74,52 +92,59 @@ export default function Home() {
     const loadedTemplates = getStoredTemplates();
     setTemplates(loadedTemplates);
 
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    if (urlParams?.get('admin') === '1') {
+    const urlParams =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
+    if (urlParams?.get("admin") === "1") {
       setIsAdminModalOpen(true);
     }
 
-    if (urlParams?.get('demo') === '1') {
+    if (urlParams?.get("demo") === "1") {
       const demoUser = loadedProfiles[0] || {
-        id: 'usr-felipe',
-        name: 'Felipe Gonçalves Vidal',
-        role: 'Estudante',
-        gatNumber: '04',
-        gatName: 'Mangaba',
-        createdAt: new Date().toISOString()
+        id: "usr-felipe",
+        name: "Felipe Gonçalves Vidal",
+        role: "Estudante",
+        gatNumber: "04",
+        gatName: "Mangaba",
+        createdAt: new Date().toISOString(),
       };
       setActiveUser(demoUser);
       setActiveProfileId(demoUser.id);
       const acts = getActivitiesForMonth(demoUser.id, monthKey);
-      setActivities(acts.length > 0 ? acts : [
-        {
-          id: 'act-1',
-          date: '2026-08-05',
-          start: '19:00',
-          end: '21:00',
-          description: 'Reunião do GAT 04 (Mangaba)',
-          modality: 'Síncrona virtual',
-          hours: 2
-        },
-        {
-          id: 'act-2',
-          date: '2026-08-12',
-          start: '08:00',
-          end: '12:00',
-          description: 'Ação territorial na USF',
-          modality: 'Síncrona presencial',
-          hours: 4
-        },
-        {
-          id: 'act-3',
-          date: '2026-08-18',
-          start: '14:00',
-          end: '16:00',
-          description: 'Estudo do Guia de Bolso MS',
-          modality: 'Assíncrona virtual',
-          hours: 2
-        }
-      ]);
+      setActivities(
+        acts.length > 0
+          ? acts
+          : [
+              {
+                id: "act-1",
+                date: "2026-08-05",
+                start: "19:00",
+                end: "21:00",
+                description: "Reunião do GAT 04 (Mangaba)",
+                modality: "Síncrona virtual",
+                hours: 2,
+              },
+              {
+                id: "act-2",
+                date: "2026-08-12",
+                start: "08:00",
+                end: "12:00",
+                description: "Ação territorial na USF",
+                modality: "Síncrona presencial",
+                hours: 4,
+              },
+              {
+                id: "act-3",
+                date: "2026-08-18",
+                start: "14:00",
+                end: "16:00",
+                description: "Estudo do Guia de Bolso MS",
+                modality: "Assíncrona virtual",
+                hours: 2,
+              },
+            ],
+      );
       return;
     }
 
@@ -148,20 +173,26 @@ export default function Home() {
   };
 
   const handleSaveProfile = (updated: UserProfile) => {
-    const updatedProfiles = profiles.map((p) => (p.id === updated.id ? updated : p));
+    const updatedProfiles = profiles.map((p) =>
+      p.id === updated.id ? updated : p,
+    );
     setProfiles(updatedProfiles);
     saveProfiles(updatedProfiles);
     setActiveUser(updated);
-    showToast('Identificação atualizada.');
+    showToast("Identificação atualizada.");
   };
 
-  const handleCreateNewProfile = async (name: string, gatNumber: string, role: UserRole) => {
+  const handleCreateNewProfile = async (
+    name: string,
+    gatNumber: string,
+    role: UserRole,
+  ) => {
     const res = registerProfile({ name, role, gatNumber });
     if (!res.success) {
       await alert({
-        title: 'Cadastro Não Realizado',
-        message: res.error || 'Erro ao cadastrar participante.',
-        variant: 'warning'
+        title: "Cadastro Não Realizado",
+        message: res.error || "Erro ao cadastrar participante.",
+        variant: "warning",
       });
       return;
     }
@@ -175,7 +206,10 @@ export default function Home() {
   };
 
   // Manipulação de Atividades (Salvar / Editar / Excluir)
-  const handleSaveActivity = (data: Omit<Activity, 'id' | 'hours'>, editingId?: string) => {
+  const handleSaveActivity = (
+    data: Omit<Activity, "id" | "hours">,
+    editingId?: string,
+  ) => {
     if (!activeUser) return;
 
     const hours = calcPetHours(data.start, data.end);
@@ -183,18 +217,18 @@ export default function Home() {
 
     if (editingId) {
       updatedActivities = activities.map((act) =>
-        act.id === editingId ? { ...data, id: editingId, hours } : act
+        act.id === editingId ? { ...data, id: editingId, hours } : act,
       );
       setEditingActivity(null);
-      showToast('Atividade atualizada.');
+      showToast("Atividade atualizada.");
     } else {
       const newActivity: Activity = {
         ...data,
         id: `act-${Date.now().toString(36)}`,
-        hours
+        hours,
       };
       updatedActivities = [...activities, newActivity];
-      showToast('Atividade adicionada.');
+      showToast("Atividade adicionada.");
     }
 
     const sorted = sortActivitiesChronologically(updatedActivities);
@@ -207,13 +241,13 @@ export default function Home() {
     if (!activeUser) return;
     const act = activities.find((a) => a.id === id);
     const confirmed = await confirm({
-      title: 'Excluir Atividade?',
+      title: "Excluir Atividade?",
       message: act
         ? `Deseja realmente remover o registro "${cleanActivityDescription(act.description)}" de ${formatDateBR(act.date)} (${act.hours}h)?`
-        : 'Deseja realmente remover esta atividade da sua folha mensal?',
-      confirmText: 'Sim, excluir',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+        : "Deseja realmente remover esta atividade da sua folha mensal?",
+      confirmText: "Sim, excluir",
+      cancelText: "Cancelar",
+      variant: "danger",
     });
     if (!confirmed) return;
 
@@ -224,7 +258,7 @@ export default function Home() {
     setActivities(updated);
     saveActivitiesForMonth(activeUser.id, monthKey, updated);
     setHasChanges(true);
-    showToast('Lançamento excluído.');
+    showToast("Lançamento excluído.");
   };
 
   const handleLoadSamples = () => {
@@ -234,7 +268,9 @@ export default function Home() {
     setActivities(sorted);
     saveActivitiesForMonth(activeUser.id, monthKey, sorted);
     setHasChanges(true);
-    showToast(`Atividades de exemplo do GAT ${activeUser.gatNumber} carregadas.`);
+    showToast(
+      `Atividades de exemplo do GAT ${activeUser.gatNumber} carregadas.`,
+    );
   };
 
   const handleClearMonth = () => {
@@ -255,45 +291,60 @@ export default function Home() {
   const handleExportBackup = async (): Promise<boolean> => {
     if (!activeUser) return false;
     const jsonString = exportUserData(activeUser, monthKey);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const filename = `backup-frequencia-${activeUser.name.toLowerCase().replace(/\s+/g, '-')}-${monthKey}.json`;
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const filename = `backup-frequencia-${activeUser.name.toLowerCase().replace(/\s+/g, "-")}-${monthKey}.json`;
 
     // 1. Tenta API moderna showSaveFilePicker (Chromium/Edge) se suportada
-    if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+    if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
       try {
-        const fileHandle = await (window as any).showSaveFilePicker({
+        const fileHandle = await (
+          window as Window & {
+            showSaveFilePicker: (options: {
+              suggestedName: string;
+              types: {
+                description: string;
+                accept: Record<string, string[]>;
+              }[];
+            }) => Promise<{
+              createWritable: () => Promise<{
+                write: (data: Blob) => Promise<void>;
+                close: () => Promise<void>;
+              }>;
+            }>;
+          }
+        ).showSaveFilePicker({
           suggestedName: filename,
           types: [
             {
-              description: 'Arquivo de Backup JSON',
-              accept: { 'application/json': ['.json'] }
-            }
-          ]
+              description: "Cópia de segurança (.json)",
+              accept: { "application/json": [".json"] },
+            },
+          ],
         });
         const writable = await fileHandle.createWritable();
         await writable.write(blob);
         await writable.close();
         setHasChanges(false);
-        showToast('Backup da folha salvo com sucesso!');
+        showToast("Cópia da folha salva com sucesso!");
         return true;
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          showToast('Salvamento cancelado.');
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") {
+          showToast("Salvamento cancelado.");
           return false;
         }
-        console.warn('showSaveFilePicker falhou, tentando fallback:', err);
+        console.warn("showSaveFilePicker falhou, tentando fallback:", err);
       }
     }
 
     // 2. Download direto padrão (Brave, Firefox, Safari, Mobile)
     try {
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Download do backup iniciado.');
+      showToast("Download da cópia de segurança iniciado.");
       return true;
     } catch {
       return false;
@@ -312,12 +363,13 @@ export default function Home() {
         setActiveUser(result.user);
         if (result.monthKey) setMonthKey(result.monthKey);
         setActivities(sortActivitiesChronologically(result.activities));
-        showToast('Backup da folha restaurado com sucesso!');
+        showToast("Cópia da folha restaurada com sucesso!");
       } else {
         await alert({
-          title: 'Erro no Arquivo',
-          message: result.error || 'Erro ao carregar arquivo de backup.',
-          variant: 'warning'
+          title: "Erro no Arquivo",
+          message:
+            result.error || "Não foi possível restaurar a cópia da folha.",
+          variant: "warning",
         });
       }
     };
@@ -361,8 +413,11 @@ export default function Home() {
 
         {/* Toast Notificação */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-[#008D4C]/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
-            <CheckCircle2 className="size-3.5 text-[#10B981] shrink-0" />
+          <div
+            role="status"
+            className="fixed bottom-4 right-4 left-4 sm:left-auto px-3.5 py-2 rounded-lg border border-accent/25 bg-surface shadow-[var(--page-shadow)] text-xs font-medium text-body z-50 flex items-center gap-2 animate-fade-in"
+          >
+            <CheckCircle2 className="size-3.5 text-accent shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
@@ -375,7 +430,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="screen-only">
+      <div className="screen-only dashboard-shell">
         {/* Header Superior Fixo com Blur */}
         <Navbar
           user={activeUser}
@@ -388,43 +443,42 @@ export default function Home() {
           onOpenAdmin={() => setIsAdminModalOpen(true)}
           onOpenExitModal={() => setIsExitModalOpen(true)}
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
+          onOpenHelp={() => setIsHelpOpen(true)}
         />
 
-        <main className="w-full max-w-full sm:max-w-6xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 transition-all text-slate-200 min-w-0 overflow-x-hidden">
-          {/* Hero / Overview Banner */}
-          <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-800/80">
+        <main id="conteudo" className="workspace-main">
+          <div className="workspace-overview">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-                {activeTab === 'dashboard' ? 'Painel de Frequência' : 'Folha de Frequência Oficial'}
+              <h1>
+                {activeTab === "dashboard"
+                  ? "Frequência mensal"
+                  : "Folha oficial"}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                {activeTab === 'dashboard'
-                  ? `Controle de dedicação e presença • GAT ${activeUser.gatNumber} (${activeUser.gatName || gats[activeUser.gatNumber]?.name || 'PET'})`
-                  : 'Documento impresso e assinado para validação mensal de bolsa (SGTES/MS)'}
+              <p>
+                {activeTab === "dashboard"
+                  ? `GAT ${activeUser.gatNumber} · ${activeUser.gatName || gats[activeUser.gatNumber]?.name || "PET"}`
+                  : "Confira os dados antes de imprimir e assinar."}
               </p>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs shadow-xs">
-                <Calendar className="size-4 text-[#10B981]" />
-                <span className="text-slate-400 font-medium">Mês:</span>
-                <select
-                  value={monthKey}
-                  onChange={(e) => setMonthKey(e.target.value)}
-                  className="font-bold text-slate-100 bg-transparent outline-none cursor-pointer text-sm sm:text-xs"
-                >
-                  <option value="2026-08" className="bg-slate-900 text-slate-200">Agosto/2026</option>
-                  <option value="2026-09" className="bg-slate-900 text-slate-200">Setembro/2026</option>
-                  <option value="2026-10" className="bg-slate-900 text-slate-200">Outubro/2026</option>
-                  <option value="2026-11" className="bg-slate-900 text-slate-200">Novembro/2026</option>
-                  <option value="2026-12" className="bg-slate-900 text-slate-200">Dezembro/2026</option>
-                </select>
-              </div>
-            </div>
+            <label className="workspace-month">
+              <Calendar className="size-4 text-accent" />
+              <span>Mês</span>
+              <select
+                aria-label="Mês da folha"
+                value={monthKey}
+                onChange={(e) => setMonthKey(e.target.value)}
+              >
+                <option value="2026-08">Agosto / 2026</option>
+                <option value="2026-09">Setembro / 2026</option>
+                <option value="2026-10">Outubro / 2026</option>
+                <option value="2026-11">Novembro / 2026</option>
+                <option value="2026-12">Dezembro / 2026</option>
+              </select>
+            </label>
           </div>
 
           {/* ABA 1: PAINEL DE LANÇAMENTOS */}
-          {activeTab === 'dashboard' && (
+          {activeTab === "dashboard" && (
             <div className="space-y-4">
               <StatsGrid
                 totalHours={totalHours}
@@ -435,7 +489,9 @@ export default function Home() {
               <ActivityForm
                 onSave={handleSaveActivity}
                 defaultGatNumber={activeUser.gatNumber}
-                defaultGatName={activeUser.gatName || gats[activeUser.gatNumber]?.name}
+                defaultGatName={
+                  activeUser.gatName || gats[activeUser.gatNumber]?.name
+                }
                 templates={templates}
               />
 
@@ -455,18 +511,18 @@ export default function Home() {
           )}
 
           {/* ABA 2: FOLHA OFICIAL (PREVIEW A4 PAISAGEM) */}
-          {activeTab === 'official' && (
+          {activeTab === "official" && (
             <div className="space-y-4 animate-fade-in">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 rounded-2xl border border-slate-800/80 bg-slate-900/60 text-xs shadow-xs">
+              <div className="sheet-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 rounded-2xl border border-line bg-surface text-xs shadow-[var(--page-shadow)]">
                 {/* Seletor entre Minha Folha e Template Vazio */}
-                <div className="flex p-0.5 rounded-xl bg-slate-950 border border-slate-800 font-medium">
+                <div className="flex p-0.5 rounded-xl bg-canvas border border-line font-medium">
                   <button
                     type="button"
                     onClick={() => setShowBlankTemplate(false)}
                     className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       !showBlankTemplate
-                        ? 'bg-slate-800 text-slate-100 shadow-xs'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? "bg-raised text-ink shadow-[var(--page-shadow)]"
+                        : "text-muted hover:text-body"
                     }`}
                   >
                     Minha Folha ({activeUser.name})
@@ -476,11 +532,11 @@ export default function Home() {
                     onClick={() => setShowBlankTemplate(true)}
                     className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       showBlankTemplate
-                        ? 'bg-slate-800 text-slate-100 shadow-xs'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? "bg-raised text-ink shadow-[var(--page-shadow)]"
+                        : "text-muted hover:text-body"
                     }`}
                   >
-                    Template em Branco / Vazio
+                    Modelo em branco
                   </button>
                 </div>
 
@@ -489,7 +545,7 @@ export default function Home() {
                     <a
                       href="/templates/PET%20-%20Folha%20de%20Frequ%C3%AAncia%20-%20Modelo%20Vazio.pdf"
                       download="PET - Folha de Frequência - Modelo Vazio.pdf"
-                      className="px-3 py-1.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1.5 text-xs font-medium transition-all"
+                      className="px-3 py-1.5 rounded-xl border border-line hover:bg-raised text-body cursor-pointer flex items-center gap-1.5 text-xs font-medium transition-all"
                       title="Baixar arquivo PDF original em branco"
                     >
                       <Download className="size-3.5" />
@@ -498,28 +554,27 @@ export default function Home() {
                   )}
                   <button
                     onClick={handlePrint}
-                    className="px-3.5 py-1.5 rounded-xl font-semibold bg-[#008D4C] text-white hover:bg-[#10B981] cursor-pointer flex items-center gap-1.5 transition-all text-xs shadow-sm shadow-[#008D4C]/10"
+                    className="px-3.5 py-1.5 rounded-xl font-semibold bg-primary text-white hover:bg-[var(--primary-hover)] cursor-pointer flex items-center gap-1.5 transition-all text-xs shadow-[var(--page-shadow)]"
                   >
                     <Printer className="size-3.5" />
-                    <span>
-                      {showBlankTemplate ? 'Imprimir / Gerar PDF' : 'Imprimir / PDF'}
-                    </span>
+                    <span>Imprimir / salvar PDF</span>
                   </button>
                   <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className="px-3 py-1.5 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-300 cursor-pointer flex items-center gap-1 text-xs transition-colors"
+                    onClick={() => setActiveTab("dashboard")}
+                    className="px-3 py-1.5 rounded-xl border border-line hover:bg-raised text-body cursor-pointer flex items-center gap-1 text-xs transition-colors"
                   >
                     <ArrowLeft className="size-3.5" />
                     Voltar
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 sm:hidden w-full text-center pt-1">
-                  Dica: no celular, escolha a orientação <strong>Horizontal</strong> na janela de impressão do sistema.
+                <p className="text-[11px] text-muted sm:hidden w-full text-center pt-1">
+                  Dica: no celular, escolha a orientação{" "}
+                  <strong>Horizontal</strong> na janela de impressão do sistema.
                 </p>
               </div>
 
-              <div className="overflow-x-auto max-w-full p-2.5 sm:p-8 md:p-10 bg-slate-950/80 rounded-2xl border border-slate-800/80 flex justify-start sm:justify-center shadow-inner">
-                <div className="shadow-2xl rounded-xs ring-1 ring-slate-800/60 overflow-hidden">
+              <div className="sheet-stage overflow-x-auto max-w-full p-2.5 sm:p-8 md:p-10 bg-canvas rounded-2xl border border-line flex justify-start sm:justify-center shadow-inner">
+                <div className="shadow-[var(--page-shadow)] rounded-xs ring-1 ring-line overflow-hidden">
                   <OfficialSheet
                     user={activeUser}
                     monthLabel={monthLabel}
@@ -532,116 +587,92 @@ export default function Home() {
             </div>
           )}
 
-        {/* Modal de Identificação do Participante */}
-        <ProfileModal
-          isOpen={isProfileModalOpen}
-          onClose={() => setIsProfileModalOpen(false)}
-          currentUser={activeUser}
-          allProfiles={profiles}
-          gats={gats}
-          roles={roles}
-          onSaveProfile={handleSaveProfile}
-        />
+          {/* Modal de Identificação do Participante */}
+          <ProfileModal
+            isOpen={isProfileModalOpen}
+            onClose={() => setIsProfileModalOpen(false)}
+            currentUser={activeUser}
+            allProfiles={profiles}
+            gats={gats}
+            roles={roles}
+            onSaveProfile={handleSaveProfile}
+          />
 
-        {/* Modal Dedicado de Edição de Atividade */}
-        <EditActivityModal
-          isOpen={Boolean(editingActivity)}
-          onClose={() => setEditingActivity(null)}
-          activity={editingActivity}
-          onSave={handleSaveActivity}
-          defaultGatNumber={activeUser.gatNumber}
-          defaultGatName={activeUser.gatName || gats[activeUser.gatNumber]?.name}
-          templates={templates}
-        />
-
-        {/* Modal de configurações locais */}
-        <AdminModal
-          isOpen={isAdminModalOpen}
-          onClose={() => setIsAdminModalOpen(false)}
-          profiles={profiles}
-          gats={gats}
-          roles={roles}
-          templates={templates}
-          onProfilesChange={(updated) => {
-            setProfiles(updated);
-            if (activeUser && !updated.some((p) => p.id === activeUser.id)) {
-              if (updated.length > 0) handleSelectProfile(updated[0]);
+          {/* Modal Dedicado de Edição de Atividade */}
+          <EditActivityModal
+            isOpen={Boolean(editingActivity)}
+            onClose={() => setEditingActivity(null)}
+            activity={editingActivity}
+            onSave={handleSaveActivity}
+            defaultGatNumber={activeUser.gatNumber}
+            defaultGatName={
+              activeUser.gatName || gats[activeUser.gatNumber]?.name
             }
-          }}
-          onGatsChange={(updated) => setGats(updated)}
-          onRolesChange={(updated) => setRoles(updated)}
-          onTemplatesChange={(updated) => setTemplates(updated)}
+            templates={templates}
+          />
+
+          {/* Modal de configurações locais */}
+          <AdminModal
+            isOpen={isAdminModalOpen}
+            onClose={() => setIsAdminModalOpen(false)}
+            profiles={profiles}
+            gats={gats}
+            roles={roles}
+            templates={templates}
+            onProfilesChange={(updated) => {
+              setProfiles(updated);
+              if (activeUser && !updated.some((p) => p.id === activeUser.id)) {
+                if (updated.length > 0) handleSelectProfile(updated[0]);
+              }
+            }}
+            onGatsChange={(updated) => setGats(updated)}
+            onRolesChange={(updated) => setRoles(updated)}
+            onTemplatesChange={(updated) => setTemplates(updated)}
+          />
+
+          {/* Modal de Saída / Backup Obrigatório */}
+          <ExitModal
+            isOpen={isExitModalOpen}
+            onClose={() => setIsExitModalOpen(false)}
+            onConfirmExit={() => {
+              setIsExitModalOpen(false);
+              setActiveProfileId(null);
+              setActiveUser(null);
+              setActivities([]);
+              setHasChanges(false);
+              showToast("Sessão encerrada com sucesso.");
+            }}
+            onDownloadJson={handleExportBackup}
+            onDownloadPdf={handlePrint}
+            userName={activeUser.name}
+            hasChanges={hasChanges}
+          />
+
+          {/* Modal de Feedback & Avaliação */}
+          <FeedbackModal
+            isOpen={isFeedbackModalOpen}
+            onClose={() => setIsFeedbackModalOpen(false)}
+          />
+
+          {/* Toast Notificação Minimalista */}
+          {toastMessage && (
+            <div
+              role="status"
+              className="fixed bottom-4 right-4 left-4 sm:left-auto px-3.5 py-2 rounded-lg border border-accent/25 bg-surface shadow-[var(--page-shadow)] text-xs font-medium text-body z-50 flex items-center gap-2 animate-fade-in"
+            >
+              <CheckCircle2 className="size-3.5 text-accent shrink-0" />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+        </main>
+
+        <SiteFooter
+          compact
+          onHelp={() => setIsHelpOpen(true)}
+          onFeedback={() => setIsFeedbackModalOpen(true)}
         />
-
-        {/* Modal de Saída / Backup Obrigatório */}
-        <ExitModal
-          isOpen={isExitModalOpen}
-          onClose={() => setIsExitModalOpen(false)}
-          onConfirmExit={() => {
-            setIsExitModalOpen(false);
-            setActiveProfileId(null);
-            setActiveUser(null);
-            setActivities([]);
-            setHasChanges(false);
-            showToast('Sessão encerrada com sucesso.');
-          }}
-          onDownloadJson={handleExportBackup}
-          onDownloadPdf={handlePrint}
-          userName={activeUser.name}
-          hasChanges={hasChanges}
-        />
-
-        {/* Modal de Feedback & Avaliação */}
-        <FeedbackModal
-          isOpen={isFeedbackModalOpen}
-          onClose={() => setIsFeedbackModalOpen(false)}
-        />
-
-        {/* Toast Notificação Minimalista */}
-        {toastMessage && (
-          <div className="fixed bottom-6 right-6 px-3.5 py-2 rounded-lg border border-[#008D4C]/25 bg-slate-900 shadow-xl text-xs font-medium text-slate-200 z-50 flex items-center gap-2 animate-fade-in">
-            <CheckCircle2 className="size-3.5 text-[#10B981] shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
-
-      </main>
-
-      {/* Footer com Créditos */}
-      <footer className="w-full border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-400 mt-12">
-        <p>
-          PET-Saúde Clima: Folha de Frequência Mensal &copy; {new Date().getFullYear()} • Desenvolvido por{' '}
-          <a
-            href="https://www.linkedin.com/in/vvvvvdal/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-slate-200 font-semibold underline underline-offset-2 hover:text-[#008D4C] dark:hover:text-[#10B981] transition-colors"
-          >
-            Felipe Vidal
-          </a>{' '}
-          &amp;{' '}
-          <a
-            href="https://www.linkedin.com/in/robert-taveira/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-slate-200 font-semibold underline underline-offset-2 hover:text-[#008D4C] dark:hover:text-[#10B981] transition-colors"
-          >
-            Robert Taveira
-          </a>{" "}
-          • Licença MIT
-        </p>
-        <div className="mt-2.5 flex items-center justify-center gap-4 text-[11px] text-slate-400">
-          <button
-            type="button"
-            onClick={() => setIsFeedbackModalOpen(true)}
-            className="hover:text-[#00A3E0] underline underline-offset-2 transition-colors cursor-pointer flex items-center gap-1.5"
-          >
-            <MessageSquareHeart className="size-3.5 text-[#00A3E0]" />
-            <span>Avaliação do Sistema &amp; Relato de Bugs</span>
-          </button>
-        </div>
-      </footer>
-    </div>
+        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      </div>
 
       {/* ============================================================
            CONTAINER EXCLUSIVO DE IMPRESSÃO (@media print)

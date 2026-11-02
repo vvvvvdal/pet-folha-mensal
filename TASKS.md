@@ -31,3 +31,9 @@
 - [ ] Planejar uma frente OR-CI, OR-LOG ou OR-UI com as [referências do Oracle](docs/oracle-ci-logs-unslop.md), preservando localStorage e folha oficial. Melhorias ainda não implementadas.
 - [ ] Homologar o primeiro fluxo do [Maestri com Codex/Gemini Argon 4](docs/AGENT-WORKFLOW.md): confirmar modelo, comunicação, limites de escrita e gates reais.
 - [ ] **Deploy na Vercel**: Configuração e publicação remota (ignorado temporariamente a pedido do usuário).
+
+## Refinamento de UI/UX (31/10/2026)
+- [x] Entrada com acesso prioritário, prévia visual e FAQ; rodapé compartilhado e ajuda no painel.
+- [x] Temas por tokens semânticos, navegação responsiva, campos associados e modais nativos.
+- [x] Verificação de tipos, lint e compilação de produção; regressão de cálculo e cópias de segurança.
+- [ ] Revisão no navegador em 360/768/1440 px, teclado e impressão efetiva (acesso local recusado nesta sessão).
