@@ -45,7 +45,6 @@ const {
 } = load("./src/lib/pet-calculator.ts");
 const storage = load("./src/lib/storage.ts");
 const { DEFAULT_GATS, DEFAULT_ROLES } = load("./src/types/index.ts");
-const { SystemPreview } = load("./src/components/SystemPreview.tsx");
 const { LandingPage } = load("./src/components/LandingPage.tsx");
 const { FAQ, HelpModal } = load("./src/components/Help.tsx");
 const { DialogProvider } = load("./src/context/DialogContext.tsx");
@@ -80,6 +79,8 @@ function isolatedStorage() {
   const records = new Map();
   globalThis.window = {};
   globalThis.localStorage = {
+    get length() { return records.size; },
+    key: (index) => [...records.keys()][index] ?? null,
     getItem: (key) => records.get(key) ?? null,
     setItem: (key, value) => records.set(key, String(value)),
     removeItem: (key) => records.delete(key),
@@ -178,29 +179,26 @@ test("navegador novo e lista vazia não recebem participantes de exemplo", () =>
   assert.deepEqual(storage.getStoredProfiles(), []);
 });
 
-test("prévia é somente visual e não acessa nem grava armazenamento", () => {
-  const originalWindow = globalThis.window;
-  const originalStorage = globalThis.localStorage;
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    get() {
-      throw new Error("A prévia não pode acessar registros");
-    },
-  });
-  try {
-    delete globalThis.window;
-    const html = renderToStaticMarkup(React.createElement(SystemPreview));
-    assert.match(html, /Exemplo · dados fictícios/);
-    assert.doesNotMatch(html, /<(button|input|select|a)\b/);
-    assert.equal((html.match(/class="preview-row"/g) || []).length, 3);
-  } finally {
-    Object.defineProperty(globalThis, "localStorage", {
-      configurable: true,
-      writable: true,
-      value: originalStorage,
-    });
-    globalThis.window = originalWindow;
+test("exemplo legado só sai da entrada se intacto, sem atividades e inativo; armazenamento é preservado", () => {
+  const records = isolatedStorage();
+  // Perfil fictício distribuído pela versão antiga, usado como fixture de migração.
+  const legacy = { id: "mariana-rios", name: "Mariana Dias Rios", role: "Estudante", gatNumber: "01", gatName: "Araticum", createdAt: "2026-09-01T00:00:00.000Z" };
+  storage.saveProfiles([legacy, sampleUser]);
+  const before = JSON.stringify([...records]);
+  assert.deepEqual(storage.getProfilesForAccess([legacy, sampleUser]), [sampleUser]);
+  assert.equal(JSON.stringify([...records]), before);
+  for (const value of ["[]", "invalid-json", JSON.stringify([sampleActivity])]) {
+    records.set("pet_folha_activities_v2_mariana-rios_2026-10", value);
+    assert.deepEqual(storage.getProfilesForAccess([legacy]), [legacy]);
   }
+  records.delete("pet_folha_activities_v2_mariana-rios_2026-10");
+  storage.setActiveProfileId(legacy.id);
+  assert.deepEqual(storage.getProfilesForAccess([legacy]), [legacy]);
+  storage.setActiveProfileId(null);
+  for (const edited of [{ ...legacy, name: "Pessoa sintética" }, { ...legacy, email: "test@example.org" }, { ...legacy, extra: true }]) {
+    assert.deepEqual(storage.getProfilesForAccess([edited]), [edited]);
+  }
+  assert.deepEqual(storage.getStoredProfiles(), [legacy, sampleUser]);
 });
 
 function verifyLabelTargets(html) {
@@ -214,7 +212,7 @@ function verifyLabelTargets(html) {
   );
 }
 
-test("entrada apresenta acesso antes da prévia e do FAQ, com rótulos associados", () => {
+test("entrada apresenta acesso e explicação visível do JSON e PDF antes do FAQ", () => {
   const html = render(
     React.createElement(LandingPage, {
       onLoginWithJson: noop,
@@ -225,8 +223,12 @@ test("entrada apresenta acesso antes da prévia e do FAQ, com rótulos associado
       onOpenFeedback: noop,
     }),
   );
-  assert.ok(html.indexOf('id="acesso"') < html.indexOf('id="previa"'));
-  assert.ok(html.indexOf('id="previa"') < html.indexOf('id="perguntas"'));
+  assert.ok(html.indexOf('id="acesso"') < html.indexOf('id="files-title"'));
+  assert.ok(html.indexOf('id="files-title"') < html.indexOf('id="perguntas"'));
+  assert.match(html, /O JSON é um arquivo que guarda sua identificação/);
+  assert.match(html, /O PDF não permite restaurar/);
+  assert.match(html, /Quem usa este navegador pode abrir/);
+  assert.doesNotMatch(html, /Veja como sua folha|preview-disclosure|Sua frequência,|Vamos começar/);
   verifyLabelTargets(html);
   assert.match(html, /Felipe Vidal/);
   assert.match(html, /Robert Taveira/);

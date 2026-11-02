@@ -67,7 +67,7 @@ test("perfil repetido retoma sem arquivo e preserva meses anteriores", async ({
   );
   await page.goto("/");
   await expect(
-    page.getByRole("button", { name: /Pessoa de teste/ }),
+    page.getByLabel("Perfil neste navegador", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Primeiro acesso", exact: true })
@@ -92,7 +92,7 @@ test("perfil repetido retoma sem arquivo e preserva meses anteriores", async ({
   await page
     .getByRole("button", { name: "Sair / trocar participante", exact: true })
     .click();
-  await page.getByRole("button", { name: /Pessoa de teste/ }).click();
+  await page.getByRole("button", { name: "Continuar com este perfil", exact: true }).click();
   await page.reload();
   const stored = await page.evaluate(
     (keys) => ({
@@ -433,4 +433,55 @@ test("erro em edição mantém o diálogo, o preenchimento e o foco", async ({
   await expect(profile.getByRole("textbox")).toHaveValue(
     "Identificação preservada",
   );
+});
+
+
+test("seletor de mês mantém opções contrastantes nos dois temas e funciona pelo teclado", async ({ page }, testInfo) => {
+  await create(page);
+  const month = page.getByLabel("Mês da folha", { exact: true });
+  for (const theme of ["dark", "light"]) {
+    await page.evaluate((theme) => {
+      document.documentElement.dataset.theme = theme;
+    }, theme);
+    const colors = await month.locator("option").first().evaluate((option) => {
+      const style = getComputedStyle(option);
+      const rgb = (color: string) => color.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+      const luminance = (color: string) => rgb(color).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
+      const a = luminance(style.color), b = luminance(style.backgroundColor);
+      return { background: style.backgroundColor, scheme: style.colorScheme, contrast: (Math.max(a, b) + .05) / (Math.min(a, b) + .05) };
+    });
+    expect(colors.background).not.toBe("rgba(0, 0, 0, 0)");
+    expect(colors.scheme).toBe(theme);
+    expect(colors.contrast).toBeGreaterThanOrEqual(4.5);
+    await month.selectOption("2026-11");
+    await month.focus();
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await expect(month).toHaveValue("2026-12");
+    if (testInfo.project.name === "desktop") {
+      await month.press("Alt+ArrowDown");
+      await page.screenshot({ path: testInfo.outputPath(`month-${theme}.png`) });
+      await page.keyboard.press("Escape");
+    }
+  }
+});
+
+
+test("entrada oculta só o exemplo antigo sem uso e explica os arquivos sem expansão", async ({ page }) => {
+  const legacy = { id: "mariana-rios", name: "Mariana Dias Rios", role: "Estudante", gatNumber: "01", gatName: "Araticum", createdAt: "2026-09-01T00:00:00.000Z" };
+  await page.goto("/");
+  await page.evaluate((legacy) => {
+    localStorage.setItem("pet_folha_profiles_v2", JSON.stringify([legacy]));
+  }, legacy);
+  await page.reload();
+  await expect(page.getByLabel("Nome completo", { exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Como deseja começar" }).getByRole("button", { name: "Continuar", exact: true })).toHaveCount(0);
+  await expect(page.getByText(/O JSON é um arquivo que guarda sua identificação/)).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("pet_folha_profiles_v2")!).length)).toBe(1);
+  await page.evaluate(() => localStorage.setItem("pet_folha_activities_v2_mariana-rios_2026-10", "[]"));
+  await page.reload();
+  await expect(page.getByLabel("Perfil neste navegador", { exact: true })).toHaveValue(legacy.id);
+  await expect(page.getByText(/Quem usa este navegador pode abrir/)).toBeVisible();
+  await page.getByRole("button", { name: "Continuar com este perfil", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Minha frequência", exact: true })).toBeVisible();
 });

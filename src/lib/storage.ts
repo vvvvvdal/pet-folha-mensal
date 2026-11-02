@@ -105,6 +105,49 @@ export function saveProfiles(profiles: UserProfile[]): void {
   localStorage.setItem(PROFILES_KEY, JSON.stringify(clean));
 }
 
+// Fingerprints dos cinco exemplos distribuídos em 208e663. A filtragem é só
+// de apresentação: perfis e atividades nunca são apagados ou regravados aqui.
+const LEGACY_EXAMPLES = new Set([
+  "eb49f6bb",
+  "c5c2db38",
+  "85a70284",
+  "759ff299",
+  "78136f57",
+]);
+
+export function getProfilesForAccess(profiles: UserProfile[]): UserProfile[] {
+  if (typeof window === "undefined") return profiles;
+  try {
+    const activeId = localStorage.getItem(ACTIVE_PROFILE_ID_KEY);
+    const activityKeys = Array.from({ length: localStorage.length }, (_, i) =>
+      localStorage.key(i),
+    );
+    return profiles.filter((profile) => {
+      if (profile.id === activeId) return true;
+      // Um campo extra ou qualquer chave de atividades indica uso do perfil.
+      if (
+        Object.keys(profile).some((key) => ![
+          "id", "name", "role", "gatNumber", "gatName", "createdAt", "email",
+        ].includes(key))
+      ) return true;
+      if (
+        activityKeys.some((key) => key?.startsWith(`${ACTIVITIES_PREFIX}${profile.id}_`))
+      ) return true;
+      const signature = JSON.stringify([
+        profile.id, profile.name, profile.role, profile.gatNumber,
+        profile.gatName, profile.createdAt, profile.email,
+      ]);
+      let hash = 2166136261;
+      for (let i = 0; i < signature.length; i++) {
+        hash = Math.imul(hash ^ signature.charCodeAt(i), 16777619);
+      }
+      return !LEGACY_EXAMPLES.has((hash >>> 0).toString(16));
+    });
+  } catch {
+    return profiles;
+  }
+}
+
 export function getActiveProfile(): UserProfile | null {
   if (typeof window === "undefined") return null;
   const profiles = getStoredProfiles();

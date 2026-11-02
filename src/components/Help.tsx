@@ -9,8 +9,8 @@ const questions = [
     "No primeiro acesso, informe nome, função e GAT. Nos próximos meses, use “Continuar” neste mesmo navegador e escolha o mês. Você não precisa do arquivo anterior para abrir um novo mês.",
   ],
   [
-    "Como restauro uma folha?",
-    "Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
+    "O que é o JSON e como restauro uma folha?",
+    "O JSON é a cópia editável da sua folha: guarda identificação e atividades. Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
   ],
   [
     "Onde ficam meus dados?",

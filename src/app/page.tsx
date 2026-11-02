@@ -10,6 +10,7 @@ import {
 } from "@/types";
 import {
   getStoredProfiles,
+  getProfilesForAccess,
   saveProfiles,
   getActiveProfile,
   setActiveProfileId,
@@ -545,7 +546,7 @@ export default function Home() {
       <>
         {notices}
         <LandingPage
-          profiles={profiles}
+          profiles={getProfilesForAccess(profiles)}
           onSelectProfile={handleSelectProfile}
           onLoginWithJson={handleImportBackup}
           onCreateProfile={handleCreateNewProfile}

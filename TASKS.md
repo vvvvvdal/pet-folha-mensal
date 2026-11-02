@@ -29,13 +29,14 @@
 ## Próximos Passos (Postergados para Etapa Futura)
 - [x] Conferir a base após o pull: baseline antiga de 19 erros/5 avisos superada. Lint atual sem erros, com 3 avisos legados; demais gates e ambiente nas [evidências](docs/validation/ui-ux-20261102/README.md).
 - [x] Implementar o [plano de reestruturação UI/UX](docs/ui-ux-restructure-plan.md): retomada de perfil sem JSON, tipografia maior, formulário/lista, referência de horas, diagnóstico/restauração e impressão protegida. [Comportamento](docs/ui-ux.md) e [evidências/limites](docs/validation/ui-ux-20261102/README.md).
+- [x] Corrigir contraste das opções do seletor de mês no modo escuro, com teste de teclado e contraste nos dois temas.
 - [ ] Conferir a primeira execução remota do CI após push humano: workflow preparado com tipagem, lint, testes locais, build e Playwright.
 - [ ] Homologar a nova UI em smartphone físico, zoom real de 200% e impressora; matriz local emulada e PDFs conferidos. [Escopo](docs/validation/ui-ux-20261102/README.md).
 - [ ] Homologar o primeiro fluxo do [Maestri com Codex/Gemini Argon 4](docs/AGENT-WORKFLOW.md): confirmar modelo, comunicação, limites de escrita e gates reais.
 - [x] **Deploy na Vercel (02/11/2026)**: snapshot de `d309198` publicado em produção, estado READY e domínio principal conferido. Retomada sem JSON, isolamento entre meses e fontes de 16px aprovados no navegador publicado. [Registro e limites](docs/validation/ui-ux-20261102/README.md#publicação-em-produção--02112026).
 
 ## Refinamento de UI/UX (31/10/2026)
-- [x] Entrada com acesso prioritário, prévia visual e FAQ; rodapé compartilhado e ajuda no painel.
+- [x] Entrada com acesso prioritário e FAQ; refinada em 02/11 com explicação visível de JSON/PDF, componentes do Hub e tratamento não destrutivo dos exemplos antigos. Prévia demonstrativa removida. [Detalhes](docs/ui-ux.md).
 - [x] Temas por tokens semânticos, navegação responsiva, campos associados e modais nativos.
 - [x] Verificação de tipos, lint e compilação de produção; regressão de cálculo e cópias de segurança.
 - [x] Revisão posterior no navegador em 360/390/768/1440 px, claro/escuro, teclado/foco e PDF A4. A limitação da sessão de 31/10 foi superada na validação local de 02/11; homologação física permanece no item próprio acima.

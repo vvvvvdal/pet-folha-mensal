@@ -8,7 +8,7 @@ A direção e as referências estão no [plano](ui-ux-restructure-plan.md).
 
 ### Entrada e retomada sem JSON
 
-“Continuar” lista os perfis que permanecem neste navegador. O participante pode
+“Continuar” oferece um seletor dos perfis que permanecem neste navegador. O participante pode
 abrir outro mês sem restaurar o arquivo anterior. Primeiro acesso cria um perfil;
 novos navegadores começam sem participantes de exemplo. Uma tentativa com nome
 já cadastrado oferece “Continuar com este perfil”, mostrando a identificação
@@ -16,14 +16,27 @@ existente, sem recriar, alterar sua função/GAT ou apagar os meses anteriores.
 
 A restauração atende à troca de aparelho. A interface explica que os registros
 antigos dependem do navegador original ou da cópia .json; um PDF não os restaura.
-A prévia demonstrativa fica recolhida, e FAQ/ajuda continuam disponíveis.
+A entrada mostra, sem expansão, o que é o JSON, como salvar/restaurar e a
+finalidade distinta do PDF. A prévia demonstrativa foi removida. FAQ/ajuda
+continuam disponíveis. Frame e Segmented Control foram adaptados dos componentes
+nativos do Frequência Hub; [origem e licença](THIRD-PARTY-UI.md).
+
+A versão antiga distribuía cinco perfis de exemplo. A entrada oculta somente
+as assinaturas originais intactas, sem chave de atividades e sem perfil ativo.
+Perfis editados, com campos extras ou qualquer chave de atividades (inclusive
+vazia ou inválida) continuam acessíveis. A filtragem não grava nem remove dados;
+o cadastro repetido ainda pode oferecer a retomada do perfil armazenado.
+Isso é uma apresentação local, sem diretório remoto. Qualquer pessoa que use o
+mesmo navegador pode abrir seus perfis, como informa a entrada.
 
 ### Minha frequência
 
 Mês, participante e GAT definem o contexto. O mês inicial acompanha a data atual,
 limitado aos meses da vigência. A seleção cobre agosto/2026 a agosto/2028. Um mês
 válido restaurado fora desse intervalo continua selecionável, preservando a
-compatibilidade. A data inicial da atividade acompanha o mês escolhido.
+compatibilidade. A data inicial da atividade acompanha o mês escolhido. As opções dos seletores
+nativos definem fundo e texto com os tokens do tema, evitando texto claro sobre
+um popup claro no modo escuro.
 
 O resumo mostra horas, atividades e referência mensal aproximada de 32h. Não usa
 média por quatro semanas como validação semanal nem declara “Apta para envio”.
