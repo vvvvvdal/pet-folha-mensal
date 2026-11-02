@@ -65,3 +65,12 @@ Vercel com 46 arquivos de aplicação/configuração/assets desse checkout.
   claro. [Medições agregadas](producao.json), sem dados pessoais.
 
 O Git remoto permanece aguardando push humano, conforme a regra do repositório.
+
+### Republicação em produção
+
+Snapshot `88e223ec2558e83bb5d236200eb411f47a6bb1d8` republicado em
+`dpl_FyfEf55SgvTYmt5tyh2pX15scqvL`, estado `READY`, sem erro de alias, no
+mesmo domínio principal. O código da aplicação é idêntico ao snapshot anterior;
+a diferença de origem é o registro documental do deploy. Domínio conferido
+novamente em Chromium isolado com entrada, tema e mês, HTTP 200 e sem erros de
+página em desktop e celular emulado.
