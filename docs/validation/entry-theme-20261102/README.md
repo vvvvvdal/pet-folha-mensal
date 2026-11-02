@@ -49,3 +49,19 @@ bloqueio de folha extensa passaram no navegador de produção.
 
 Safari/iOS real, impressora e primeiro CI remoto continuam com a pendência própria
 em TASKS. Nenhum dado de participante foi enviado ao servidor pelos testes.
+
+## Publicação
+
+Integrado por avanço direto na `main` local: `d93a128a51e7cffee5900d94e6872dd51031683c`.
+Publicação de produção autorizada na conversa, enviada pela API conectada da
+Vercel com 46 arquivos de aplicação/configuração/assets desse checkout.
+
+- Deployment `dpl_GdQvu1K1jUG64hiN73JeW2FRBRND`, target `production`, estado `READY`, sem erro de alias.
+- Domínio: [pet-folha-mensal.vercel.app](https://pet-folha-mensal.vercel.app/), HTTP 200.
+- A API não expôs metadados Git; o hash acima identifica a fonte local do snapshot.
+- Chromium isolado em 1440 e 390 px: explicação JSON/PDF visível, navegador novo
+  sem exemplos, criação de perfil, troca real de tema, mês pelo teclado e nenhum
+  erro de página. Contraste computado das opções: 14,09:1 no escuro e 14,19:1 no
+  claro. [Medições agregadas](producao.json), sem dados pessoais.
+
+O Git remoto permanece aguardando push humano, conforme a regra do repositório.

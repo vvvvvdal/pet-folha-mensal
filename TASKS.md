@@ -29,7 +29,7 @@
 ## Próximos Passos (Postergados para Etapa Futura)
 - [x] Conferir a base após o pull: baseline antiga de 19 erros/5 avisos superada. Lint atual sem erros, com 3 avisos legados; demais gates e ambiente nas [evidências](docs/validation/ui-ux-20261102/README.md).
 - [x] Implementar o [plano de reestruturação UI/UX](docs/ui-ux-restructure-plan.md): retomada de perfil sem JSON, tipografia maior, formulário/lista, referência de horas, diagnóstico/restauração e impressão protegida. [Comportamento](docs/ui-ux.md) e [evidências/limites](docs/validation/ui-ux-20261102/README.md).
-- [x] Corrigir contraste das opções do seletor de mês no modo escuro, com teste de teclado e contraste nos dois temas.
+- [x] Corrigir contraste das opções do seletor de mês no modo escuro, com teste de teclado e contraste nos dois temas; entrada/JSON/perfis refinados e publicados em `d93a128`. [Evidência local e produção](docs/validation/entry-theme-20261102/README.md).
 - [ ] Conferir a primeira execução remota do CI após push humano: workflow preparado com tipagem, lint, testes locais, build e Playwright.
 - [ ] Homologar a nova UI em smartphone físico, zoom real de 200% e impressora; matriz local emulada e PDFs conferidos. [Escopo](docs/validation/ui-ux-20261102/README.md).
 - [ ] Homologar o primeiro fluxo do [Maestri com Codex/Gemini Argon 4](docs/AGENT-WORKFLOW.md): confirmar modelo, comunicação, limites de escrita e gates reais.
