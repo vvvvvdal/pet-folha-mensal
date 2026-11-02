@@ -1,5 +1,8 @@
 # Documentação Canônica: PET Folha Mensal
 
+Piloto Maestri/Codex/Gemini: [papéis e operação](AGENT-WORKFLOW.md).
+Para planejar CI, logs e de-slop: [frentes e referências do Oracle](oracle-ci-logs-unslop.md).
+
 Este diretório concentra a documentação técnica, arquitetural e normativa da aplicação web **PET Folha Mensal**.
 
 ---

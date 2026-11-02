@@ -50,6 +50,9 @@ Este repositório armazena a aplicação fullstack de gestão e emissão da **Fo
 
 ## 5. Handoff e Memória Compartilhada
 
+Para planejar CI, logs ou de-slop com o Oracle, consulte `docs/oracle-ci-logs-unslop.md`.
+Para o piloto Maestri/Codex/Gemini, consulte `docs/AGENT-WORKFLOW.md` quando pertinente.
+
 Atualizações de arquitetura ou regras devem sincronizar a documentação canônica em `docs/` e a nota do Obsidian em:
 `04 - Contexto Compartilhado/Projeto - PET Saúde Clima UFG.md`.
 

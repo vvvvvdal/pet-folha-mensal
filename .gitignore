@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Arquivos de papel gerados pelo Maestri; role.json é a fonte portátil.
+/.maestri/roles/*/AGENTS.md
+/.maestri/roles/*/CLAUDE.md
+/.maestri/roles/*/.claude/
+/.maestri/roles/*/.codex/
+/.maestri/roles/*/.gemini/

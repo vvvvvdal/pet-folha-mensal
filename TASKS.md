@@ -27,4 +27,7 @@
 - [x] Execução autossuficiente em `http://localhost:5000` com persistência local (`localStorage`).
 
 ## Próximos Passos (Postergados para Etapa Futura)
+- [ ] Regularizar o baseline de lint reproduzido em `208e663`: 19 erros/5 avisos; tipagem e build aprovados. Precondição do futuro CI e da integração da configuração Maestri. [Evidência e limites](docs/oracle-ci-logs-unslop.md#or-ci--criar-uma-base-pequena-antes-de-otimizar).
+- [ ] Planejar uma frente OR-CI, OR-LOG ou OR-UI com as [referências do Oracle](docs/oracle-ci-logs-unslop.md), preservando localStorage e folha oficial. Melhorias ainda não implementadas.
+- [ ] Homologar o primeiro fluxo do [Maestri com Codex/Gemini Argon 4](docs/AGENT-WORKFLOW.md): confirmar modelo, comunicação, limites de escrita e gates reais.
 - [ ] **Deploy na Vercel**: Configuração e publicação remota (ignorado temporariamente a pedido do usuário).
