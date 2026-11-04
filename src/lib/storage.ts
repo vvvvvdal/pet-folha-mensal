@@ -1,3 +1,4 @@
+import type { BackupAttachment } from "./attachments";
 import {
   Activity,
   UserProfile,
@@ -549,10 +550,15 @@ export function saveActivitiesForMonth(
 // EXPORTAÇÃO / IMPORTAÇÃO LOCAL
 // ============================================================
 
-export function exportUserData(user: UserProfile, monthKey: string): string {
+export function exportUserData(
+  user: UserProfile,
+  monthKey: string,
+  attachments?: BackupAttachment[],
+): string {
   const activities = getActivitiesForMonth(user.id, monthKey);
   const data = {
-    version: "1.0",
+    version: attachments === undefined ? "1.0" : "1.1",
+    attachments,
     exportedAt: new Date().toISOString(),
     user: removeLegacyPin(user),
     monthKey,
@@ -574,6 +580,7 @@ export type RestoreResult = {
   user?: UserProfile;
   monthKey?: string;
   activities?: Activity[];
+  attachmentData?: unknown[];
   error?: string;
   code: RestoreCode;
 };
@@ -585,7 +592,7 @@ const restoreMessages: Record<RestoreCode, string> = {
   INVALID_BACKUP:
     "A cópia está incompleta ou contém registros inválidos. Selecione outra cópia. Seus registros não foram alterados.",
   UNSUPPORTED_VERSION:
-    "Esta versão de cópia não é compatível. Use uma cópia no formato 1.0. Seus registros não foram alterados.",
+    "Esta versão de cópia não é compatível. Use uma cópia no formato 1.0 ou 1.1. Seus registros não foram alterados.",
   PROFILE_CONFLICT:
     "Já existe um perfil com este nome e outra identificação neste navegador. Continue com o perfil local ou peça ajuda antes de restaurar.",
   STORAGE_FAILED:
@@ -594,7 +601,7 @@ const restoreMessages: Record<RestoreCode, string> = {
     "A restauração não foi concluída e não foi possível recuperar todo o estado anterior. Guarde seu arquivo original e peça ajuda antes de continuar.",
 };
 
-function restoreFailure(code: RestoreCode): RestoreResult {
+export function restoreFailure(code: RestoreCode): RestoreResult {
   return { success: false, code, error: restoreMessages[code] };
 }
 
@@ -608,7 +615,7 @@ const validDate = (value: unknown): value is string =>
 const validTime = (value: unknown): value is string =>
   typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 
-// Validate the entire legacy 1.0 format before any browser write.
+// Validate the shared fields before any browser write. Files are validated separately.
 export function inspectUserData(jsonStr: string): RestoreResult {
   let data;
   try {
@@ -618,8 +625,10 @@ export function inspectUserData(jsonStr: string): RestoreResult {
   }
   if (!data || typeof data !== "object")
     return restoreFailure("INVALID_BACKUP");
-  if (data.version !== undefined && data.version !== "1.0")
+  if (data.version !== undefined && data.version !== "1.0" && data.version !== "1.1")
     return restoreFailure("UNSUPPORTED_VERSION");
+  if (data.version === "1.1" && !Array.isArray(data.attachments))
+    return restoreFailure("INVALID_BACKUP");
   const profile = data.user;
   if (
     !profile ||
@@ -676,11 +685,20 @@ export function inspectUserData(jsonStr: string): RestoreResult {
     user,
     monthKey: data.monthKey,
     activities: sortActivitiesChronologically(activities),
+    ...(data.version === "1.1" && { attachmentData: data.attachments }),
   };
 }
 
 export function importUserData(jsonStr: string): RestoreResult {
   const result = inspectUserData(jsonStr);
+  if (result.attachmentData) return restoreFailure("INVALID_BACKUP");
+  return applyUserData(result);
+}
+
+export function applyUserData(
+  result: RestoreResult,
+  registerRollback?: (rollback: () => boolean) => void,
+): RestoreResult {
   if (!result.success || !result.user || !result.monthKey || !result.activities)
     return result;
   if (typeof window === "undefined") return restoreFailure("STORAGE_FAILED");
@@ -688,7 +706,26 @@ export function importUserData(jsonStr: string): RestoreResult {
   const activityKey = `${ACTIVITIES_PREFIX}${user.id}_${monthKey}`;
   const keys = [activityKey, PROFILES_KEY, ACTIVE_PROFILE_ID_KEY];
   const previous = new Map<string, string | null>();
-  const written: string[] = [];
+  const written: Array<{ key: string; value: string }> = [];
+  const rollback = () => {
+    let complete = true;
+    for (const { key, value: importedValue } of [...written].reverse()) {
+      try {
+        const value = previous.get(key);
+        const current = localStorage.getItem(key);
+        // Leave newer writes from another tab intact.
+        if (current !== importedValue) {
+          if (current !== value) complete = false;
+          continue;
+        }
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      } catch {
+        complete = false;
+      }
+    }
+    return complete;
+  };
   try {
     for (const key of keys) previous.set(key, localStorage.getItem(key));
     // Read without running migration writes inside this transaction.
@@ -715,23 +752,12 @@ export function importUserData(jsonStr: string): RestoreResult {
     ];
     for (let index = 0; index < keys.length; index++) {
       localStorage.setItem(keys[index], values[index]);
-      written.push(keys[index]);
+      written.push({ key: keys[index], value: values[index] });
     }
+    registerRollback?.(rollback);
     return result;
   } catch {
-    let rollbackFailed = false;
-    for (const key of written.reverse()) {
-      try {
-        const value = previous.get(key);
-        if (value == null) localStorage.removeItem(key);
-        else localStorage.setItem(key, value);
-      } catch {
-        rollbackFailed = true;
-      }
-    }
-    return restoreFailure(
-      rollbackFailed ? "ROLLBACK_FAILED" : "STORAGE_FAILED",
-    );
+    return restoreFailure(rollback() ? "STORAGE_FAILED" : "ROLLBACK_FAILED");
   }
 }
 
@@ -741,7 +767,7 @@ export function getRestoreDiagnostic(code: RestoreCode): string {
     ? code
     : "INVALID_BACKUP";
   return JSON.stringify(
-    { operation: "restore_backup", code: safeCode, supportedSchema: "1.0" },
+    { operation: "restore_backup", code: safeCode, supportedSchema: "1.1" },
     null,
     2,
   );

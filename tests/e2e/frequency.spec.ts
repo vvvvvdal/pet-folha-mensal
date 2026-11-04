@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 const user = {
   id: "test-resume",
@@ -484,4 +485,181 @@ test("entrada oculta só o exemplo antigo sem uso e explica os arquivos sem expa
   await expect(page.getByText(/Quem usa este navegador pode abrir/)).toBeVisible();
   await page.getByRole("button", { name: "Continuar com este perfil", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Minha frequência", exact: true })).toBeVisible();
+});
+
+const png = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAMklEQVR4nGP4T2PAQCcLFPoCqI5GLRi1YNSCUQtGLRi1YNSCUQtGLRi1gBwLaAdobgEAXUfXXDidab8AAAAASUVORK5CYII=",
+  "base64",
+);
+const imageProof = { name: "foto.png", mimeType: "image/png", buffer: png };
+
+function makePdf(pageCount: number) {
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Count " + pageCount + " /Kids [" +
+      Array.from({ length: pageCount }, (_, i) => 3 + 2 * i + " 0 R").join(" ") + "] >>",
+  ];
+  for (let i = 0; i < pageCount; i++) {
+    const instructions = i % 2 ? "0 0 1 rg 0 0 400 200 re f" : "1 0 0 rg 0 0 400 200 re f";
+    const orientation = i % 2 ? " /Rotate 90" : "";
+    objects.push("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 400 200]" +
+      orientation + " /Resources << >> /Contents " + (4 + 2 * i) + " 0 R >>");
+    objects.push("<< /Length " + instructions.length + " >>\nstream\n" + instructions + "\nendstream");
+  }
+  let source = "%PDF-1.4\n";
+  const offsets = objects.map((object, i) => {
+    const offset = source.length;
+    source += (i + 1) + " 0 obj\n" + object + "\nendobj\n";
+    return String(offset).padStart(10, "0") + " 00000 n \n";
+  });
+  const xref = source.length;
+  source += "xref\n0 " + (objects.length + 1) + "\n0000000000 65535 f \n" + offsets.join("") +
+    "trailer\n<< /Size " + (objects.length + 1) + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF\n";
+  return Buffer.from(source);
+}
+
+function proofs(page: Page) {
+  return page.getByRole("region", { name: "Comprovantes (opcional)" });
+}
+
+async function openSheet(page: Page) {
+  await page.getByRole("button", { name: "Folha oficial", exact: true }).click();
+  await expect(proofs(page).getByLabel("Adicionar comprovantes")).toBeEnabled();
+}
+
+async function restoreCopy(page: Page, data: object, inputLabel = "Restaurar cópia de segurança") {
+  await page.getByLabel(inputLabel, { exact: true }).setInputFiles({
+    name: "copia.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(data)),
+  });
+  const dialog = page.getByRole("dialog", { name: "Restaurar esta cópia?" });
+  await dialog.getByRole("button", { name: "Restaurar cópia", exact: true }).click();
+}
+
+test("comprovantes opcionais persistem por mês e perfil e entram nas duas impressões", async ({ page }, testInfo) => {
+  await create(page);
+  await openSheet(page);
+  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês.");
+  await proofs(page).getByLabel("Adicionar comprovantes").setInputFiles([
+    imageProof,
+    { name: "relatorio.pdf", mimeType: "application/pdf", buffer: makePdf(2) },
+    { name: "invalido.png", mimeType: "image/png", buffer: Buffer.from("texto") },
+    { name: "grande.pdf", mimeType: "application/pdf", buffer: makePdf(31) },
+    { name: "corrompido.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\nbroken") },
+  ]);
+  const notices = proofs(page).getByRole("alert");
+  await expect(notices).toContainText("invalido.png — formato inválido");
+  await expect(notices).toContainText("grande.pdf — o PDF excede o limite de 30 páginas");
+  await expect(notices).toContainText("corrompido.pdf — o PDF está ilegível");
+  await expect(proofs(page).getByRole("listitem").filter({ has: page.getByRole("button", { name: /^Abrir/ }) })).toHaveCount(2);
+
+  await page.reload();
+  await openSheet(page);
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await page.evaluate(() => {
+    window.print = () => {
+      const pages = [...document.querySelectorAll<HTMLImageElement>(".print-attachment-page img")];
+      document.documentElement.dataset.printPages = pages.map(({ naturalWidth, naturalHeight }) =>
+        naturalWidth === naturalHeight ? "quadrada" : naturalWidth > naturalHeight ? "paisagem" : "retrato"
+      ).join(",") || "sem-comprovantes";
+    };
+  });
+  const print = () => page.getByRole("button", { name: "Imprimir / salvar PDF", exact: true }).click();
+  await print();
+  await expect(page.locator("html")).toHaveAttribute("data-print-pages", "quadrada,paisagem,retrato");
+  if (testInfo.project.name === "desktop") {
+    const pdf = await page.pdf({ path: testInfo.outputPath("folha-com-comprovantes.pdf"), preferCSSPageSize: true });
+    expect(pdf.toString("latin1").match(/\/Type \/Page\b/g)).toHaveLength(4);
+  }
+
+  await page.getByRole("button", { name: "Modelo em branco", exact: true }).click();
+  await expect(proofs(page)).toHaveCount(0);
+  await print();
+  await expect(page.locator("html")).toHaveAttribute("data-print-pages", "sem-comprovantes");
+  await page.getByRole("button", { name: /^Concluir/ }).click();
+  await page.getByRole("dialog", { name: "Salvar folha e concluir" })
+    .getByRole("button", { name: "Imprimir / salvar PDF", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-print-pages", "quadrada,paisagem,retrato");
+  await page.getByRole("button", { name: "Continuar editando", exact: true }).click();
+
+  await page.getByLabel("Mês da folha").selectOption("2026-10");
+  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês.");
+  await page.getByLabel("Mês da folha").selectOption("2026-11");
+  await proofs(page).getByRole("button", { name: "Remover foto.png" }).click();
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toHaveCount(0);
+  await expect(proofs(page).getByRole("button", { name: "Abrir relatorio.pdf" })).toBeVisible();
+
+  await page.getByRole("button", { name: /^Concluir/ }).click();
+  await page.getByRole("button", { name: "Sair / trocar participante", exact: true }).click();
+  await page.getByRole("button", { name: "Sair sem salvar cópia", exact: true }).click();
+  await page.getByRole("button", { name: "Primeiro acesso", exact: true }).click();
+  await page.getByLabel("Nome completo", { exact: true }).fill("Outro participante");
+  await page.getByRole("button", { name: "Abrir minha folha", exact: true }).click();
+  await openSheet(page);
+  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês.");
+});
+
+test("cópias com comprovantes levam os originais e a restauração reverte falhas", async ({ page, browser }, testInfo) => {
+  await create(page);
+  await add(page);
+  await openSheet(page);
+  const input = proofs(page).getByLabel("Adicionar comprovantes");
+  await input.setInputFiles(imageProof);
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await page.evaluate(() => Object.defineProperty(window, "showSaveFilePicker", {
+    configurable: true, value: undefined,
+  }));
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Salvar cópia", exact: true }).click();
+  const file = testInfo.outputPath("copia-com-comprovantes.json");
+  await (await downloadPromise).saveAs(file);
+  const data = JSON.parse(await readFile(file, "utf8"));
+  expect(data.version).toBe("1.1");
+  expect(data.attachments.map(({ name, base64 }: { name: string; base64: string }) =>
+    [name, Buffer.from(base64, "base64")])).toEqual([["foto.png", png]]);
+
+  const secondBrowser = await browser.newContext({ locale: "pt-BR" });
+  try {
+    const fresh = await secondBrowser.newPage();
+    await fresh.goto(page.url());
+    await fresh.getByRole("button", { name: "Restaurar cópia", exact: true }).click();
+    await restoreCopy(fresh, data, "Cópia de segurança da folha");
+    await expect(fresh.locator(".summary-total strong")).toHaveText("5");
+    await openSheet(fresh);
+    await expect(proofs(fresh).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  } finally {
+    await secondBrowser.close();
+  }
+
+  const legacy = { ...data, version: "1.0", attachments: undefined };
+  await restoreCopy(page, legacy);
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (...args) {
+      const request = put.apply(this, args);
+      request.addEventListener("success", () => this.transaction.abort(), { once: true });
+      return request;
+    };
+  });
+  await input.setInputFiles({ ...imageProof, name: "nao-salvo.png" });
+  await expect(proofs(page).getByRole("alert")).toContainText("Não foi possível salvar os arquivos");
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Abrir nao-salvo.png" })).toHaveCount(0);
+
+  const replacement = { ...data, activities: [], attachments: [{ ...data.attachments[0], name: "substituta.png" }] };
+  await restoreCopy(page, replacement);
+  await expect(page.getByText("Não foi possível restaurar", { exact: true })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await page.getByRole("button", { name: "Minha frequência", exact: true }).click();
+  await expect(page.locator(".summary-total strong")).toHaveText("5");
+
+  await page.reload();
+  await openSheet(page);
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await restoreCopy(page, replacement);
+  await expect(proofs(page).getByRole("button", { name: "Abrir substituta.png" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toHaveCount(0);
 });

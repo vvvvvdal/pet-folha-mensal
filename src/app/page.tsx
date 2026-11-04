@@ -18,7 +18,7 @@ import {
   saveActivitiesForMonth,
   loadSampleActivitiesForUser,
   exportUserData,
-  importUserData,
+  applyUserData,
   inspectUserData,
   getRestoreDiagnostic,
   type RestoreCode,
@@ -27,6 +27,13 @@ import {
   getStoredTemplates,
   registerProfile,
 } from "@/lib/storage";
+import {
+  decodeAttachments,
+  encodeAttachments,
+  listAttachments,
+  prepareAttachmentPages,
+} from "@/lib/attachments";
+import { restoreWithAttachments } from "@/lib/attachment-backup";
 import {
   calcPetHours,
   getMonthYearLabel,
@@ -44,6 +51,7 @@ import { ActivityForm } from "@/components/ActivityForm";
 import { ActivityTable } from "@/components/ActivityTable";
 import { EditActivityModal } from "@/components/EditActivityModal";
 import { OfficialSheet } from "@/components/OfficialSheet";
+import { MonthlyAttachments } from "@/components/MonthlyAttachments";
 import { LandingPage } from "@/components/LandingPage";
 import { ExitModal } from "@/components/ExitModal";
 import { FeedbackModal } from "@/components/FeedbackModal";
@@ -85,7 +93,16 @@ export default function Home() {
   const [showBlankTemplate, setShowBlankTemplate] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [attachmentsBusy, setAttachmentsBusy] = useState(false);
+  const [preparingPrint, setPreparingPrint] = useState(false);
+  const printInProgress = useRef(false);
+  const printSheetRef = useRef<HTMLDivElement>(null);
+  const printAttachmentsRef = useRef<HTMLDivElement>(null);
+  const clearPrintAttachments = useRef<(() => void) | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const activeProfileId = activeUser?.id;
+  useEffect(() => () => clearPrintAttachments.current?.(), [activeProfileId, monthKey, showBlankTemplate]);
 
   // Estados Dinâmicos de Configuração (GATs, Funções e Templates)
   const [gats, setGats] = useState<Record<string, GATInfo>>({});
@@ -342,24 +359,88 @@ export default function Home() {
       setEditingActivity(null);
   };
 
-  const handlePrint = async (): Promise<boolean> => {
-    const wrapper = document.querySelector<HTMLElement>(".print-only-wrapper");
-    if (!wrapper) return false;
-    // Measure using the same geometry as the protected A4 print stylesheet.
-    wrapper.classList.add("print-check");
-    const height = wrapper.scrollHeight;
-    wrapper.classList.remove("print-check");
-    if (height > (194 * 96) / 25.4) {
+  const handlePrint = async (blank = showBlankTemplate): Promise<boolean> => {
+    const wrapper = printSheetRef.current;
+    const proofs = printAttachmentsRef.current;
+    if (!wrapper || !proofs || !activeUser || printInProgress.current || attachmentsBusy)
+      return false;
+
+    printInProgress.current = true;
+    setPreparingPrint(true);
+    clearPrintAttachments.current?.();
+    try {
+      const scope = { profileId: activeUser.id, monthKey };
+      const stillCurrent = () =>
+        wrapper.isConnected &&
+        wrapper.dataset.profileId === scope.profileId &&
+        wrapper.dataset.month === scope.monthKey &&
+        wrapper.dataset.blank === String(blank);
+
+      if (!stillCurrent()) return false;
+      // Measure the official sheet alone, using the protected A4 geometry.
+      wrapper.classList.add("print-check");
+      const height = wrapper.scrollHeight;
+      wrapper.classList.remove("print-check");
+      if (height > (194 * 96) / 25.4) {
+        await alert({
+          title: "O conteúdo ultrapassa uma página",
+          message:
+            "A folha precisa caber em uma página A4 paisagem. Revise a extensão das descrições e a quantidade de registros com a coordenação antes de imprimir. Suas atividades continuam salvas.",
+          variant: "warning",
+        });
+        return false;
+      }
+
+      if (!blank) {
+        const attachments = await listAttachments(scope).catch(() => null);
+        if (!attachments) {
+          const proceed = await confirm({
+            title: "Imprimir só a folha?",
+            message: "O navegador não conseguiu ler os comprovantes deste mês. Você pode tentar novamente ou imprimir apenas a folha oficial.",
+            confirmText: "Imprimir só a folha",
+            cancelText: "Voltar",
+            variant: "warning",
+          });
+          if (!proceed) return false;
+        } else if (attachments.length) {
+          const { images, release } = await prepareAttachmentPages(attachments);
+          if (!stillCurrent()) {
+            release();
+            return false;
+          }
+          proofs.replaceChildren(...images.map((image) => {
+            const page = document.createElement("div");
+            page.className = "print-attachment-page";
+            image.alt = "";
+            page.append(image);
+            return page;
+          }));
+          const cleanup = () => {
+            proofs.replaceChildren();
+            release();
+            window.removeEventListener("afterprint", cleanup);
+            clearPrintAttachments.current = null;
+          };
+          clearPrintAttachments.current = cleanup;
+          window.addEventListener("afterprint", cleanup, { once: true });
+        }
+      }
+
+      if (!stillCurrent()) return false;
+      window.print();
+      return true;
+    } catch (error) {
+      clearPrintAttachments.current?.();
       await alert({
-        title: "O conteúdo ultrapassa uma página",
-        message:
-          "A folha precisa caber em uma página A4 paisagem. Revise a extensão das descrições e a quantidade de registros com a coordenação antes de imprimir. Suas atividades continuam salvas.",
+        title: "Não foi possível preparar o PDF",
+        message: error instanceof Error ? error.message : "Tente imprimir novamente.",
         variant: "warning",
       });
       return false;
+    } finally {
+      printInProgress.current = false;
+      setPreparingPrint(false);
     }
-    window.print();
-    return true;
   };
 
   const printParticipantSheet = async () => {
@@ -367,15 +448,16 @@ export default function Home() {
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => resolve()),
     );
-    return handlePrint();
+    return handlePrint(false);
   };
 
   // Exportar Backup Local em JSON
   const handleExportBackup = async (): Promise<boolean> => {
-    if (!activeUser) return false;
+    if (!activeUser || attachmentsBusy) return false;
     let jsonString: string;
     try {
-      jsonString = exportUserData(activeUser, monthKey);
+      const items = await listAttachments({ profileId: activeUser.id, monthKey });
+      jsonString = exportUserData(activeUser, monthKey, await encodeAttachments(items));
     } catch {
       setStorageError(
         "Não foi possível ler os registros para criar a cópia. Verifique o armazenamento e tente novamente.",
@@ -462,18 +544,34 @@ export default function Home() {
         setRestoreIssue({ code: preview.code, message: preview.error! });
         return;
       }
+      let attachments;
+      try {
+        if (preview.attachmentData)
+          attachments = await decodeAttachments(preview.attachmentData);
+      } catch (error) {
+        setRestoreIssue({
+          code: "INVALID_BACKUP",
+          message: error instanceof Error ? error.message : "A cópia contém comprovantes inválidos.",
+        });
+        return;
+      }
       const existing = profiles.find(
         (profile) => profile.id === preview.user!.id,
       );
+      const contents = attachments === undefined
+        ? "A cópia antiga preserva os comprovantes já salvos."
+        : "Comprovantes na cópia: " + attachments.length + ".";
       const accepted = await confirm({
         title: "Restaurar esta cópia?",
-        message: `${preview.user!.name} · ${getMonthYearLabel(preview.monthKey!)} · ${preview.activities!.length} atividades. ${existing ? "Os dados deste perfil e deste mês serão substituídos pela cópia. Os outros meses serão preservados." : "O perfil e os registros desta cópia serão adicionados neste navegador."}`,
+        message: `${preview.user!.name} · ${getMonthYearLabel(preview.monthKey!)} · ${preview.activities!.length} atividades. ${contents} ${existing ? "Os dados deste perfil e deste mês serão substituídos pela cópia. Os outros meses serão preservados." : "O perfil e os registros desta cópia serão adicionados neste navegador."}`,
         confirmText: "Restaurar cópia",
         cancelText: "Cancelar",
         variant: "warning",
       });
       if (!accepted) return;
-      const result = importUserData(content);
+      const result = attachments === undefined
+        ? applyUserData(preview)
+        : await restoreWithAttachments(preview, preview.user!.id, preview.monthKey!, attachments);
       if (!result.success) {
         setRestoreIssue({ code: result.code, message: result.error! });
         return;
@@ -482,6 +580,7 @@ export default function Home() {
       setMonthKey(result.monthKey!);
       setActiveUser(result.user!);
       setActivities(result.activities!);
+      setFormRevision((revision) => revision + 1);
       setDraftDirty(false);
       setHasChanges(false);
       setStorageError("");
@@ -749,11 +848,13 @@ export default function Home() {
                     </a>
                   )}
                   <button
-                    onClick={handlePrint}
+                    onClick={() => void handlePrint()}
+                    disabled={preparingPrint || attachmentsBusy}
+                    aria-busy={preparingPrint}
                     className="px-3.5 py-1.5 rounded-xl font-semibold bg-primary text-white hover:bg-[var(--primary-hover)] cursor-pointer flex items-center gap-1.5 transition-all text-xs shadow-[var(--page-shadow)]"
                   >
                     <Printer className="size-3.5" />
-                    <span>Imprimir / salvar PDF</span>
+                    <span>{preparingPrint ? "Preparando PDF…" : "Imprimir / salvar PDF"}</span>
                   </button>
                   <button
                     onClick={() => setActiveTab("dashboard")}
@@ -780,6 +881,16 @@ export default function Home() {
                   />
                 </div>
               </div>
+              {!showBlankTemplate && (
+                <MonthlyAttachments
+                  key={JSON.stringify([activeUser.id, monthKey, formRevision])}
+                  profileId={activeUser.id}
+                  monthKey={monthKey}
+                  busy={attachmentsBusy || preparingPrint}
+                  onBusyChange={setAttachmentsBusy}
+                  onChange={() => setHasChanges(true)}
+                />
+              )}
             </div>
           )}
 
@@ -876,7 +987,13 @@ export default function Home() {
       {/* ============================================================
            CONTAINER EXCLUSIVO DE IMPRESSÃO (@media print)
            ============================================================ */}
-      <div className="print-only-wrapper">
+      <div
+        ref={printSheetRef}
+        className="print-only-wrapper"
+        data-profile-id={activeUser.id}
+        data-month={monthKey}
+        data-blank={showBlankTemplate}
+      >
         <OfficialSheet
           user={activeUser}
           monthLabel={monthLabel}
@@ -885,6 +1002,7 @@ export default function Home() {
           isBlankTemplate={showBlankTemplate}
         />
       </div>
+      <div ref={printAttachmentsRef} className="print-attachments" aria-hidden="true" />
     </>
   );
 }

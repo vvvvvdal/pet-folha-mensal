@@ -26,6 +26,10 @@
 ## Modo de Execução Atual: Localhost
 - [x] Execução autossuficiente em `http://localhost:5000` com persistência local (`localStorage`).
 
+## Comprovantes da folha mensal
+
+- [x] Anexar comprovantes opcionais por perfil e mês, incluir no PDF para assinatura e levar os originais na cópia de segurança. [Fluxo e limites](docs/ui-ux.md).
+
 ## Próximos Passos (Postergados para Etapa Futura)
 - [x] Conferir a base após o pull: baseline antiga de 19 erros/5 avisos superada. Lint atual sem erros, com 3 avisos legados; demais gates e ambiente nas [evidências](docs/validation/ui-ux-20261102/README.md).
 - [x] Implementar o [plano de reestruturação UI/UX](docs/ui-ux-restructure-plan.md): retomada de perfil sem JSON, tipografia maior, formulário/lista, referência de horas, diagnóstico/restauração e impressão protegida. [Comportamento](docs/ui-ux.md) e [evidências/limites](docs/validation/ui-ux-20261102/README.md).

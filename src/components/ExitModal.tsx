@@ -72,8 +72,7 @@ function Conclusion({
           <div>
             <h3>Cópia de segurança</h3>
             <p>
-              Arquivo .json para continuar editando ou abrir sua folha em outro
-              aparelho.
+              Arquivo .json com suas atividades e comprovantes para abrir a folha em outro aparelho.
             </p>
             {jsonTriggered && (
               <p role="status">
@@ -94,7 +93,7 @@ function Conclusion({
           <div>
             <h3>Folha para assinatura</h3>
             <p>
-              Confira os registros e use A4 em paisagem na janela de impressão.
+              Os comprovantes, se houver, saem depois da folha. Use A4 em paisagem e assine o PDF completo.
             </p>
             {pdfTriggered && (
               <p role="status">

@@ -69,9 +69,16 @@ preservados. A folha oficial mantém sua escala em pontos e entrelinha própria.
 
 ### Cópia, restauração e conclusão
 
-“Salvar cópia” produz o JSON para continuar editando. “Imprimir / salvar PDF”
+“Salvar cópia” produz o JSON para continuar editando e leva os comprovantes originais. “Imprimir / salvar PDF”
 abre a impressão da folha para assinatura. A conclusão distingue as duas ações e
 mantém confirmação de saída quando existem alterações sem cópia acionada.
+Em **Minha folha**, a seção opcional **Comprovantes** fica abaixo da prévia.
+Aceita PDFs, JPEGs e PNGs de até 20 MB por arquivo, com limite mensal de 40 MB
+e 30 páginas de comprovantes. A impressão mantém a folha oficial primeiro e
+acrescenta uma página A4 em paisagem para cada imagem ou página de PDF, na ordem
+da lista. As páginas de comprovantes saem como imagens. Assine o PDF completo.
+Restaurar uma cópia antiga preserva os comprovantes locais daquele mês.
+
 Os avisos descrevem a ação iniciada, sem afirmar que um download/PDF foi salvo
 quando o navegador não fornece essa confirmação.
 

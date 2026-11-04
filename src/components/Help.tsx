@@ -10,7 +10,7 @@ const questions = [
   ],
   [
     "O que é o JSON e como restauro uma folha?",
-    "O JSON é a cópia editável da sua folha: guarda identificação e atividades. Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
+    "O JSON é a cópia editável da sua folha: guarda sua identificação, atividades e comprovantes. Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
   ],
   [
     "Onde ficam meus dados?",
@@ -26,7 +26,7 @@ const questions = [
   ],
   [
     "Como imprimo e assino?",
-    "Em “Folha oficial”, escolha “Imprimir / salvar PDF”. Use papel A4 em paisagem e assine conforme a orientação da coordenação. Guarde o .json para continuar editando.",
+    "Se o seu GAT pedir comprovantes, abra “Minha folha” na aba “Folha oficial” e anexe PDFs, JPEGs ou PNGs abaixo da prévia. Em “Imprimir / salvar PDF”, use papel A4 em paisagem. Confira a folha e os comprovantes nas páginas seguintes antes de assinar o PDF completo.",
   ],
 ];
 

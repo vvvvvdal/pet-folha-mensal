@@ -30,7 +30,7 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
 │       (Motor de Renderização e Impressão Nativa A4 Paisagem)           │
 ├────────────────────────────────────────────────────────────────────────┤
 │                  Persistência e bloqueio de acesso                     │
-│ localStorage (dados) + Route Handler (PIN) + cookie HttpOnly assinado  │
+│ localStorage + IndexedDB + Route Handler (PIN) + cookie HttpOnly      │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -49,6 +49,7 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
   - **Desktop (`hidden sm:block`)**: Apresenta a tabela tabular densa com 7 colunas (`Data`, `Entrada`, `Saída`, `Tipo`, `Descrição`, `Horas` e `Ações`), incluindo edição e exclusão com confirmação.
 - **`EditActivityModal.tsx`**: Modal de edição de lançamentos que recalcula as horas conforme a regra do PET antes de persistir a alteração.
 - **`OfficialSheet.tsx`**: Gabarito oficial de impressão compatível com as exigências da SGTES/Ministério da Saúde, desenhado para fechar em exatamente 1 página horizontal A4 (`@media print`).
+- **`MonthlyAttachments.tsx`**: Lista opcional de comprovantes vinculada ao perfil e mês. A impressão coloca as páginas de comprovantes após o gabarito oficial.
 - **`ExitModal.tsx`**: Fluxo de saída seguro e responsivo que incentiva o participante a baixar sua cópia de segurança em `.json` e gerar sua folha assinada em `.pdf` antes de encerrar a sessão, com confirmação explícita e uma única ação de download por vez.
 - **`AdminModal.tsx`**: Painel de configurações locais. Consulta a sessão no servidor antes de exibir a interface e informa que o bloqueio não transforma dados do `localStorage` em dados administrativos confiáveis.
 - **`FeedbackModal.tsx`**: Modal minimalista com atalho para o formulário oficial de avaliação do sistema, sugestões e envio de prints de bugs.
@@ -60,9 +61,10 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
   Contém também formatadores para datas no padrão brasileiro (`DD/MM/YYYY`) e rotulagem de meses de referência.
 - **`storage.ts`**: Camada de abstração do `localStorage`. Implementa:
   - Isolamento de dados por perfil de usuário e por mês (`pet_folha_activities_v2_${userId}_${monthKey}`).
-  - Exportação no formato 1.0 e restauração após validação integral (`inspectUserData`, `importUserData`), com confirmação na interface, preservação de registros em falhas recuperáveis e diagnóstico local sem conteúdo pessoal.
+  - Leitura de cópias legadas 1.0 e exportação no formato 1.1 pelo app, com validação antes da restauração (`inspectUserData`, `importUserData`), com confirmação na interface, preservação de registros em falhas recuperáveis e diagnóstico local sem conteúdo pessoal.
   - Remoção automática do campo legado `pin` dos perfis armazenados e importados.
   - Suporte a templates e funções dinâmicas.
+- Os comprovantes são gravados como arquivos originais no IndexedDB, por perfil e mês. O JSON 1.1 leva os bytes em Base64. Na restauração, a gravação de comprovantes é abortada se o `localStorage` falhar. Se a transação de comprovantes abortar, as escritas locais são revertidas.
 - **`admin-auth.ts` + `/api/admin/session`**: Camada exclusivamente server-side que valida `ADMIN_PIN_HASH` com comparação constante, emite sessão assinada de 8 horas em cookie `HttpOnly`, `SameSite=Strict` e falha de forma fechada quando a configuração está ausente.
 - **`theme.ts`**: Hook `useTheme` que controla os modos `dark` e `light` via atributo `data-theme` na raiz do documento e chave `pet_theme` no storage.
 
@@ -138,8 +140,8 @@ A interface usa tokens semânticos e componentes compartilhados de marca, rodap�
 A entrada permite continuar sem JSON quando o perfil permanece neste navegador.
 As áreas centrais são Minha frequência e Folha oficial. Datas acompanham o mês
 selecionado; a lista de meses cobre agosto/2026 a agosto/2028 e mantém visível
-um mês válido de backup legado fora desse intervalo. O cálculo canônico e o
-formato de exportação 1.0 permanecem.
+um mês válido de backup legado fora desse intervalo. O cálculo canônico e a
+leitura de cópias 1.0 permanecem.
 
 A importação valida todos os registros antes de escrever, recusa colisão de nome
 com ID diferente e registra os valores anteriores das três chaves afetadas.

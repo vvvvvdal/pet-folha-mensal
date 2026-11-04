@@ -226,7 +226,7 @@ export function LandingPage({
               <FileJson size={24} aria-hidden="true" />
               <div>
                 <h3><span className="file-extension">.json</span> Cópia para continuar</h3>
-                <p>O JSON é um arquivo que guarda sua identificação e as atividades da folha. Ele permite continuar editando ou levar os registros para outro aparelho.</p>
+                <p>O JSON é um arquivo que guarda sua identificação, as atividades e os comprovantes da folha. Ele permite continuar editando ou levar os registros para outro aparelho.</p>
                 <p>Na sua folha, use <strong>Salvar cópia</strong>. Para abrir o arquivo aqui, escolha <strong>Restaurar cópia</strong>. Não precisa abrir nem editar o JSON por conta própria; guarde-o em local seguro.</p>
               </div>
             </div>
