@@ -6,7 +6,19 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
-Publicação atual de 07/11/2026, commit de origem 55c3654, deployment
+Publicação atual de 07/11/2026, commit de origem 3c08cfd, deployment
+dpl_HpdnwwPFVXU6eB4tokss6tUJQFLP em produção, estado READY.
+Domínio principal conferido em contexto isolado do navegador, com Novidades,
+preparo por atividade, geração do link e confirmação manual preservada após
+recarregar. O pré-preenchimento da primeira etapa foi verificado separadamente
+no Forms real, sem envio de resposta. A confirmação de envio permanece manual.
+
+Build, tipagem, lint e 22 testes locais aprovados. Os 24 cenários de navegador
+pertinentes passaram em desktop e celular simulado. O teste legado do seletor
+de mês foi separado desta rodada, conforme a limitação já documentada.
+O lint conserva três avisos dos scripts legados.
+
+Publicação de 07/11/2026, commit de origem 55c3654, deployment
 dpl_3VZWgMEXd3V1mCE27ZcCS7TBQi5w em produção, estado READY.
 Domínio principal conferido no navegador. PDF gerado em produção com 40 registros
 distribuídos em quatro páginas, todos os registros presentes e assinaturas
