@@ -6,7 +6,16 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
-Publicação atual de 02/11/2026: versão `d309198`, enviada diretamente pela API
+Publicação atual de 07/11/2026, commit de origem 55c3654, deployment
+dpl_3VZWgMEXd3V1mCE27ZcCS7TBQi5w em produção, estado READY.
+Domínio principal conferido no navegador. PDF gerado em produção com 40 registros
+distribuídos em quatro páginas, todos os registros presentes e assinaturas
+somente na última página da frequência. Lembrete do formulário visível.
+Build, tipagem, lint e 20 testes locais aprovados. Oito testes de navegador
+pertinentes passaram em desktop e celular simulado, incluindo comprovantes,
+restauração e paginação. O lint conserva três avisos dos scripts legados.
+
+Publicação de 02/11/2026: versão `d309198`, enviada diretamente pela API
 conectada, deployment `dpl_DE2axZd65McaV146xzdYUKp3wcmf`, estado READY. Domínio
 principal e percurso de retomada sem JSON conferidos. O build usou Node 22,
 conforme `package.json`. [Evidência e limites](validation/ui-ux-20261102/README.md#publicação-em-produção--02112026).
