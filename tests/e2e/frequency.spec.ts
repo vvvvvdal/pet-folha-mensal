@@ -338,7 +338,7 @@ test("falha de gravação mantém formulário e permite tentar novamente", async
   await expect(page.locator(".summary-total strong")).toHaveText("5");
 });
 
-test("folha extensa é preservada e não imprime conteúdo cortado", async ({
+test("folha extensa pagina e mantém assinaturas somente no final", async ({
   page,
 }) => {
   await create(page);
@@ -373,13 +373,29 @@ test("folha extensa é preservada e não imprime conteúdo cortado", async ({
   await page
     .getByRole("button", { name: "Imprimir / salvar PDF", exact: true })
     .click();
-  await expect(
-    page.getByText("O conteúdo ultrapassa uma página", { exact: true }),
-  ).toBeVisible();
-  await expect(page.locator("html")).not.toHaveAttribute(
-    "data-print-opened",
-    "true",
-  );
+  await expect(page.locator("html")).toHaveAttribute("data-print-opened", "true");
+  const bytes = await page.pdf({ preferCSSPageSize: true });
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const task = getDocument({ data: new Uint8Array(bytes) });
+  const pdf = await task.promise;
+  try {
+    expect(pdf.numPages).toBeGreaterThan(1);
+    for (let number = 1; number <= pdf.numPages; number++) {
+      const sheet = await pdf.getPage(number);
+      const content = await sheet.getTextContent();
+      const text = content.items.map((item) => "str" in item ? item.str : "").join(" ");
+      if (number === pdf.numPages) {
+        expect(text).toContain("Assinatura do Participante");
+        expect(text).toContain("Assinatura da Supervisão do GAT");
+        expect(text).toContain("TOTAL: 40 horas");
+      } else {
+        expect(text).not.toContain("Assinatura do Participante");
+        expect(text).not.toContain("Assinatura da Supervisão do GAT");
+      }
+    }
+  } finally {
+    await task.destroy();
+  }
   expect(
     await page.evaluate(() => {
       const id = localStorage.getItem("pet_folha_active_profile_id_v2");

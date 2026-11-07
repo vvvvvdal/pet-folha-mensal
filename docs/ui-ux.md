@@ -96,9 +96,8 @@ quando a gravação falha.
 
 ### Folha e impressão
 
-`OfficialSheet.tsx` e o modelo oficial permanecem preservados. Uma medição com
-geometria A4 impede abrir a impressão se o conteúdo ultrapassar uma página,
-orientando revisão sem apagar registros. A impressão força papel branco também
+A folha oficial usa paginação automática em A4 paisagem, com assinaturas no final.
+A impressão força papel branco também
 quando a interface usa tema escuro. A prévia tem rolagem própria, sem alargar a
 página inteira.
 
@@ -133,3 +132,5 @@ pendentes. O piloto Maestri tem sua homologação própria e não bloqueia esta 
 - [Design do Frequência Hub](</mnt/hddw/Users/felip/Documents/GitHub/frequencia-hub/docs/UI-DESIGN.md>) e [formulários refinados](</mnt/hddw/Users/felip/Documents/GitHub/frequencia-hub/docs/validation/design-refinement/README.md>).
 - [Unslop, Damir Sokolovsky, revisão a6f121e](https://github.com/heydamir/unslop/blob/a6f121eee5f29c2f74976b75456feae8b66afb3a/skills/unslop/SKILL.md), CC BY 4.0: direção do produto e passes de refinamento adaptados ao PET.
 - [Referências Oracle](oracle-ci-logs-unslop.md) para CI e diagnóstico local.
+
+A impressão divide frequências extensas automaticamente em A4 paisagem. Os cabeçalhos da tabela se repetem nas páginas seguintes. O total e os campos de assinatura aparecem juntos somente no final da frequência, antes dos comprovantes. Na área de lançamentos há um lembrete com acesso ao formulário de cada atividade.

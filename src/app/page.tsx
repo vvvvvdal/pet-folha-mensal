@@ -377,19 +377,6 @@ export default function Home() {
         wrapper.dataset.blank === String(blank);
 
       if (!stillCurrent()) return false;
-      // Measure the official sheet alone, using the protected A4 geometry.
-      wrapper.classList.add("print-check");
-      const height = wrapper.scrollHeight;
-      wrapper.classList.remove("print-check");
-      if (height > (194 * 96) / 25.4) {
-        await alert({
-          title: "O conteúdo ultrapassa uma página",
-          message:
-            "A folha precisa caber em uma página A4 paisagem. Revise a extensão das descrições e a quantidade de registros com a coordenação antes de imprimir. Suas atividades continuam salvas.",
-          variant: "warning",
-        });
-        return false;
-      }
 
       if (!blank) {
         const attachments = await listAttachments(scope).catch(() => null);
@@ -785,6 +772,13 @@ export default function Home() {
                   onClearMonth={handleClearMonth}
                 />
               </div>
+              <aside className="rounded-xl border border-line bg-surface p-4 text-sm text-body">
+                <p>Registre também cada atividade no formulário do PET-Saúde Clima.</p>
+                <a className="underline font-semibold" target="_blank" rel="noopener noreferrer"
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSeX_QoKztpaSkO70-FUnZ9nOvkXhOueRjC-RH08Ktveliowxw/viewform">
+                  Abrir formulário de atividades
+                </a>
+              </aside>
               <div className="review-next">
                 <p>
                   Terminou os lançamentos? Confira os dados da folha antes de

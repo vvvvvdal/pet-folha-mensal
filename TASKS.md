@@ -44,3 +44,5 @@
 - [x] Temas por tokens semânticos, navegação responsiva, campos associados e modais nativos.
 - [x] Verificação de tipos, lint e compilação de produção; regressão de cálculo e cópias de segurança.
 - [x] Revisão posterior no navegador em 360/390/768/1440 px, claro/escuro, teclado/foco e PDF A4. A limitação da sessão de 31/10 foi superada na validação local de 02/11; homologação física permanece no item próprio acima.
+
+- [x] Paginar frequências extensas automaticamente, manter assinaturas no final e lembrar o formulário por atividade.

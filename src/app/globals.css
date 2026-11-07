@@ -1378,43 +1378,6 @@ html[data-theme="light"] {
   }
 }
 
-@media screen {
-  .print-only-wrapper.print-check {
-    display: block;
-    position: fixed;
-    left: -10000px;
-    top: 0;
-    width: 277mm;
-    visibility: hidden;
-    font-family: "Times New Roman", Times, serif;
-  }
-  .print-check .official-sheet {
-    width: 100%;
-    max-width: 100%;
-    padding: 0;
-    margin: 0;
-    border: 0;
-  }
-  .print-check table.official-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1.5px solid #000;
-    box-sizing: border-box;
-  }
-  .print-check table.official-table th {
-    border: 1px solid #000;
-    padding: 3px 5px;
-  }
-  .print-check table.official-table td {
-    border: 1px solid #000;
-    padding: 3px 5px;
-    line-height: 1.2;
-  }
-  .print-check table.official-table tbody tr:last-child td {
-    border-bottom: 1.5px solid #000;
-  }
-}
-
 /* Reading sizes apply to the app only; the official form keeps its point sizes. */
 body {
   font-size: 16px;
@@ -1981,8 +1944,8 @@ select optgroup {
     background: transparent !important;
     padding: 0 !important;
     margin: 0 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 
   .official-sheet {
@@ -1993,16 +1956,16 @@ select optgroup {
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 
   table.official-table {
     width: 100% !important;
     border-collapse: collapse !important;
     border: 1.5px solid #000000 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
     box-sizing: border-box !important;
   }
 
@@ -2058,5 +2021,26 @@ select optgroup {
     max-height: 193mm;
     object-fit: contain;
     image-orientation: from-image;
+  }
+}
+
+
+@media print {
+  .official-table thead {
+    display: table-header-group;
+  }
+
+  .official-table tr,
+  .official-sheet-closing {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .official-sheet-closing {
+    display: flow-root;
+  }
+
+  .official-table td {
+    overflow-wrap: anywhere;
   }
 }

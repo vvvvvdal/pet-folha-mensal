@@ -137,30 +137,32 @@ export function OfficialSheet({
         </tbody>
       </table>
 
-      {/* Total de Horas (exibido apenas quando preenchido para validação das 32h) */}
-      {!isBlankTemplate && (
-        <div className="text-[10pt] font-bold text-black mt-1 mb-2">
-          TOTAL: {totalHours} horas
-        </div>
-      )}
+      <div className="official-sheet-closing">
+        {/* Total de Horas (exibido apenas quando preenchido para validação das 32h) */}
+        {!isBlankTemplate && (
+          <div className="text-[10pt] font-bold text-black mt-1 mb-2">
+            TOTAL: {totalHours} horas
+          </div>
+        )}
 
-      {/* Assinaturas Digitais (Espaço dedicado para carimbos e assinaturas do Gov.br) */}
-      <div className="flex justify-between items-end mt-12 mb-4 px-10">
-        <div className="w-[42%] text-center">
-          <div className="text-[10pt] font-normal text-black">
-            Assinatura do Participante
+        {/* Assinaturas Digitais (Espaço dedicado para carimbos e assinaturas do Gov.br) */}
+        <div className="flex justify-between items-end mt-12 mb-4 px-10">
+          <div className="w-[42%] text-center">
+            <div className="text-[10pt] font-normal text-black">
+              Assinatura do Participante
+            </div>
+          </div>
+          <div className="w-[42%] text-center">
+            <div className="text-[10pt] font-normal text-black">
+              Assinatura da Supervisão do GAT
+            </div>
           </div>
         </div>
-        <div className="w-[42%] text-center">
-          <div className="text-[10pt] font-normal text-black">
-            Assinatura da Supervisão do GAT
-          </div>
-        </div>
-      </div>
 
-      {/* Nota de Rodapé Oficial */}
-      <div className="text-[7.5pt] text-black leading-tight mt-6">
-        <p>**Estudante, Orientador de Serviço, Preceptor, Tutor, Coordenador de GAT</p>
+        {/* Nota de Rodapé Oficial */}
+        <div className="text-[7.5pt] text-black leading-tight mt-6">
+          <p>**Estudante, Orientador de Serviço, Preceptor, Tutor, Coordenador de GAT</p>
+        </div>
       </div>
     </div>
   );

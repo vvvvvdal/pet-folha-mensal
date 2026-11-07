@@ -48,7 +48,7 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
   - **Smartphone (`sm:hidden`)**: Renderiza uma lista de cartões empilhados completos, com touch targets mínimos de 44x44px (WCAG 2.5.5), texto legível sem zoom involuntário e ações de editar ou excluir.
   - **Desktop (`hidden sm:block`)**: Apresenta a tabela tabular densa com 7 colunas (`Data`, `Entrada`, `Saída`, `Tipo`, `Descrição`, `Horas` e `Ações`), incluindo edição e exclusão com confirmação.
 - **`EditActivityModal.tsx`**: Modal de edição de lançamentos que recalcula as horas conforme a regra do PET antes de persistir a alteração.
-- **`OfficialSheet.tsx`**: Gabarito oficial de impressão compatível com as exigências da SGTES/Ministério da Saúde, desenhado para fechar em exatamente 1 página horizontal A4 (`@media print`).
+- **`OfficialSheet.tsx`**: Gabarito oficial de impressão compatível com as exigências da SGTES/Ministério da Saúde, com paginação automática em A4 paisagem e assinaturas no final (`@media print`).
 - **`MonthlyAttachments.tsx`**: Lista opcional de comprovantes vinculada ao perfil e mês. A impressão coloca as páginas de comprovantes após o gabarito oficial.
 - **`ExitModal.tsx`**: Fluxo de saída seguro e responsivo que incentiva o participante a baixar sua cópia de segurança em `.json` e gerar sua folha assinada em `.pdf` antes de encerrar a sessão, com confirmação explícita e uma única ação de download por vez.
 - **`AdminModal.tsx`**: Painel de configurações locais. Consulta a sessão no servidor antes de exibir a interface e informa que o bloqueio não transforma dados do `localStorage` em dados administrativos confiáveis.
@@ -152,10 +152,12 @@ remoto. O estado React só confirma uma gravação concluída.
 
 A camada de leitura usa texto principal/campos em 16px e auxiliares a partir de
 14px. A tipografia do documento mantém tamanhos em pontos e entrelinha própria.
-Uma conferência de altura impede abrir a impressão de conteúdo acima do espaço
+A paginação automática permite distribuir o conteúdo pelo espaço
 A4 disponível, preservando os registros para revisão. Resultado de impressão ou
 download acionado não é apresentado como confirmação de arquivo salvo.
 
 O CI está definido em `.github/workflows/ci.yml`, com Node 22, instalação pelo
 lockfile, lint, testes, build, tipagem e percurso Playwright. A documentação de
 [UI/UX](ui-ux.md) concentra as evidências e limites de homologação.
+
+A impressão divide frequências extensas automaticamente em A4 paisagem. Os cabeçalhos da tabela se repetem nas páginas seguintes. O total e os campos de assinatura aparecem juntos somente no final da frequência, antes dos comprovantes. Na área de lançamentos há um lembrete com acesso ao formulário de cada atividade.
