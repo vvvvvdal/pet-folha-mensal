@@ -28,6 +28,7 @@ export function ProfileModal({
 }: ProfileModalProps) {
   const { alert } = useDialog();
   const [name, setName] = useState(currentUser.name);
+  const [email, setEmail] = useState(currentUser.email ?? "");
   const [role, setRole] = useState<UserRole>(currentUser.role);
   const [gatNumber, setGatNumber] = useState(currentUser.gatNumber);
 
@@ -35,6 +36,7 @@ export function ProfileModal({
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Opening the profile editor must discard a previously cancelled draft.
       setName(currentUser.name);
+      setEmail(currentUser.email ?? "");
       setRole(currentUser.role);
       setGatNumber(currentUser.gatNumber);
     }
@@ -66,6 +68,7 @@ export function ProfileModal({
     const saved = onSaveProfile({
       ...currentUser,
       name: name.trim(),
+      email: email.trim(),
       role,
       gatNumber,
       gatName: gatInfo?.name || `GAT ${gatNumber}`,
@@ -122,6 +125,12 @@ export function ProfileModal({
               onChange={(e) => setName(e.target.value)}
               className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-canvas border border-line text-ink outline-none focus:border-accent transition-colors"
             />
+          </div>
+
+          <div className="field">
+            <label htmlFor="profile-email">E-mail para o formulário (opcional)</label>
+            <input id="profile-email" type="email" value={email} autoComplete="email"
+              onChange={(event) => setEmail(event.target.value)} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

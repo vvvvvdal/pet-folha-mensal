@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Activity, UserProfile } from "@/types";
 import { cleanActivityDescription, formatDateBR } from "@/lib/pet-calculator";
 import { Pencil, Trash2, ListChecks } from "lucide-react";
+import { formReportStatus } from "@/lib/form-report";
 import { ConfirmModal } from "./ConfirmModal";
 
 interface ActivityTableProps {
@@ -16,6 +17,7 @@ interface ActivityTableProps {
   monthLabel: string;
   onLoadSamples: () => void;
   onClearMonth: () => void;
+  onPrepareForm?: (activity: Activity) => void;
 }
 
 export function ActivityTable({
@@ -28,10 +30,22 @@ export function ActivityTable({
   monthLabel,
   onLoadSamples,
   onClearMonth,
+  onPrepareForm,
 }: ActivityTableProps) {
   const [confirmClear, setConfirmClear] = useState(false);
+  const [pendingOnly, setPendingOnly] = useState(false);
+  const pendingCount = activities.filter((activity) => formReportStatus(user, activity) !== "Enviado").length;
+  const visibleActivities = pendingOnly
+    ? activities.filter((activity) => formReportStatus(user, activity) !== "Enviado")
+    : activities;
   const actions = (activity: Activity) => (
     <div className="record-actions">
+      <span className="report-state">{formReportStatus(user, activity)}</span>
+      <button className="report-launch" type="button"
+        onClick={() => onPrepareForm?.(activity)}
+        aria-label={"Preparar formulário: " + cleanActivityDescription(activity.description)}>
+        Preparar formulário
+      </button>
       <button
         className="icon-button"
         onClick={() => onEdit(activity)}
@@ -62,6 +76,14 @@ export function ActivityTable({
           </button>
         )}
       </div>
+      {activities.length > 0 && (
+        <div className="report-filter">
+          <p>{pendingCount} de {activities.length} atividades com envio pendente ou para revisar.</p>
+          <label><input type="checkbox" checked={pendingOnly}
+            onChange={(event) => setPendingOnly(event.target.checked)} /> Mostrar só pendências do Forms</label>
+          <p className="access-hint">O envio é confirmado por você depois de concluir no Google.</p>
+        </div>
+      )}
       {activities.length === 0 ? (
         <div className="records-empty">
           <ListChecks size={32} aria-hidden="true" />
@@ -89,8 +111,9 @@ export function ActivityTable({
         </div>
       ) : (
         <>
+          {visibleActivities.length === 0 && <p className="records-empty">Nenhuma pendência do Forms neste mês.</p>}
           <div className="record-cards">
-            {activities.map((activity) => (
+            {visibleActivities.map((activity) => (
               <article
                 className="record-card"
                 key={activity.id}
@@ -124,7 +147,7 @@ export function ActivityTable({
                 </tr>
               </thead>
               <tbody>
-                {activities.map((activity) => (
+                {visibleActivities.map((activity) => (
                   <tr
                     key={activity.id}
                     data-editing={editingId === activity.id}

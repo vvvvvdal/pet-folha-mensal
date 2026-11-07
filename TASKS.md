@@ -46,3 +46,11 @@
 - [x] Revisão posterior no navegador em 360/390/768/1440 px, claro/escuro, teclado/foco e PDF A4. A limitação da sessão de 31/10 foi superada na validação local de 02/11; homologação física permanece no item próprio acima.
 
 - [x] Paginar frequências extensas automaticamente, manter assinaturas no final e lembrar o formulário por atividade.
+
+## Forms assistido e novidades
+
+- [x] Preparar a primeira etapa por atividade, copiar resumo e acompanhar confirmações manuais, com revisão após edição.
+- [x] Preservar relatórios na cópia 1.2, lendo cópias antigas como pendentes.
+- [x] Mostrar novidades com data de publicação e histórico expansível na entrada.
+
+- [ ] Avaliar futura reformulação do Forms para reunir atividades em um envio, condicionada à definição do fluxo pela coordenação e ao acesso de edição.

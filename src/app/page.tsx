@@ -7,6 +7,7 @@ import {
   UserRole,
   GATInfo,
   ActivityTemplate,
+  FormReport,
 } from "@/types";
 import {
   getStoredProfiles,
@@ -48,6 +49,8 @@ import { ProfileModal } from "@/components/ProfileModal";
 import { AdminModal } from "@/components/AdminModal";
 import { StatsGrid } from "@/components/StatsGrid";
 import { ActivityForm } from "@/components/ActivityForm";
+import { ACTIVITY_FORM_URL } from "@/lib/form-report";
+import { ActivityReportModal } from "@/components/ActivityReportModal";
 import { ActivityTable } from "@/components/ActivityTable";
 import { EditActivityModal } from "@/components/EditActivityModal";
 import { OfficialSheet } from "@/components/OfficialSheet";
@@ -91,6 +94,9 @@ export default function Home() {
     "dashboard",
   );
   const [showBlankTemplate, setShowBlankTemplate] = useState(false);
+  const [reportingActivity, setReportingActivity] = useState<{
+    profileId: string; monthKey: string; id: string;
+  } | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [attachmentsBusy, setAttachmentsBusy] = useState(false);
@@ -295,7 +301,7 @@ export default function Home() {
     const next = editingId
       ? activities.map((activity) =>
           activity.id === editingId
-            ? { ...data, id: editingId, hours }
+            ? { ...activity, ...data, id: editingId, hours }
             : activity,
         )
       : [
@@ -680,6 +686,16 @@ export default function Home() {
 
   const totalHours = activities.reduce((sum, act) => sum + act.hours, 0);
   const monthLabel = getMonthYearLabel(monthKey);
+  const reportActivity = reportingActivity?.profileId === activeUser.id &&
+    reportingActivity.monthKey === monthKey
+    ? activities.find((activity) => activity.id === reportingActivity.id)
+    : undefined;
+  const saveFormReport = (formReport: FormReport) => {
+    if (!reportActivity) return false;
+    return persistActivities(activities.map((activity) =>
+      activity.id === reportActivity.id ? { ...activity, formReport } : activity
+    ), "Dados do formulário salvos.");
+  };
 
   return (
     <>
@@ -761,6 +777,10 @@ export default function Home() {
                 />
 
                 <ActivityTable
+                  key={JSON.stringify([activeUser.id, monthKey])}
+                  onPrepareForm={(activity) => setReportingActivity({
+                    profileId: activeUser.id, monthKey, id: activity.id,
+                  })}
                   activities={activities}
                   totalHours={totalHours}
                   editingId={editingActivity ? editingActivity.id : null}
@@ -775,7 +795,7 @@ export default function Home() {
               <aside className="rounded-xl border border-line bg-surface p-4 text-sm text-body">
                 <p>Registre também cada atividade no formulário do PET-Saúde Clima.</p>
                 <a className="underline font-semibold" target="_blank" rel="noopener noreferrer"
-                  href="https://docs.google.com/forms/d/e/1FAIpQLSeX_QoKztpaSkO70-FUnZ9nOvkXhOueRjC-RH08Ktveliowxw/viewform">
+                  href={ACTIVITY_FORM_URL}>
                   Abrir formulário de atividades
                 </a>
               </aside>
@@ -886,6 +906,18 @@ export default function Home() {
                 />
               )}
             </div>
+          )}
+
+          {reportActivity && (
+            <ActivityReportModal
+              key={JSON.stringify([activeUser.id, monthKey, reportActivity.id])}
+              activity={reportActivity}
+              user={activeUser}
+              onClose={() => setReportingActivity(null)}
+              onEditProfile={() => setIsProfileModalOpen(true)}
+              onSaveProfile={handleSaveProfile}
+              onSave={saveFormReport}
+            />
           )}
 
           {/* Modal de Identificação do Participante */}

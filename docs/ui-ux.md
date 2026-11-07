@@ -134,3 +134,31 @@ pendentes. O piloto Maestri tem sua homologação própria e não bloqueia esta 
 - [Referências Oracle](oracle-ci-logs-unslop.md) para CI e diagnóstico local.
 
 A impressão divide frequências extensas automaticamente em A4 paisagem. Os cabeçalhos da tabela se repetem nas páginas seguintes. O total e os campos de assinatura aparecem juntos somente no final da frequência, antes dos comprovantes. Na área de lançamentos há um lembrete com acesso ao formulário de cada atividade.
+
+## Formulário por atividade e novidades
+
+“Preparar formulário” abre uma revisão da identificação, grupo, perfil, data,
+mês e tipo de atividade. A primeira etapa usa os campos verificados do Forms
+oficial. O participante confere as seleções no Google, completa as etapas
+seguintes, resolve o CAPTCHA e envia. O resumo fica disponível para copiar,
+inclusive se a cópia automática ou a abertura da nova aba falhar.
+O formulário original permanece acessível se a estrutura do Google mudar.
+
+O envio só é confirmado quando a pessoa aciona “Marcar como enviado”.
+A lista oferece filtro de pendências. Alterações nos dados da atividade ou
+na identificação após a confirmação mostram “Revisar envio”, preservando a
+confirmação anterior. O preparo e a confirmação acompanham a cópia 1.2.
+Cópias 1.0 e 1.1 entram com os relatórios pendentes.
+
+Na entrada, Novidades apresenta a publicação mais recente e um histórico
+expansível antes das dúvidas frequentes. As datas vêm de publicações
+registradas em src/lib/releases.ts. A retomada de perfil é descrita como
+dados guardados no navegador.
+
+Validação de 07/11/2026 para Forms assistido: 22 testes locais, build e tipagem
+aprovados. Lint sem erros, com três avisos dos scripts legados. Os 24 casos
+de navegador pertinentes passaram em desktop e celular simulado, com checagem
+visual em 390 e 1440 px, nos dois temas. O teste legado do seletor de mês foi
+separado desta rodada; sua falha no mobile já foi reproduzida na versão anterior.
+O pré-preenchimento real foi conferido na primeira etapa do Forms, encerrando
+a verificação antes de avançar ou enviar respostas.

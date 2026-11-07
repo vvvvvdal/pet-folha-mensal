@@ -61,10 +61,10 @@ O sistema adota o paradigma **Local-First**, fundamentado nas seguintes premissa
   Contém também formatadores para datas no padrão brasileiro (`DD/MM/YYYY`) e rotulagem de meses de referência.
 - **`storage.ts`**: Camada de abstração do `localStorage`. Implementa:
   - Isolamento de dados por perfil de usuário e por mês (`pet_folha_activities_v2_${userId}_${monthKey}`).
-  - Leitura de cópias legadas 1.0 e exportação no formato 1.1 pelo app, com validação antes da restauração (`inspectUserData`, `importUserData`), com confirmação na interface, preservação de registros em falhas recuperáveis e diagnóstico local sem conteúdo pessoal.
+  - Leitura de cópias 1.0, 1.1 e 1.2 e exportação no formato 1.2 pelo app, com validação antes da restauração (`inspectUserData`, `importUserData`), com confirmação na interface, preservação de registros em falhas recuperáveis e diagnóstico local sem conteúdo pessoal.
   - Remoção automática do campo legado `pin` dos perfis armazenados e importados.
   - Suporte a templates e funções dinâmicas.
-- Os comprovantes são gravados como arquivos originais no IndexedDB, por perfil e mês. O JSON 1.1 leva os bytes em Base64. Na restauração, a gravação de comprovantes é abortada se o `localStorage` falhar. Se a transação de comprovantes abortar, as escritas locais são revertidas.
+- Os comprovantes são gravados como arquivos originais no IndexedDB, por perfil e mês. O JSON 1.2 leva os bytes em Base64. Na restauração, a gravação de comprovantes é abortada se o `localStorage` falhar. Se a transação de comprovantes abortar, as escritas locais são revertidas.
 - **`admin-auth.ts` + `/api/admin/session`**: Camada exclusivamente server-side que valida `ADMIN_PIN_HASH` com comparação constante, emite sessão assinada de 8 horas em cookie `HttpOnly`, `SameSite=Strict` e falha de forma fechada quando a configuração está ausente.
 - **`theme.ts`**: Hook `useTheme` que controla os modos `dark` e `light` via atributo `data-theme` na raiz do documento e chave `pet_theme` no storage.
 
@@ -161,3 +161,23 @@ lockfile, lint, testes, build, tipagem e percurso Playwright. A documentação d
 [UI/UX](ui-ux.md) concentra as evidências e limites de homologação.
 
 A impressão divide frequências extensas automaticamente em A4 paisagem. Os cabeçalhos da tabela se repetem nas páginas seguintes. O total e os campos de assinatura aparecem juntos somente no final da frequência, antes dos comprovantes. Na área de lançamentos há um lembrete com acesso ao formulário de cada atividade.
+
+## Preparo do Forms e histórico de publicações
+
+form-report.ts centraliza o endereço oficial, os identificadores da primeira
+etapa, as opções e a montagem do link. Os identificadores e o preenchimento
+foram conferidos no formulário respondente em 07/11/2026. Nome precisa
+corresponder à grafia da lista oficial. As próximas etapas variam com o tipo
+de atividade e são preenchidas pelo participante no Google.
+
+Activity.formReport é opcional. Contém grupo, perfil e tipo escolhidos.
+A confirmação manual guarda data e uma representação ordenada dos dados
+da atividade e identificação. A comparação com os valores atuais determina
+Enviado, Pendente ou Revisar envio. Editar uma atividade preserva esses metadados.
+Os links preenchidos são gerados na ação do participante, sem persistência
+da URL. O site não recebe confirmação de envio do Google.
+
+A restauração 1.2 valida o preparo e os campos da confirmação antes de gravar.
+Versões anteriores são lidas sem confirmação de relatório.
+ReleaseNotes usa uma lista estática de publicações em releases.ts, com datas
+explícitas no fuso de São Paulo.

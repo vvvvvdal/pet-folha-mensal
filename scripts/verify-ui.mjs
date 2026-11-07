@@ -235,15 +235,15 @@ test("entrada apresenta acesso e explicação visível do JSON e PDF antes do FA
   assert.doesNotMatch(html, /hubfrequencia@gmail.com|Ver preços/);
 });
 
-test("FAQ compartilhado tem seis perguntas e ajuda usa o diálogo comum", () => {
+test("FAQ compartilhado tem sete perguntas e ajuda usa o diálogo comum", () => {
   const html = renderToStaticMarkup(React.createElement(FAQ));
-  assert.equal((html.match(/<details>/g) || []).length, 6);
+  assert.equal((html.match(/<details>/g) || []).length, 7);
   const help = render(
     React.createElement(HelpModal, { isOpen: true, onClose: noop }),
   );
   assert.match(help, /<dialog/);
   assert.match(help, /class="pet-dialog screen-only"/);
-  assert.equal((help.match(/<details>/g) || []).length, 6);
+  assert.equal((help.match(/<details>/g) || []).length, 7);
 });
 
 test("painel mantém backup acessível sem ocultar ações em telas menores", () => {
@@ -507,4 +507,56 @@ test("entrada oferece os perfis locais sem exigir cópia e resumo não promete a
   );
   assert.doesNotMatch(summary, /Apta|Média semanal/);
   assert.match(summary, /distribuição semanal/);
+});
+
+test("preparo do Forms codifica as opções oficiais e a confirmação acompanha os dados", () => {
+  const forms = load("./src/lib/form-report.ts");
+  const user = { ...sampleUser, email: "teste@example.com", name: "Nome com acentuação" };
+  const report = {
+    ...forms.defaultFormReport(user),
+    activityType: "Reunião Interna do seu GAT",
+  };
+  const url = new URL(forms.buildFormUrl(user, sampleActivity, report));
+  assert.equal(url.searchParams.get("entry.1358311658"), user.name);
+  assert.equal(url.searchParams.get("entry.333612427"), sampleActivity.date);
+  assert.equal(url.searchParams.get("entry.1810741336"), "OUTUBRO/2026");
+  assert.equal(url.searchParams.get("entry.1919744864"), "GT 4");
+  assert.equal(url.searchParams.get("emailAddress"), user.email);
+  assert.equal(forms.formReportStatus(user, { ...sampleActivity, formReport: report }), "Pendente");
+  report.confirmation = {
+    at: "2026-11-07T15:00:00.000Z",
+    snapshot: forms.formSnapshot(user, sampleActivity, report),
+  };
+  const activity = { ...sampleActivity, formReport: report };
+  assert.equal(forms.formReportStatus(user, activity), "Enviado");
+  assert.equal(forms.formReportStatus(user, { ...activity, description: "Descrição editada" }), "Revisar envio");
+  assert.equal(forms.formReportStatus({ ...user, email: "outro@example.com" }, activity), "Revisar envio");
+  assert.throws(() => forms.buildFormUrl(user, activity, { ...report, activityType: "Opção inexistente" }));
+  assert.throws(() => forms.buildFormUrl({ ...user, email: "" }, activity, report));
+});
+
+test("cópias 1.2 preservam relatórios e cópias antigas começam pendentes", () => {
+  isolatedStorage();
+  const forms = load("./src/lib/form-report.ts");
+  const report = {
+    ...forms.defaultFormReport(sampleUser),
+    activityType: "Reunião Interna do seu GAT",
+  };
+  report.confirmation = {
+    at: "2026-11-07T15:00:00.000Z",
+    snapshot: forms.formSnapshot(sampleUser, sampleActivity, report),
+  };
+  storage.saveActivitiesForMonth(sampleUser.id, "2026-10", [{ ...sampleActivity, formReport: report }]);
+  const exported = JSON.parse(storage.exportUserData(sampleUser, "2026-10", []));
+  assert.equal(exported.version, "1.2");
+  const result = storage.inspectUserData(JSON.stringify(exported));
+  assert.equal(result.success, true);
+  assert.deepEqual(result.activities[0].formReport, report);
+  for (const version of ["1.0", "1.1"]) {
+    const restored = storage.inspectUserData(JSON.stringify({ ...exported, version }));
+    assert.equal(restored.success, true);
+    assert.equal(restored.activities[0].formReport, undefined);
+  }
+  exported.activities[0].formReport.confirmation.at = "data inválida";
+  assert.equal(storage.inspectUserData(JSON.stringify(exported)).success, false);
 });

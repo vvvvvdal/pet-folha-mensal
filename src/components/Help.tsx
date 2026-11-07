@@ -10,7 +10,7 @@ const questions = [
   ],
   [
     "O que é o JSON e como restauro uma folha?",
-    "O JSON é a cópia editável da sua folha: guarda sua identificação, atividades e comprovantes. Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
+    "O JSON é a cópia editável da sua folha: guarda sua identificação, atividades, comprovantes e o controle dos relatórios. Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
   ],
   [
     "Onde ficam meus dados?",
@@ -23,6 +23,10 @@ const questions = [
   [
     "Como as horas são calculadas?",
     "A chegada é arredondada para a hora anterior; a saída, para a seguinte. Exemplo: 13h30 às 17h30 = 5h. A referência é de 8h semanais e aproximadamente 32h mensais.",
+  ],
+  [
+    "Como preparo o formulário de cada atividade?",
+    "Em “Atividades do mês”, escolha “Preparar formulário”, confira sua identificação e selecione o tipo da atividade. Abra o Forms preenchido, complete as próximas etapas e envie pelo Google. Depois volte e marque “Marcar como enviado”. Se editar a atividade depois disso, ela aparecerá como “Revisar envio”.",
   ],
   [
     "Como imprimo e assino?",

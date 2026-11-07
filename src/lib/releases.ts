@@ -1,0 +1,35 @@
+// Dates are publication dates in São Paulo, not the build or the visitor's date.
+export const RELEASES = [
+  {
+    date: "2026-11-07",
+    title: "Seu relatório começa na atividade",
+    changes: [
+      "Prepare a primeira etapa do Google Forms com os dados da atividade e revise antes de abrir.",
+      "Marque os envios que você concluiu e acompanhe as pendências do mês.",
+    ],
+  },
+  {
+    date: "2026-11-07",
+    title: "Mais espaço para registrar o mês",
+    changes: [
+      "Frequências extensas continuam automaticamente nas páginas seguintes, com assinaturas somente no final.",
+      "Um lembrete junto dos lançamentos dá acesso ao formulário de cada atividade.",
+    ],
+  },
+  {
+    date: "2026-11-04",
+    title: "Comprovantes junto da folha",
+    changes: [
+      "Anexe PDFs e imagens quando seu GAT solicitar. Eles aparecem depois da frequência no PDF.",
+      "A cópia de segurança também leva os arquivos originais para outro aparelho.",
+    ],
+  },
+  {
+    date: "2026-11-02",
+    title: "Sua folha continua neste navegador",
+    changes: [
+      "A interface foi reorganizada para facilitar os lançamentos e a conferência da folha.",
+      "Continue com o perfil salvo e escolha o mês. Guarde a cópia de segurança para levar os dados a outro aparelho.",
+    ],
+  },
+];

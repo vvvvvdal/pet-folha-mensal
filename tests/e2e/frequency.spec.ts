@@ -441,13 +441,13 @@ test("erro em edição mantém o diálogo, o preenchimento e o foco", async ({
     name: "Identificação do participante",
     exact: true,
   });
-  await profile.getByRole("textbox").fill("Identificação preservada");
+  await profile.getByLabel("Nome Completo", { exact: true }).fill("Identificação preservada");
   await profile.getByRole("button", { name: /Salvar/ }).click();
   await expect(
     page.getByText("Identificação não salva", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Entendido", exact: true }).click();
-  await expect(profile.getByRole("textbox")).toHaveValue(
+  await expect(profile.getByLabel("Nome Completo", { exact: true })).toHaveValue(
     "Identificação preservada",
   );
 });
@@ -631,7 +631,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   const file = testInfo.outputPath("copia-com-comprovantes.json");
   await (await downloadPromise).saveAs(file);
   const data = JSON.parse(await readFile(file, "utf8"));
-  expect(data.version).toBe("1.1");
+  expect(data.version).toBe("1.2");
   expect(data.attachments.map(({ name, base64 }: { name: string; base64: string }) =>
     [name, Buffer.from(base64, "base64")])).toEqual([["foto.png", png]]);
 
@@ -678,4 +678,108 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   await restoreCopy(page, replacement);
   await expect(proofs(page).getByRole("button", { name: "Abrir substituta.png" })).toBeVisible();
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toHaveCount(0);
+});
+
+test("preparar Forms, confirmar envio, revisar edição e restaurar relatório", async ({ page }, testInfo) => {
+  await create(page);
+  await add(page);
+  await page.getByRole("button", { name: /^Preparar formulário:/ }).click();
+  const panel = page.getByRole("dialog", { name: "Preparar formulário", exact: true });
+  await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
+  await expect(panel.getByLabel("E-mail para o formulário")).toHaveValue("");
+  await panel.getByLabel("E-mail para o formulário").fill("teste@example.com");
+  await panel.getByLabel("Tipo de atividade no Forms").selectOption("Reunião Interna do seu GAT");
+  await expect(panel.getByLabel("Data da atividade")).toHaveValue("02/11/2026");
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    Reflect.set(window, "restoreReportStorage", () => { Storage.prototype.setItem = original; });
+    Storage.prototype.setItem = function (key, value) {
+      if (key.startsWith("pet_folha_activities")) throw new DOMException("Quota", "QuotaExceededError");
+      original.call(this, key, value);
+    };
+  });
+  await panel.getByRole("button", { name: "Salvar preparo", exact: true }).click();
+  await expect(panel.getByRole("alert")).toContainText("Não foi possível salvar o preparo");
+  await expect(panel.getByLabel("Tipo de atividade no Forms")).toHaveValue("Reunião Interna do seu GAT");
+  await expect(panel.getByLabel("E-mail para o formulário")).toHaveValue("teste@example.com");
+  await page.evaluate(() => {
+    const restore = Reflect.get(window, "restoreReportStorage");
+    if (typeof restore === "function") restore();
+  });
+  await panel.getByRole("button", { name: "Salvar preparo", exact: true }).click();
+  await expect(panel.getByRole("status")).toHaveText("Preparo salvo neste navegador.");
+  await page.evaluate(() => {
+    window.open = () => null;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (value: string) => { document.documentElement.dataset.copiedSummary = value; } },
+    });
+  });
+  await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
+  await expect(panel.getByRole("alert")).toContainText("bloqueou a nova aba");
+  const href = await panel.getByRole("link", { name: "Abrir o link preparado", exact: true }).getAttribute("href");
+  expect(new URL(href!).searchParams.get("entry.333612427")).toBe("2026-11-02");
+  expect(new URL(href!).searchParams.get("emailAddress")).toBe("teste@example.com");
+  await panel.getByRole("button", { name: "Copiar resumo da atividade", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-copied-summary", /Atividade sintética[\s\S]*13:30 às 17:30/);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async () => { throw new Error("Clipboard unavailable"); } },
+    });
+  });
+  await panel.getByRole("button", { name: "Copiar resumo da atividade", exact: true }).click();
+  await expect(panel.getByRole("alert")).toContainText("O resumo foi selecionado");
+  const selected = await panel.getByLabel("Resumo para as próximas etapas").evaluate((element) => {
+    const field = element as HTMLTextAreaElement;
+    return field.selectionStart === 0 && field.selectionEnd === field.value.length;
+  });
+  expect(selected).toBe(true);
+  await panel.getByRole("button", { name: "Marcar como enviado", exact: true }).click();
+  await expect(panel).toContainText("Última confirmação");
+  await panel.getByRole("button", { name: "Fechar", exact: true }).click();
+  await page.getByLabel("Mostrar só pendências do Forms").check();
+  await expect(page.getByText("Nenhuma pendência do Forms neste mês.", { exact: true })).toBeVisible();
+  await page.getByLabel("Mostrar só pendências do Forms").uncheck();
+  await page.reload();
+  await expect(page.locator(".report-state:visible")).toHaveText("Enviado");
+  await page.getByRole("button", { name: /^Editar atividade:/ }).click();
+  const edit = page.getByRole("dialog", { name: "Editar atividade", exact: true });
+  await edit.getByLabel("Descrição da Atividade", { exact: true }).fill("Descrição alterada após envio");
+  await edit.getByRole("button", { name: /Salvar/ }).click();
+  await expect(page.locator(".report-state:visible")).toHaveText("Revisar envio");
+
+  await page.evaluate(() => Object.defineProperty(window, "showSaveFilePicker", { configurable: true, value: undefined }));
+  const pendingDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Salvar cópia", exact: true }).click();
+  const backupPath = testInfo.outputPath("relatorio-1.2.json");
+  await (await pendingDownload).saveAs(backupPath);
+  const backup = JSON.parse(await readFile(backupPath, "utf8"));
+  expect(backup.version).toBe("1.2");
+  expect(backup.activities[0].formReport.confirmation.at).toBeTruthy();
+  await restoreCopy(page, { ...backup, version: "1.1" });
+  await expect(page.locator(".report-state:visible")).toHaveText("Pendente");
+  await restoreCopy(page, backup);
+  await expect(page.locator(".report-state:visible")).toHaveText("Revisar envio");
+  await page.getByRole("button", { name: /^Preparar formulário:/ }).click();
+  await panel.getByRole("button", { name: "Desmarcar envio", exact: true }).click();
+  await expect(panel).toContainText("Esta atividade está pendente");
+  await panel.getByRole("button", { name: "Fechar", exact: true }).click();
+  await page.getByLabel("Mês da folha").selectOption("2026-10");
+  await expect(page.getByRole("button", { name: /^Preparar formulário:/ })).toHaveCount(0);
+});
+
+test("novidades mostram data de publicação e histórico acessível nos dois temas", async ({ page }, testInfo) => {
+  await page.goto("/");
+  const section = page.getByRole("region", { name: "Novidades do site" });
+  await expect(section.getByRole("heading", { name: "Seu relatório começa na atividade" })).toBeVisible();
+  await expect(section.getByText("Última atualização", { exact: false })).toContainText("07 de novembro de 2026");
+  await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).not.toBeVisible();
+  await section.getByText("Ver histórico de atualizações", { exact: true }).click();
+  await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).toBeVisible();
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((theme) => { document.documentElement.dataset.theme = theme; }, theme);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await section.screenshot({ path: testInfo.outputPath("novidades-" + theme + ".png") });
+  }
 });
