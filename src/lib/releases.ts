@@ -12,8 +12,8 @@ export const RELEASES = [
     date: "2026-11-07",
     title: "Mais espaço para registrar o mês",
     changes: [
-      "Frequências extensas continuam automaticamente nas páginas seguintes, com assinaturas somente no final.",
-      "Um lembrete junto dos lançamentos dá acesso ao formulário de cada atividade.",
+      "Se as atividades não couberem em uma página, o PDF continua nas páginas seguintes. Os espaços para assinar ficam só na última página da folha de frequência.",
+      "Na tela em que você registra as atividades, há um link para o formulário do PET. Preencha um formulário para cada atividade.",
     ],
   },
   {
