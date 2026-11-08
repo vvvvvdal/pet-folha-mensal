@@ -92,6 +92,14 @@ function setTime(url: URL, entry: string, value: string) {
   url.searchParams.set(entry + "_minute", match[2]);
 }
 
+// Sugere o tipo do Forms a partir do nome da atividade ("" se não houver palavra-chave).
+export function suggestActivityType(description: string): string {
+  const text = description.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (/reuniao (do|de) gat\b/.test(text)) return FORM_ACTIVITY_TYPES[9];
+  if (/reuniao geral/.test(text)) return FORM_ACTIVITY_TYPES[11];
+  return "";
+}
+
 export function defaultFormReport(user: UserProfile): FormReport {
   const roles: Record<string, string> = {
     "Estudante": "Estudante",

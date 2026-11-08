@@ -36,6 +36,7 @@ export function ActivityForm({
   const [modality, setModality] = useState<ModalityType>("Síncrona virtual");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const [templateId, setTemplateId] = useState("");
   const hours = calcPetHours(start, end);
   const [year, month] = monthKey.split("-").map(Number);
   const lastDate = `${monthKey}-${new Date(year, month, 0).getDate()}`;
@@ -64,6 +65,7 @@ export function ActivityForm({
     });
     if (saved !== false) {
       setDescription("");
+      setTemplateId("");
       setError("");
       onDirtyChange?.(false);
     }
@@ -84,8 +86,9 @@ export function ActivityForm({
               </label>
               <select
                 id="activity-template"
-                defaultValue=""
+                value={templateId}
                 onChange={(event) => {
+                  setTemplateId(event.target.value);
                   const template = templates.find(
                     (item) => item.id === event.target.value,
                   );
@@ -100,7 +103,6 @@ export function ActivityForm({
                     setModality(template.modality);
                     dirty();
                   }
-                  event.target.value = "";
                 }}
               >
                 <option value="">Modelo rápido</option>
@@ -194,6 +196,7 @@ export function ActivityForm({
             value={description}
             onChange={(event) => {
               setDescription(event.target.value);
+              setTemplateId("");
               dirty();
             }}
           />

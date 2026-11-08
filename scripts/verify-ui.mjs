@@ -509,6 +509,14 @@ test("entrada oferece os perfis locais sem exigir cópia e resumo não promete a
   assert.match(summary, /distribuição semanal/);
 });
 
+test("tipo do Forms é sugerido pelo nome da atividade", () => {
+  const { suggestActivityType } = load("./src/lib/form-report.ts");
+  assert.equal(suggestActivityType("Reunião do GAT 04 (Mangaba)"), "Reunião Interna do seu GAT");
+  assert.equal(suggestActivityType("Reuniao de GAT"), "Reunião Interna do seu GAT");
+  assert.equal(suggestActivityType("Reunião geral do PET"), "Encontro Geral de todos os participantes do projeto");
+  assert.equal(suggestActivityType("Atualização do site"), "");
+});
+
 test("preparo do Forms codifica as opções oficiais e a confirmação acompanha os dados", () => {
   const forms = load("./src/lib/form-report.ts");
   const user = { ...sampleUser, email: "teste@example.com", name: "Nome com acentuação" };

@@ -6,7 +6,7 @@ import type { Activity, FormReport, UserProfile } from "@/types";
 import {
   ACTIVITY_FORM_URL, FORM_ACTIVITY_TYPES, FORM_GROUPS, FORM_ROLES,
   activitySummary, buildFormUrl, defaultFormReport, extraFieldsFor,
-  formReportStatus, formSnapshot,
+  formReportStatus, formSnapshot, suggestActivityType,
 } from "@/lib/form-report";
 import { cleanActivityDescription, formatDateBR } from "@/lib/pet-calculator";
 import { Modal } from "./Modal";
@@ -43,7 +43,8 @@ function YesNo({ label, value, onChange }: { label: string; value: string; onCha
 }
 
 export function ActivityReportModal({ activity, user, onClose, onEditProfile, onSaveProfile, onSave }: Props) {
-  const initial = activity.formReport ?? defaultFormReport(user);
+  const saved = activity.formReport ?? defaultFormReport(user);
+  const initial = { ...saved, activityType: saved.activityType || suggestActivityType(activity.description) };
   const [email, setEmail] = useState(user.email ?? "");
   const [group, setGroup] = useState(initial.group);
   const [role, setRole] = useState(initial.role);
