@@ -1,6 +1,15 @@
 // Dates are publication dates in São Paulo, not the build or the visitor's date.
 export const RELEASES = [
   {
+    date: "2026-11-08",
+    title: "Formulário completo e tela sem rolagem",
+    changes: [
+      "O link do formulário agora preenche todas as etapas: modalidade, horários, atendimento, declaração e cópia por e-mail.",
+      "No computador, a tela de lançamentos cabe na janela e só a lista de atividades rola.",
+      "Comprovantes em PDF e fotos grandes saem mais leves no PDF final.",
+    ],
+  },
+  {
     date: "2026-11-07",
     title: "Formulário também no botão Concluir",
     changes: [

@@ -150,8 +150,8 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
           <div>
             <h2>Enviar ao Forms</h2>
             <p>
-              <strong>{cleanActivityDescription(activity.description)}</strong>
-              {" · "}{formatDateBR(activity.date)} · {activity.start} às {activity.end} · {activity.hours}h
+              <strong title={cleanActivityDescription(activity.description)}>{cleanActivityDescription(activity.description)}</strong>
+              <span>{formatDateBR(activity.date)} · {activity.start} às {activity.end} · {activity.hours}h</span>
             </p>
           </div>
           <button type="button" className="icon-button" onClick={onClose} aria-label="Fechar">

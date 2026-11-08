@@ -110,7 +110,7 @@ export function EditActivityModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} label="Editar atividade">
       <div
-        className="w-full max-w-xl rounded-2xl border border-line bg-surface shadow-[var(--page-shadow)] p-4 sm:p-6 space-y-5 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto"
+        className="w-full max-w-2xl rounded-2xl border border-line bg-surface shadow-[var(--page-shadow)] p-4 sm:p-6 space-y-5 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
       >
@@ -200,7 +200,7 @@ export function EditActivityModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Row 1: Data + Entrada + Saída + Duração */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+          <div className="grid grid-cols-2 sm:grid-cols-[1.25fr_1fr_1fr_auto] gap-3 items-end">
             {/* Data */}
             <div>
               <label
@@ -280,10 +280,13 @@ export function EditActivityModal({
             </div>
 
             {/* Duração Calculada */}
-            <div className="min-h-[44px] px-3 py-2 rounded-xl bg-canvas border border-line flex items-center justify-between">
-              <span className="text-xs font-medium text-muted">Duração:</span>
-              <span className="text-sm font-bold text-accent">
-                {previewHours}h {previewHours === 1 ? "hora" : "horas"}
+            <div
+              className="col-span-2 sm:col-span-1 min-h-[44px] px-4 py-1 rounded-xl bg-canvas border border-line flex flex-col items-center justify-center leading-tight"
+              aria-live="polite"
+            >
+              <span className="text-[11px] font-medium text-muted">Duração</span>
+              <span className="text-sm font-bold text-accent whitespace-nowrap">
+                {previewHours} {previewHours === 1 ? "hora" : "horas"}
               </span>
             </div>
           </div>
@@ -356,10 +359,10 @@ export function EditActivityModal({
               id="editactivitymodal-field-1"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={2}
+              rows={4}
               required
               placeholder="Ex: Reunião do GAT 04, Oficina formativa..."
-              className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors resize-none"
+              className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors resize-y min-h-[110px] max-h-[40vh] [field-sizing:content]"
             />
             <p className="text-[11px] text-muted mt-1">
               O tipo da atividade selecionado acima é incluído automaticamente

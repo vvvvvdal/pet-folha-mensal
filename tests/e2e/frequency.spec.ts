@@ -441,13 +441,13 @@ test("erro em edição mantém o diálogo, o preenchimento e o foco", async ({
     name: "Identificação do participante",
     exact: true,
   });
-  await profile.getByLabel("Nome Completo", { exact: true }).fill("Identificação preservada");
+  await profile.getByLabel("Nome completo", { exact: true }).fill("Identificação preservada");
   await profile.getByRole("button", { name: /Salvar/ }).click();
   await expect(
     page.getByText("Identificação não salva", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Entendido", exact: true }).click();
-  await expect(profile.getByLabel("Nome Completo", { exact: true })).toHaveValue(
+  await expect(profile.getByLabel("Nome completo", { exact: true })).toHaveValue(
     "Identificação preservada",
   );
 });
@@ -780,8 +780,8 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
 test("novidades mostram data de publicação e histórico acessível nos dois temas", async ({ page }, testInfo) => {
   await page.goto("/");
   const section = page.getByRole("region", { name: "Novidades do site" });
-  await expect(section.getByRole("heading", { name: "Formulário também no botão Concluir" })).toBeVisible();
-  await expect(section.getByText("Última atualização", { exact: false })).toContainText("07 de novembro de 2026");
+  await expect(section.getByRole("heading", { name: "Formulário completo e tela sem rolagem" })).toBeVisible();
+  await expect(section.getByText("Última atualização", { exact: false })).toContainText("08 de novembro de 2026");
   await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).not.toBeVisible();
   await section.getByText("Ver histórico de atualizações", { exact: true }).click();
   await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).toBeVisible();

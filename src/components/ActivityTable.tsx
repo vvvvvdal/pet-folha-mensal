@@ -79,7 +79,7 @@ export function ActivityTable({
               <input type="checkbox" checked={pendingOnly}
                 onChange={(event) => setPendingOnly(event.target.checked)}
                 aria-label="Mostrar só pendências do Forms" />
-              Pendentes do Forms <span>{pendingCount}</span>
+              Pendentes <span>{pendingCount}</span>
             </label>
             <button className="text-button" onClick={() => setConfirmClear(true)}>
               Limpar mês

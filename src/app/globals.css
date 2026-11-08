@@ -2804,3 +2804,40 @@ select optgroup {
     gap: 12px;
   }
 }
+
+/* Acabamentos da revisão geral de interface */
+.workspace-nav .profile-button {
+  overflow: hidden;
+}
+.workspace-nav .profile-button > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+}
+.form-panel-heading h2 {
+  white-space: nowrap;
+}
+.records-filter {
+  white-space: nowrap;
+}
+.fm-head > div {
+  min-width: 0;
+}
+.fm-head p {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fm-head p strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fm-who .text-button {
+  padding-inline: 0;
+}
+@media (max-width: 600px) {
+  .template-field {
+    max-width: 130px;
+  }
+}

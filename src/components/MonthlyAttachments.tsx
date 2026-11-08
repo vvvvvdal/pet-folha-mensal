@@ -97,19 +97,25 @@ export function MonthlyAttachments({ profileId, monthKey, busy, onBusyChange, on
       </div>
       <label className="block text-sm font-semibold text-body">
         Adicionar comprovantes
-        <input
-          type="file"
-          multiple
-          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-          disabled={busy || !items}
-          aria-describedby={hintId}
-          className="mt-2 block max-w-full w-full text-sm font-normal file:mr-3 file:rounded-lg file:border file:border-line file:bg-raised file:px-3 file:py-2 file:text-ink disabled:opacity-60"
-          onChange={(event) => {
-            const files = Array.from(event.currentTarget.files ?? []);
-            event.currentTarget.value = "";
-            void add(files);
-          }}
-        />
+        <span className="mt-2 flex flex-wrap items-center gap-3 font-normal">
+          <input
+            type="file"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+            disabled={busy || !items}
+            aria-describedby={hintId}
+            className="peer sr-only"
+            onChange={(event) => {
+              const files = Array.from(event.currentTarget.files ?? []);
+              event.currentTarget.value = "";
+              void add(files);
+            }}
+          />
+          <span className="inline-flex min-h-[44px] cursor-pointer items-center rounded-lg border border-line bg-raised px-4 font-semibold text-ink hover:bg-hover peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-info peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
+            Escolher arquivos
+          </span>
+          <span className="text-muted">PDF, JPEG ou PNG</span>
+        </span>
       </label>
       {items?.length === 0 && (
         <p className="text-sm text-muted">Nenhum comprovante neste mês.</p>

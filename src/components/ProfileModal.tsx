@@ -110,20 +110,14 @@ export function ProfileModal({
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
-          <div>
-            <label
-              htmlFor="profilemodal-field-1"
-              className="block text-xs sm:text-sm font-medium text-body mb-1.5"
-            >
-              Nome Completo
-            </label>
+          <div className="field">
+            <label htmlFor="profilemodal-field-1">Nome completo</label>
             <input
               id="profilemodal-field-1"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-sm rounded-xl bg-canvas border border-line text-ink outline-none focus:border-accent transition-colors"
             />
           </div>
 
@@ -134,18 +128,12 @@ export function ProfileModal({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label
-                htmlFor="profilemodal-field-2"
-                className="block text-xs sm:text-sm font-medium text-body mb-1.5"
-              >
-                Grupo Tutorial (GAT)
-              </label>
+            <div className="field">
+              <label htmlFor="profilemodal-field-2">Grupo tutorial (GAT)</label>
               <select
                 id="profilemodal-field-2"
                 value={gatNumber}
                 onChange={(e) => setGatNumber(e.target.value)}
-                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-canvas border border-line text-ink outline-none focus:border-accent cursor-pointer transition-colors"
               >
                 {Object.entries(gats).map(([num, info]) => (
                   <option key={num} value={num}>
@@ -155,18 +143,12 @@ export function ProfileModal({
               </select>
             </div>
 
-            <div>
-              <label
-                htmlFor="profilemodal-field-3"
-                className="block text-xs sm:text-sm font-medium text-body mb-1.5"
-              >
-                Função no SUS
-              </label>
+            <div className="field">
+              <label htmlFor="profilemodal-field-3">Função no PET</label>
               <select
                 id="profilemodal-field-3"
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full min-h-[44px] px-3 py-2.5 text-base sm:text-xs rounded-xl bg-canvas border border-line text-ink outline-none focus:border-accent cursor-pointer transition-colors"
               >
                 {roles.map((r) => (
                   <option key={r} value={r}>

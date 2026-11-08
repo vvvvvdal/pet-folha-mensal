@@ -141,7 +141,7 @@ export function OfficialSheet({
         {/* Total de Horas (exibido apenas quando preenchido para validação das 32h) */}
         {!isBlankTemplate && (
           <div className="text-[10pt] font-bold text-black mt-1 mb-2">
-            TOTAL: {totalHours} horas
+            TOTAL: {totalHours} {totalHours === 1 ? "hora" : "horas"}
           </div>
         )}
 

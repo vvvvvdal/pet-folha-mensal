@@ -19,7 +19,7 @@ export function StatsGrid({
         <span>Horas no mês</span>
         <p>
           <strong>{totalHours}</strong>
-          <span>horas</span>
+          <span>{totalHours === 1 ? "hora" : "horas"}</span>
         </p>
       </div>
       <div className="summary-progress">
