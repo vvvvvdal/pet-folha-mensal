@@ -2,6 +2,14 @@
 export const RELEASES = [
   {
     date: "2026-11-07",
+    title: "Formulário também no botão Concluir",
+    changes: [
+      "Ao concluir o mês, você também pode abrir o formulário das atividades.",
+      "Reduzimos os espaços vazios e deixamos mais visível a opção de folha selecionada.",
+    ],
+  },
+  {
+    date: "2026-11-07",
     title: "Seu relatório começa na atividade",
     changes: [
       "Prepare a primeira etapa do Google Forms com os dados da atividade e revise antes de abrir.",

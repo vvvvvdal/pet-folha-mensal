@@ -137,18 +137,35 @@ A impressão divide frequências extensas automaticamente em A4 paisagem. Os cab
 
 ## Formulário por atividade e novidades
 
-“Preparar formulário” abre uma revisão da identificação, grupo, perfil, data,
-mês e tipo de atividade. A primeira etapa usa os campos verificados do Forms
-oficial. O participante confere as seleções no Google, completa as etapas
-seguintes, resolve o CAPTCHA e envia. O resumo fica disponível para copiar,
-inclusive se a cópia automática ou a abertura da nova aba falhar.
-O formulário original permanece acessível se a estrutura do Google mudar.
+O botão "Forms" de cada atividade abre o modal "Enviar ao Forms": e-mail, grupo,
+perfil e tipo de atividade, mais as perguntas do tipo escolhido (local da visita,
+nome do evento, dados do curso EAD; em "Outros", a atividade vem com o nome
+registrado), atendimento a usuários do SUS, declaração e cópia por e-mail.
+O link pré-preenche todas as etapas do Forms oficial (campos mapeados em
+`src/lib/form-report.ts`, horários em `entry.X_hour/_minute`). O participante
+confere, resolve o CAPTCHA, anexa o certificado do curso EAD (se houver) e envia
+pelo Google. O resumo continua disponível para copiar.
 
-O envio só é confirmado quando a pessoa aciona “Marcar como enviado”.
-A lista oferece filtro de pendências. Alterações nos dados da atividade ou
-na identificação após a confirmação mostram “Revisar envio”, preservando a
-confirmação anterior. O preparo e a confirmação acompanham a cópia 1.2.
+O envio só é confirmado quando a pessoa marca "Já enviei". A lista oferece filtro
+de pendências. Alterações nos dados da atividade ou na identificação após a
+confirmação mostram "Revisar envio". O preparo e a confirmação acompanham a
+cópia 1.2; respostas extras são opcionais e não invalidam confirmações antigas.
 Cópias 1.0 e 1.1 entram com os relatórios pendentes.
+
+## Layout em tela única
+
+No desktop (a partir de 1100 px de largura e 640 px de altura) a tela de
+lançamentos ocupa a janela sem rolar a página: barra superior em uma linha,
+resumo de horas na faixa do título, lembrete do formulário e "Conferir folha" em
+uma barra inferior. Só a lista de atividades rola, quando necessário. No celular
+a ordem é natural e a rolagem é esperada, com espaçamento compacto.
+
+## Peso dos comprovantes
+
+Páginas de comprovantes em PDF e fotos reduzidas para a página são geradas em
+JPEG a 80% com fundo branco, a ~150 dpi, em vez de PNG, para manter o PDF final
+abaixo dos 5 MB aceitos para assinatura. Fotos que já cabem na página não são
+recodificadas. O tamanho final não foi medido com comprovantes reais.
 
 Na entrada, Novidades apresenta a publicação mais recente e um histórico
 expansível antes das dúvidas frequentes. As datas vêm de publicações

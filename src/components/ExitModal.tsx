@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, X, ArrowRight } from "lucide-react";
+import { Download, FileText, ClipboardList, X, ArrowRight } from "lucide-react";
+import { ACTIVITY_FORM_URL } from "@/lib/form-report";
 import { Modal } from "./Modal";
 
 interface ExitModalProps {
@@ -59,7 +60,6 @@ function Conclusion({
       <section className="conclusion-panel">
         <div className="form-panel-heading">
           <div>
-            <p className="section-kicker">Finalizar</p>
             <h2>Guarde sua folha</h2>
             <p className="access-hint">{userName}</p>
           </div>
@@ -72,7 +72,7 @@ function Conclusion({
           <div>
             <h3>Cópia de segurança</h3>
             <p>
-              Arquivo .json com suas atividades e comprovantes para abrir a folha em outro aparelho.
+              Guarde uma cópia para continuar editando em outro aparelho.
             </p>
             {jsonTriggered && (
               <p role="status">
@@ -93,7 +93,7 @@ function Conclusion({
           <div>
             <h3>Folha para assinatura</h3>
             <p>
-              Os comprovantes, se houver, saem depois da folha. Use A4 em paisagem e assine o PDF completo.
+              Salve o PDF completo em A4 na horizontal para assinar.
             </p>
             {pdfTriggered && (
               <p role="status">
@@ -109,9 +109,20 @@ function Conclusion({
             Imprimir / salvar PDF
           </button>
         </div>
+        <div className="conclusion-option">
+          <ClipboardList size={24} aria-hidden="true" />
+          <div>
+            <h3>Formulário de atividades</h3>
+            <p>Preencha um formulário por atividade. Você pode preparar os dados na lista de atividades.</p>
+          </div>
+          <a className="secondary-button" href={ACTIVITY_FORM_URL}
+            target="_blank" rel="noopener noreferrer"
+            aria-label="Abrir formulário de atividades">
+            Abrir formulário
+          </a>
+        </div>
         <p className="local-note">
-          Os registros permanecem neste navegador ao sair. Guarde a cópia para
-          se proteger de limpezas dos dados locais.
+          Salve a cópia para proteger seus dados e continuar em outro aparelho.
         </p>
         {exitWarning && (
           <div className="operation-notice" role="alert">

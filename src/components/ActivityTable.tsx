@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Activity, UserProfile } from "@/types";
 import { cleanActivityDescription, formatDateBR } from "@/lib/pet-calculator";
-import { Pencil, Trash2, ListChecks } from "lucide-react";
+import { Pencil, Trash2, ListChecks, ExternalLink } from "lucide-react";
 import { formReportStatus } from "@/lib/form-report";
 import { ConfirmModal } from "./ConfirmModal";
 
@@ -38,30 +38,33 @@ export function ActivityTable({
   const visibleActivities = pendingOnly
     ? activities.filter((activity) => formReportStatus(user, activity) !== "Enviado")
     : activities;
-  const actions = (activity: Activity) => (
-    <div className="record-actions">
-      <span className="report-state">{formReportStatus(user, activity)}</span>
-      <button className="report-launch" type="button"
-        onClick={() => onPrepareForm?.(activity)}
-        aria-label={"Preparar formulário: " + cleanActivityDescription(activity.description)}>
-        Preparar formulário
-      </button>
-      <button
-        className="icon-button"
-        onClick={() => onEdit(activity)}
-        aria-label={`Editar atividade: ${cleanActivityDescription(activity.description)}`}
-      >
-        <Pencil size={19} />
-      </button>
-      <button
-        className="icon-button"
-        onClick={() => onDelete(activity.id)}
-        aria-label={`Excluir atividade: ${cleanActivityDescription(activity.description)}`}
-      >
-        <Trash2 size={19} />
-      </button>
-    </div>
-  );
+  const actions = (activity: Activity) => {
+    const state = formReportStatus(user, activity);
+    return (
+      <div className="record-actions">
+        <span className="report-state" data-state={state}>{state}</span>
+        <button className="report-launch" type="button"
+          onClick={() => onPrepareForm?.(activity)}
+          aria-label={"Enviar ao Forms: " + cleanActivityDescription(activity.description)}>
+          Forms <ExternalLink size={14} aria-hidden="true" />
+        </button>
+        <button
+          className="icon-button"
+          onClick={() => onEdit(activity)}
+          aria-label={`Editar atividade: ${cleanActivityDescription(activity.description)}`}
+        >
+          <Pencil size={18} />
+        </button>
+        <button
+          className="icon-button"
+          onClick={() => onDelete(activity.id)}
+          aria-label={`Excluir atividade: ${cleanActivityDescription(activity.description)}`}
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+    );
+  };
   return (
     <section className="activity-list" aria-labelledby="records-title">
       <div className="records-heading">
@@ -71,26 +74,22 @@ export function ActivityTable({
           <span>{activities.length}</span>
         </div>
         {activities.length > 0 && (
-          <button className="text-button" onClick={() => setConfirmClear(true)}>
-            Limpar mês
-          </button>
+          <div className="records-tools">
+            <label className="records-filter" title="O envio é confirmado por você depois de concluir no Google.">
+              <input type="checkbox" checked={pendingOnly}
+                onChange={(event) => setPendingOnly(event.target.checked)}
+                aria-label="Mostrar só pendências do Forms" />
+              Pendentes do Forms <span>{pendingCount}</span>
+            </label>
+            <button className="text-button" onClick={() => setConfirmClear(true)}>
+              Limpar mês
+            </button>
+          </div>
         )}
       </div>
-      {activities.length > 0 && (
-        <div className="report-filter">
-          <p>{pendingCount} de {activities.length} atividades com envio pendente ou para revisar.</p>
-          <label><input type="checkbox" checked={pendingOnly}
-            onChange={(event) => setPendingOnly(event.target.checked)} /> Mostrar só pendências do Forms</label>
-          <p className="access-hint">O envio é confirmado por você depois de concluir no Google.</p>
-        </div>
-      )}
       {activities.length === 0 ? (
         <div className="records-empty">
-          <ListChecks size={32} aria-hidden="true" />
-          <h3>Sua primeira atividade começa aqui</h3>
-          <p>
-            Preencha “Adicionar atividade” para começar a folha de {monthLabel}.
-          </p>
+          <p>Use “Adicionar atividade” para começar a folha.</p>
           <a
             className="secondary-button"
             href="#nova-atividade"

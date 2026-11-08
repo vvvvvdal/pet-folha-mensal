@@ -683,13 +683,11 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
 test("preparar Forms, confirmar envio, revisar edição e restaurar relatório", async ({ page }, testInfo) => {
   await create(page);
   await add(page);
-  await page.getByRole("button", { name: /^Preparar formulário:/ }).click();
-  const panel = page.getByRole("dialog", { name: "Preparar formulário", exact: true });
-  await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
+  await page.getByRole("button", { name: /^Enviar ao Forms:/ }).click();
+  const panel = page.getByRole("dialog", { name: "Enviar ao Forms", exact: true });
   await expect(panel.getByLabel("E-mail para o formulário")).toHaveValue("");
   await panel.getByLabel("E-mail para o formulário").fill("teste@example.com");
   await panel.getByLabel("Tipo de atividade no Forms").selectOption("Reunião Interna do seu GAT");
-  await expect(panel.getByLabel("Data da atividade")).toHaveValue("02/11/2026");
   await page.evaluate(() => {
     const original = Storage.prototype.setItem;
     Reflect.set(window, "restoreReportStorage", () => { Storage.prototype.setItem = original; });
@@ -698,17 +696,13 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
       original.call(this, key, value);
     };
   });
-  await panel.getByRole("button", { name: "Salvar preparo", exact: true }).click();
-  await expect(panel.getByRole("alert")).toContainText("Não foi possível salvar o preparo");
+  await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
+  await expect(panel.getByRole("alert")).toContainText("Não foi possível salvar");
   await expect(panel.getByLabel("Tipo de atividade no Forms")).toHaveValue("Reunião Interna do seu GAT");
   await expect(panel.getByLabel("E-mail para o formulário")).toHaveValue("teste@example.com");
   await page.evaluate(() => {
     const restore = Reflect.get(window, "restoreReportStorage");
     if (typeof restore === "function") restore();
-  });
-  await panel.getByRole("button", { name: "Salvar preparo", exact: true }).click();
-  await expect(panel.getByRole("status")).toHaveText("Preparo salvo neste navegador.");
-  await page.evaluate(() => {
     window.open = () => null;
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -718,9 +712,18 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
   await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
   await expect(panel.getByRole("alert")).toContainText("bloqueou a nova aba");
   const href = await panel.getByRole("link", { name: "Abrir o link preparado", exact: true }).getAttribute("href");
-  expect(new URL(href!).searchParams.get("entry.333612427")).toBe("2026-11-02");
-  expect(new URL(href!).searchParams.get("emailAddress")).toBe("teste@example.com");
-  await panel.getByRole("button", { name: "Copiar resumo da atividade", exact: true }).click();
+  const params = new URL(href!).searchParams;
+  expect(params.get("entry.333612427")).toBe("2026-11-02");
+  expect(params.get("emailAddress")).toBe("teste@example.com");
+  expect(params.get("entry.1054891050")).toMatch(/^Síncrono Virtual/);
+  expect(params.get("entry.62230450")).toBe("5");
+  expect(params.get("entry.1807232520_hour")).toBe("13");
+  expect(params.get("entry.1807232520_minute")).toBe("30");
+  expect(params.get("entry.748998103_hour")).toBe("17");
+  expect(params.get("entry.1781993657")).toBe("não");
+  expect(params.get("entry.1074022684")).toBe("não");
+  expect(params.get("emailReceipt")).toBe("true");
+  await panel.getByRole("button", { name: "Copiar resumo", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-copied-summary", /Atividade sintética[\s\S]*13:30 às 17:30/);
   await page.evaluate(() => {
     Object.defineProperty(navigator, "clipboard", {
@@ -728,15 +731,20 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
       value: { writeText: async () => { throw new Error("Clipboard unavailable"); } },
     });
   });
-  await panel.getByRole("button", { name: "Copiar resumo da atividade", exact: true }).click();
+  await panel.getByRole("button", { name: "Copiar resumo", exact: true }).click();
   await expect(panel.getByRole("alert")).toContainText("O resumo foi selecionado");
-  const selected = await panel.getByLabel("Resumo para as próximas etapas").evaluate((element) => {
-    const field = element as HTMLTextAreaElement;
-    return field.selectionStart === 0 && field.selectionEnd === field.value.length;
-  });
-  expect(selected).toBe(true);
-  await panel.getByRole("button", { name: "Marcar como enviado", exact: true }).click();
-  await expect(panel).toContainText("Última confirmação");
+  await panel.getByRole("radio", { name: "Sim" }).first().check({ force: true });
+  await panel.getByLabel("Quantas pessoas (só número)").fill("7");
+  await panel.getByLabel("Tipo de atendimento ou procedimento").fill("Aferição de pressão");
+  await panel.getByRole("radio", { name: "Não" }).last().check({ force: true });
+  await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
+  const served = new URL((await panel.getByRole("link", { name: "Abrir o link preparado", exact: true }).getAttribute("href"))!).searchParams;
+  expect(served.get("emailReceipt")).toBeNull();
+  expect(served.get("entry.1781993657")).toBe("sim");
+  expect(served.get("entry.2115801122")).toBe("7");
+  expect(served.get("entry.1412130923")).toBe("Aferição de pressão");
+  await panel.getByLabel("Já enviei").check();
+  await expect(panel.getByRole("status")).toHaveText("Marcado como enviado.");
   await panel.getByRole("button", { name: "Fechar", exact: true }).click();
   await page.getByLabel("Mostrar só pendências do Forms").check();
   await expect(page.getByText("Nenhuma pendência do Forms neste mês.", { exact: true })).toBeVisible();
@@ -761,18 +769,18 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
   await expect(page.locator(".report-state:visible")).toHaveText("Pendente");
   await restoreCopy(page, backup);
   await expect(page.locator(".report-state:visible")).toHaveText("Revisar envio");
-  await page.getByRole("button", { name: /^Preparar formulário:/ }).click();
-  await panel.getByRole("button", { name: "Desmarcar envio", exact: true }).click();
-  await expect(panel).toContainText("Esta atividade está pendente");
+  await page.getByRole("button", { name: /^Enviar ao Forms:/ }).click();
+  await panel.getByLabel("Revisar envio").uncheck();
+  await expect(panel.getByRole("status")).toHaveText("Marcado como pendente.");
   await panel.getByRole("button", { name: "Fechar", exact: true }).click();
   await page.getByLabel("Mês da folha").selectOption("2026-10");
-  await expect(page.getByRole("button", { name: /^Preparar formulário:/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Enviar ao Forms:/ })).toHaveCount(0);
 });
 
 test("novidades mostram data de publicação e histórico acessível nos dois temas", async ({ page }, testInfo) => {
   await page.goto("/");
   const section = page.getByRole("region", { name: "Novidades do site" });
-  await expect(section.getByRole("heading", { name: "Seu relatório começa na atividade" })).toBeVisible();
+  await expect(section.getByRole("heading", { name: "Formulário também no botão Concluir" })).toBeVisible();
   await expect(section.getByText("Última atualização", { exact: false })).toContainText("07 de novembro de 2026");
   await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).not.toBeVisible();
   await section.getByText("Ver histórico de atualizações", { exact: true }).click();

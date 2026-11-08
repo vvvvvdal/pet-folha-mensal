@@ -13,12 +13,13 @@ export function StatsGrid({
 }: StatsGridProps) {
   const progress = Math.min(100, Math.max(0, (totalHours / targetHours) * 100));
   return (
-    <section className="frequency-summary" aria-label="Resumo da frequência">
+    <section className="frequency-summary" aria-label="Resumo da frequência"
+      title="Referência: 8h por semana, aproximadamente 32h por mês. Confira a distribuição semanal antes do envio.">
       <div className="summary-total">
         <span>Horas no mês</span>
         <p>
           <strong>{totalHours}</strong>
-          <span>h registradas</span>
+          <span>horas</span>
         </p>
       </div>
       <div className="summary-progress">
@@ -43,10 +44,6 @@ export function StatsGrid({
         >
           <span style={{ width: `${progress}%` }} />
         </div>
-        <p>
-          Referência: 8h por semana, aproximadamente 32h por mês. Confira a
-          distribuição semanal antes do envio.
-        </p>
       </div>
     </section>
   );

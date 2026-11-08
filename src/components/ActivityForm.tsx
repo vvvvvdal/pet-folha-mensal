@@ -74,66 +74,78 @@ export function ActivityForm({
       className="activity-form form-panel"
       aria-labelledby="activity-form-title"
     >
-      <div className="form-panel-heading">
-        <div>
-          <p className="section-kicker">Registrar</p>
-          <h2 id="activity-form-title">Adicionar atividade</h2>
-        </div>
-        <Plus size={20} aria-hidden="true" />
-      </div>
       <form onSubmit={submit} className="activity-fields">
-        {templates.length > 0 && (
-          <div className="field">
-            <label htmlFor="activity-template">
-              Preenchimento rápido{" "}
-              <span className="text-muted">· opcional</span>
-            </label>
-            <select
-              id="activity-template"
-              defaultValue=""
-              onChange={(event) => {
-                const template = templates.find(
-                  (item) => item.id === event.target.value,
-                );
-                if (template) {
-                  setDescription(
-                    cleanActivityDescription(
-                      template.name
-                        .replaceAll("{gatNumber}", defaultGatNumber)
-                        .replaceAll("{gatName}", defaultGatName),
-                    ),
+        <div className="form-panel-heading">
+          <h2 id="activity-form-title">Adicionar atividade</h2>
+          {templates.length > 0 && (
+            <div className="field template-field">
+              <label htmlFor="activity-template" className="sr-only">
+                Preenchimento rápido
+              </label>
+              <select
+                id="activity-template"
+                defaultValue=""
+                onChange={(event) => {
+                  const template = templates.find(
+                    (item) => item.id === event.target.value,
                   );
-                  setModality(template.modality);
-                  dirty();
-                }
-                event.target.value = "";
+                  if (template) {
+                    setDescription(
+                      cleanActivityDescription(
+                        template.name
+                          .replaceAll("{gatNumber}", defaultGatNumber)
+                          .replaceAll("{gatName}", defaultGatName),
+                      ),
+                    );
+                    setModality(template.modality);
+                    dirty();
+                  }
+                  event.target.value = "";
+                }}
+              >
+                <option value="">Modelo rápido</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name
+                      .replaceAll("{gatNumber}", defaultGatNumber)
+                      .replaceAll("{gatName}", defaultGatName)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+        <div className="pair-fields">
+          <div className="field">
+            <label htmlFor="activity-date">Data</label>
+            <input
+              id="activity-date"
+              type="date"
+              required
+              min={`${monthKey}-01`}
+              max={lastDate}
+              value={date}
+              onChange={(event) => {
+                setDate(event.target.value);
+                dirty();
+              }}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="activity-modality">Modalidade</label>
+            <select
+              id="activity-modality"
+              value={modality}
+              onChange={(event) => {
+                setModality(event.target.value as ModalityType);
+                dirty();
               }}
             >
-              <option value="">Escolher um modelo</option>
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name
-                    .replaceAll("{gatNumber}", defaultGatNumber)
-                    .replaceAll("{gatName}", defaultGatName)}
-                </option>
-              ))}
+              <option>Síncrona virtual</option>
+              <option>Síncrona presencial</option>
+              <option>Assíncrona virtual</option>
             </select>
           </div>
-        )}
-        <div className="field">
-          <label htmlFor="activity-date">Data</label>
-          <input
-            id="activity-date"
-            type="date"
-            required
-            min={`${monthKey}-01`}
-            max={lastDate}
-            value={date}
-            onChange={(event) => {
-              setDate(event.target.value);
-              dirty();
-            }}
-          />
         </div>
         <div className="time-fields">
           <div className="field">
@@ -164,28 +176,20 @@ export function ActivityForm({
               aria-describedby={error ? "activity-error" : undefined}
             />
           </div>
-        </div>
-        <div className="field">
-          <label htmlFor="activity-modality">Modalidade</label>
-          <select
-            id="activity-modality"
-            value={modality}
-            onChange={(event) => {
-              setModality(event.target.value as ModalityType);
-              dirty();
-            }}
+          <div
+            className="hours-preview"
+            title="Cada hora do relógio iniciada conta. Ex.: 13h30 às 17h30 = 5h."
           >
-            <option>Síncrona virtual</option>
-            <option>Síncrona presencial</option>
-            <option>Assíncrona virtual</option>
-          </select>
+            <span>Horas PET</span>
+            <strong>{hours}h</strong>
+          </div>
         </div>
         <div className="field">
           <label htmlFor="activity-description">Atividade realizada</label>
           <textarea
             id="activity-description"
             required
-            rows={3}
+            rows={2}
             placeholder="Descreva o que você realizou"
             value={description}
             onChange={(event) => {
@@ -194,13 +198,6 @@ export function ActivityForm({
             }}
           />
         </div>
-        <div className="hours-preview">
-          <span>Horas pela regra PET</span>
-          <strong>{hours}h</strong>
-        </div>
-        <p className="field-hint">
-          Cada hora do relógio iniciada conta. Ex.: 13h30 às 17h30 = 5h.
-        </p>
         {error && (
           <p id="activity-error" role="alert" className="inline-error">
             {error}

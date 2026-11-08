@@ -720,7 +720,7 @@ export default function Home() {
           onOpenHelp={() => setIsHelpOpen(true)}
         />
 
-        <main id="conteudo" className="workspace-main">
+        <main id="conteudo" className="workspace-main" data-tab={activeTab}>
           {notices}
           <div className="workspace-overview">
             <div>
@@ -735,6 +735,13 @@ export default function Home() {
                   : "Confira os dados antes de imprimir e assinar."}
               </p>
             </div>
+            {activeTab === "dashboard" && (
+              <StatsGrid
+                totalHours={totalHours}
+                activitiesCount={activities.length}
+                targetHours={32}
+              />
+            )}
             <label className="workspace-month">
               <Calendar className="size-4 text-accent" />
               <span>Mês</span>
@@ -757,12 +764,6 @@ export default function Home() {
           {/* ABA 1: PAINEL DE LANÇAMENTOS */}
           {activeTab === "dashboard" && (
             <div>
-              <StatsGrid
-                totalHours={totalHours}
-                activitiesCount={activities.length}
-                targetHours={32}
-              />
-
               <div className="frequency-workbench">
                 <ActivityForm
                   key={`${activeUser.id}-${monthKey}-${formRevision}`}
@@ -792,17 +793,13 @@ export default function Home() {
                   onClearMonth={handleClearMonth}
                 />
               </div>
-              <aside className="rounded-xl border border-line bg-surface p-4 text-sm text-body">
-                <p>Registre também cada atividade no formulário do PET-Saúde Clima.</p>
-                <a className="underline font-semibold" target="_blank" rel="noopener noreferrer"
-                  href={ACTIVITY_FORM_URL}>
-                  Abrir formulário de atividades
-                </a>
-              </aside>
               <div className="review-next">
                 <p>
-                  Terminou os lançamentos? Confira os dados da folha antes de
-                  imprimir.
+                  Registre também cada atividade no{" "}
+                  <a target="_blank" rel="noopener noreferrer" href={ACTIVITY_FORM_URL}>
+                    formulário do PET-Saúde Clima
+                  </a>
+                  . Terminou? Confira a folha antes de imprimir.
                 </p>
                 <button
                   className="primary-button"
@@ -824,26 +821,20 @@ export default function Home() {
             <div className="space-y-4 animate-fade-in">
               <div className="sheet-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 rounded-2xl border border-line bg-surface text-xs shadow-[var(--page-shadow)]">
                 {/* Seletor entre Minha Folha e Template Vazio */}
-                <div className="flex p-0.5 rounded-xl bg-canvas border border-line font-medium">
+                <div className="sheet-mode-tabs" role="group" aria-label="Tipo de folha">
                   <button
                     type="button"
                     onClick={() => setShowBlankTemplate(false)}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                      !showBlankTemplate
-                        ? "bg-raised text-ink shadow-[var(--page-shadow)]"
-                        : "text-muted hover:text-body"
-                    }`}
+                    className="sheet-mode-option"
+                    aria-pressed={!showBlankTemplate}
                   >
                     Minha folha
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowBlankTemplate(true)}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                      showBlankTemplate
-                        ? "bg-raised text-ink shadow-[var(--page-shadow)]"
-                        : "text-muted hover:text-body"
-                    }`}
+                    className="sheet-mode-option"
+                    aria-pressed={showBlankTemplate}
                   >
                     Modelo em branco
                   </button>

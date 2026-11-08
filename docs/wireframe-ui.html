@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esqueleto da UI</title>
+<style>
+  :root { --bg:#f4f4f5; --box:#fff; --line:#a1a1aa; --soft:#e4e4e7; --ink:#27272a; --mut:#71717a; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px 16px 48px; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,sans-serif; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  p.lead { margin:0 0 20px; color:var(--mut); max-width:760px; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .tabs button { border:1px solid var(--line); background:var(--box); padding:8px 14px; border-radius:8px; cursor:pointer; font:inherit; }
+  .tabs button[aria-pressed="true"] { background:var(--ink); color:#fff; border-color:var(--ink); }
+  section.view { display:none; }
+  section.view.on { display:block; }
+  .frame { border:2px solid var(--ink); border-radius:10px; background:var(--box); overflow:hidden; max-width:1180px; }
+  .frame.mob { max-width:340px; }
+  .row { display:flex; gap:12px; align-items:center; }
+  .bar { padding:10px 14px; border-bottom:1px solid var(--soft); }
+  .box { border:1.5px dashed var(--line); border-radius:8px; padding:10px 12px; background:#fafafa; color:var(--mut); }
+  .box.solid { border-style:solid; background:var(--soft); color:var(--ink); }
+  .grow { flex:1; }
+  .note { font-size:12px; color:var(--mut); margin:6px 0 0; }
+  .cols { display:grid; grid-template-columns: 300px 1fr; gap:12px; padding:12px 14px; }
+  .stack { display:grid; gap:8px; }
+  .scroll { border:1.5px dashed var(--line); border-radius:8px; padding:8px; display:grid; gap:6px; background:#fafafa; }
+  .scroll .item { display:flex; gap:10px; align-items:center; padding:8px; background:var(--box); border:1px solid var(--soft); border-radius:6px; }
+  .chip { border:1px solid var(--line); border-radius:99px; padding:2px 10px; font-size:12px; }
+  .btn { border:1.5px solid var(--ink); border-radius:8px; padding:8px 14px; background:var(--ink); color:#fff; display:inline-block; }
+  .btn.ghost { background:transparent; color:var(--ink); }
+  .modal { width:min(640px,100%); margin:0 auto; border:2px solid var(--ink); border-radius:12px; background:var(--box); }
+  .modal .hd, .modal .ft { padding:12px 16px; }
+  .modal .hd { border-bottom:1px solid var(--soft); display:flex; justify-content:space-between; }
+  .modal .bd { padding:12px 16px; display:grid; gap:10px; }
+  .modal .ft { border-top:1px solid var(--soft); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tag { display:inline-block; font-size:11px; background:var(--ink); color:#fff; border-radius:4px; padding:1px 6px; margin-right:6px; }
+  .viewport { position:relative; }
+  .viewport::after { content:"limite da tela (sem rolagem da página)"; position:absolute; right:8px; bottom:6px; font-size:11px; color:var(--mut); }
+  .cmp { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-top:16px; }
+  .cmp > div { border:1px solid var(--soft); background:var(--box); border-radius:8px; padding:12px; }
+  .cmp h3 { margin:0 0 6px; font-size:14px; }
+  ul { margin:6px 0 0; padding-left:18px; }
+</style>
+</head>
+<body>
+<h1>PET Folha Mensal · esqueleto da interface</h1>
+<p class="lead">Wireframe cinza, sem cor nem fonte da marca. Mostra a organização: tudo em uma tela, rolagem só dentro da lista de atividades quando ela crescer, e o formulário do Google em um único modal curto.</p>
+
+<div class="tabs" role="group" aria-label="Telas">
+  <button type="button" aria-pressed="true" data-v="desk">1 · Tela principal (desktop)</button>
+  <button type="button" aria-pressed="false" data-v="mob">2 · Tela principal (celular)</button>
+  <button type="button" aria-pressed="false" data-v="modal">3 · Enviar ao Forms</button>
+  <button type="button" aria-pressed="false" data-v="why">4 · O que mudou</button>
+</div>
+
+<section class="view on" id="desk">
+  <div class="frame viewport" style="height:560px; display:flex; flex-direction:column">
+    <div class="bar row">
+      <div class="box solid">Marca</div>
+      <div class="box solid">Minha frequência</div>
+      <div class="box">Folha oficial</div>
+      <div class="grow"></div>
+      <div class="box">Pessoa · GAT</div>
+      <div class="box">Tema</div><div class="box">Ajuda</div>
+      <div class="box">Salvar / Restaurar cópia</div>
+      <div class="btn ghost">Concluir</div>
+    </div>
+    <div class="bar row">
+      <div><strong>Minha frequência</strong> <span class="chip">Novembro/2026 ▾</span></div>
+      <div class="grow"></div>
+      <div class="box solid">9 h</div>
+      <div class="box grow">barra: 3 atividades · 23h para a referência</div>
+    </div>
+    <div class="cols grow" style="min-height:0">
+      <div class="stack" style="align-content:start">
+        <strong>Adicionar atividade</strong>
+        <div class="g2"><div class="box">Data</div><div class="box">Modalidade</div></div>
+        <div class="g2"><div class="box">Entrada</div><div class="box">Saída <span class="chip">= 2h</span></div></div>
+        <div class="box" style="height:70px">Atividade realizada</div>
+        <div class="row"><span class="chip">Modelo rápido ▾</span><div class="grow"></div><div class="btn">Adicionar</div></div>
+      </div>
+      <div class="stack" style="min-height:0; grid-template-rows:auto 1fr">
+        <div class="row"><strong>Atividades do mês</strong><span class="chip">3</span><div class="grow"></div><span class="chip">☐ só pendentes do Forms</span><span class="chip">Limpar mês</span></div>
+        <div class="scroll" style="overflow:hidden">
+          <div class="item"><span class="grow">02/11 · Reunião interna · 2h</span><span class="chip">● Pendente</span><span class="btn">Forms ↗</span><span>✎</span><span>🗑</span></div>
+          <div class="item"><span class="grow">04/11 · Visita técnica · 5h</span><span class="chip">✓ Enviado</span><span class="btn ghost">Forms ↗</span><span>✎</span><span>🗑</span></div>
+          <div class="item"><span class="grow">06/11 · Estudo de caso · 2h</span><span class="chip">● Pendente</span><span class="btn">Forms ↗</span><span>✎</span><span>🗑</span></div>
+          <div class="note">↕ rola só aqui, quando houver mais atividades que cabem</div>
+        </div>
+      </div>
+    </div>
+    <div class="bar row" style="border-top:1px solid var(--soft); border-bottom:0">
+      <span class="note" style="margin:0">Lembrete único: registre cada atividade no formulário.</span>
+      <div class="grow"></div>
+      <div class="btn">Conferir folha →</div>
+    </div>
+  </div>
+  <p class="note">Rodapé do site vira uma linha dentro da barra inferior (Ajuda · Avaliar · créditos), em letra pequena.</p>
+</section>
+
+<section class="view" id="mob">
+  <div class="frame mob">
+    <div class="bar row"><div class="box solid">Marca</div><div class="grow"></div><div class="box">☰</div></div>
+    <div class="bar row"><strong>Minha frequência</strong><div class="grow"></div><span class="chip">Nov/26 ▾</span></div>
+    <div class="bar"><div class="box solid">9 h · 3 atividades · barra</div></div>
+    <div class="bar stack">
+      <div class="box">Atividades (lista primeiro)</div>
+      <div class="scroll"><div class="item"><span class="grow">02/11 · Reunião · 2h</span><span class="btn">Forms ↗</span></div><div class="item"><span class="grow">04/11 · Visita · 5h</span><span class="chip">✓</span></div></div>
+    </div>
+    <div class="bar"><div class="btn" style="display:block;text-align:center">+ Adicionar atividade</div><p class="note">abre o formulário numa folha deslizante, a página não cresce</p></div>
+    <div class="bar" style="border:0"><div class="btn ghost" style="display:block;text-align:center">Conferir folha →</div></div>
+  </div>
+</section>
+
+<section class="view" id="modal">
+  <div class="modal">
+    <div class="hd"><strong>Enviar ao Forms</strong><span>✕</span></div>
+    <div class="bd">
+      <div class="box solid">Resumo fixo: 02/11 · 14:00 às 15:30 · Síncrono virtual · 2h</div>
+      <div class="g2"><div class="box">Grupo ▾ (já vem do perfil)</div><div class="box">Perfil ▾ (já vem do perfil)</div></div>
+      <div class="box">Tipo de atividade ▾</div>
+      <div class="box">Campo extra do tipo escolhido (ex.: local da visita) — aparece só se o tipo pedir</div>
+      <div class="g2"><div class="box">Atendeu usuários do SUS? Sim / Não</div><div class="box">Precisa de declaração? Sim / Não</div></div>
+      <p class="note" style="margin:0">E-mail e nome ficam no perfil: um link “Corrigir no perfil”.</p>
+    </div>
+    <div class="ft">
+      <label><input type="checkbox"> Já enviei</label>
+      <div class="row"><span class="chip">Copiar resumo</span><div class="btn">Abrir Forms preenchido ↗</div></div>
+    </div>
+  </div>
+  <p class="note" style="text-align:center">Uma ação principal. “Salvar preparo” some (salva sozinho ao abrir). O CAPTCHA e o anexo do certificado continuam no Google.</p>
+</section>
+
+<section class="view" id="why">
+  <div class="cmp">
+    <div><h3>Antes</h3><ul>
+      <li>Página de ~1600 px (desktop) e ~3000 px (celular)</li>
+      <li>Resumo, referência, filtro, aviso e lembrete em linhas separadas</li>
+      <li>Rótulo “Preparar formulário” com 3 botões no modal</li>
+      <li>Só a 1ª etapa do Forms preenchida</li></ul></div>
+    <div><h3>Depois</h3><ul>
+      <li>Desktop: tela de 100% da altura; só a lista rola</li>
+      <li>Resumo vira uma faixa de uma linha</li>
+      <li>Lembrete e rodapé em uma barra inferior</li>
+      <li>Forms: 1 ação principal e todas as etapas pré-preenchidas</li></ul></div>
+  </div>
+</section>
+
+<script>
+  const btns = document.querySelectorAll('.tabs button');
+  btns.forEach(b => b.addEventListener('click', () => {
+    btns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('section.view').forEach(s => s.classList.toggle('on', s.id === b.dataset.v));
+  }));
+</script>
+</body>
+</html>

@@ -72,6 +72,8 @@ export interface FormReport {
   group: string;
   role: string;
   activityType: string;
+  // Respostas das etapas seguintes do Forms (chaves em FORM_EXTRA_KEYS).
+  extra?: Record<string, string>;
   confirmation?: {
     at: string;
     snapshot: string;

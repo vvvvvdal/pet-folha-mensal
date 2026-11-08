@@ -120,12 +120,24 @@ export function printScale(width: number, height: number) {
   return Math.min(PRINT_WIDTH / width, PRINT_HEIGHT / height);
 }
 
-export function canvasToBlob(canvas: HTMLCanvasElement, type = "image/png"): Promise<Blob> {
+// JPEG a 80% mantém a leitura de documentos a ~150 dpi e pesa uma fração do PNG
+// (o gov.br aceita até 5 MB para assinar).
+export const PRINT_JPEG_QUALITY = 0.8;
+
+// JPEG não tem transparência: pinta o fundo de branco antes de desenhar.
+export function paintWhite(canvas: HTMLCanvasElement) {
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.fillStyle = "#fff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+export function canvasToBlob(canvas: HTMLCanvasElement, type = "image/jpeg"): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
       else reject(new Error("não foi possível preparar a imagem para impressão."));
-    }, type, 0.92);
+    }, type, PRINT_JPEG_QUALITY);
   });
 }
 
@@ -259,8 +271,9 @@ export async function prepareAttachmentPages(items: Attachment[]) {
     try {
       const context = canvas.getContext("2d");
       if (!context) throw new Error("não foi possível preparar a imagem para impressão.");
+      paintWhite(canvas);
       context.drawImage(photo, 0, 0, canvas.width, canvas.height);
-      resized = await canvasToBlob(canvas, blob.type);
+      resized = await canvasToBlob(canvas);
     } finally {
       URL.revokeObjectURL(photo.src);
       photo.removeAttribute("src");

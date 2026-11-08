@@ -1,5 +1,5 @@
 import { getDocument, GlobalWorkerOptions, PasswordResponses } from "pdfjs-dist";
-import { canvasToBlob, MONTH_PAGE_LIMIT, printScale } from "./attachments";
+import { canvasToBlob, MONTH_PAGE_LIMIT, paintWhite, printScale } from "./attachments";
 
 GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -61,6 +61,7 @@ export function renderPdfPages(file: Blob, addPage: (blob: Blob) => Promise<void
         });
         canvas.width = Math.max(1, Math.ceil(viewport.width));
         canvas.height = Math.max(1, Math.ceil(viewport.height));
+        paintWhite(canvas);
         await page.render({ canvas, viewport, intent: "print" }).promise;
         await addPage(await canvasToBlob(canvas));
         page.cleanup();
