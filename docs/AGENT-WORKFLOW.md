@@ -1,93 +1,60 @@
-# Maestri: Codex e Gemini no PET Folha
+# Trabalho com agentes no PET Folha
 
-## Validação desta configuração
+## Começar pelo resultado
 
-- Tipo: configuração de papéis locais e documentação; produto sem alteração.
-- Conferir JSON dos dois papéis, diretórios, fontes, comandos, exclusões de arquivos gerados e diff.
-- Na primeira tarefa real: confirmar modelo/login, comunicação, limites de escrita e gates.
-- Repetir checks apenas por mudança relevante, falha ou dúvida nova.
+Use um **agente principal** na pasta do projeto, pelo app com acesso local ou pelo
+Maestri. Ele entende o pedido, planeja, implementa e valida na mesma conversa.
+Não é necessário alternar entre quatro agentes ou aprender comandos.
 
-## Entradas
+Leia [AGENTS](../AGENTS.md), a pendência de [TASKS](../TASKS.md) e somente o contrato
+da área. [CONTRIBUTING](../CONTRIBUTING.md) define integração e gates.
+Essas fontes prevalecem sobre papéis do Maestri. Modelos e disponibilidade são
+configuração do ambiente, não regra de produto deste repositório.
 
-- [Regras](../AGENTS.md), [tarefas](../TASKS.md) e [referências do Oracle](oracle-ci-logs-unslop.md).
-- Papéis portáveis em `.maestri/roles/*/role.json`, schema 1; cada pasta contém
-  `AGENTS.md` gerado pelo app, ignorado no Git. O Maestri oferece **Discover Roles** na edição do terminal.
-- Dois papéis no Maestri são restritos ao workspace deste projeto. O canvas usa
-  o repositório local e uma nota curta com ponteiros; o andamento fica em TASKS/docs.
+## Papéis e entrada/saída
 
-## Operação
+| Papel | Quando usar | Entrada e saída | Escrita |
+| --- | --- | --- | --- |
+| Principal | Padrão para toda tarefa | Objetivo e aceite → entrega, caminhos, checks e pendência real | Único integrador do recorte autorizado |
+| Pesquisa | Questão factual ou investigação independente | Pergunta delimitada → fontes, datas, conclusões e limites | Sem implementar nem mudar contratos |
+| Revisão | Mudança com risco ou revisão solicitada | Base/diff e aceite → achados por arquivo/linha e evidência | Sem corrigir o produto nem se autoaprovar |
 
-1. Abrir Maestri pelo menu de aplicativos e escolher **PET Folha**.
-2. Os terminais estão preparados. Ativar Codex para conduzir
-   o pedido; Gemini fica disponível para revisão ou um recorte isolado.
-3. Codex usa o login ChatGPT do CLI existente. Gemini usa Antigravity CLI (`agy` 1.4.12) e o login Google existente.
-   O catálogo `agy models` listou **gemini-4-argon-medium**, selecionado no terminal.
-   Não há API key nova nem troca para cobrança de API.
-4. Dar objetivo, frente/ID, limites e aceite ao Codex. Para CI/logs/UI, começar
-   pelo plano [Oracle](oracle-ci-logs-unslop.md) e escolher OR-CI, OR-LOG ou OR-UI.
-5. Ao precisar de revisão, informar ao Gemini o arquivo/ID e a base exata do diff.
-   Revisão começa sem escrita. Implementação isolada exige atribuição explícita;
-   o integrador confere o diff e os gates antes de integrar.
+O principal pode ser Claude ou Codex. Gemini fica disponível para pesquisa via
+Antigravity. Um revisor de outro fornecedor é opcional; o modelo não substitui
+verificação. Planejamento e execução são etapas do principal, não sessões fixas.
 
-O Maestri organiza CLIs; esta conversa do app e o ChatGPT de um projeto não são
-transportados automaticamente para os terminais. A retomada usa documentos.
-O terminal Gemini executa `agy --model gemini-4-argon-medium --mode plan`.
-`antigravity` abre a IDE instalada; `agy` é o cliente de terminal atual.
-O teste com `gemini` 0.60.0 falhou com `UNSUPPORTED_CLIENT`: o login individual
-legado foi encerrado, conforme a [migração oficial do Google](https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/).
-Isso não é evidência de indisponibilidade do Argon no plano Google.
-Antigravity descobre `AGENTS.md`, `GEMINI.md` e skills do projeto; mantenha as
-regras locais. [Descoberta oficial](https://antigravity.google/docs/customization-discovery?tab=cli).
+Preserve dados locais, isolamento por perfil/mês, backup, sessão/PIN verificados no servidor, cálculo CEILING - FLOOR e folha oficial A4 paisagem. Não envie dados de participantes para observabilidade remota.
 
-## Limites e responsabilidade
+## Uso no Maestri
 
-Preserve localStorage, isolamento por perfil/mês, backup, fórmula CEILING - FLOOR e folha oficial A4 paisagem. PIN/sessão são verificados no servidor; dados do navegador não têm autoridade institucional. Não enviar dados de participantes para observabilidade remota.
+Os presets globais são **Principal · Claude**, **Principal · Codex**,
+**Pesquisa · Gemini** e **Revisão · Codex**. Abra somente o apoio necessário.
+Os papéis globais Principal/Pesquisa/Revisão apontam para as regras do repositório.
+Não dependem dos antigos arquivos de papel removidos deste checkout.
 
-Papéis são instruções, não sandbox nem permissão do sistema. Codex é responsável
-por integração; Gemini revisa por padrão. Para executar em paralelo, isolar writers
-em worktrees e definir dono dos caminhos; dois terminais no mesmo checkout não
-produzem isolamento. Não carregar skills ou contratar serviços por rotina.
+O canvas organiza sessões. Dar nomes ou conectar terminais não comprova que os
+agentes trocaram contexto. Passe pergunta ou objetivo, arquivo/ID, limites,
+base do diff e aceite; devolva resultado e evidência. Não copie o chat inteiro.
+O contexto de outro app não é importado automaticamente.
 
-Um papel recebe objetivo/arquivo/ID, escopo, base e aceite e entrega resultado,
-check executado/ambiente, caminhos e pendência real. “Concluído” só com evidência.
-Reutilizar checks aprovados para o mesmo código/ambiente; falha repetida sem nova
-informação exige mudar hipótese. Push continua humano. Produção e comunicação
-externa seguem autorização específica e contratos do projeto.
+Papéis são instruções, não sandbox. Pesquisa Gemini e revisão Claude usam modo
+plan; revisão/pesquisa Codex usam sandbox read-only nos presets locais. O principal
+confere os limites efetivos e os gates antes de integrar. Login e catálogo precisam
+funcionar na conta atual; configurar um nome de modelo não os comprova.
 
-## Instalação e limites verificados
+## Subagentes e coordenação
 
-Configuração: quatro schemas de papel nos dois pilotos, referências locais e
-exclusões de arquivos gerados conferidos. Neste repo, tipagem passou; build
-Turbopack passou em cópia isolada da base `208e663`, com Node 22.23.2 e lockfile.
-Lint da mesma base falhou com 19 erros/5 avisos preexistentes; ver
-[OR-CI](oracle-ci-logs-unslop.md#or-ci--criar-uma-base-pequena-antes-de-otimizar).
-Integração à main fica pendente desse gate, conforme CONTRIBUTING.
+Subagente é uma delegação interna da sessão que retorna ao principal. Outro
+terminal é outra sessão, com histórico próprio. Ambos podem consumir cota.
+Uma tarefa simples usa um agente. Delegação só com recorte independente,
+instrução aplicável, entrada, saída, limites e aceite. Dois writers no mesmo
+caminho precisam de worktrees ou execução em sequência; dois terminais no mesmo
+checkout não isolam alterações. Revisão não recebe autoridade sobre produção.
 
-Em 02/11/2026, Maestri Linux **0.29.0, build 113** foi instalado para este usuário
-em `/home/felipe/Applications/Maestri.AppImage` pelo instalador oficial, com SHA-256
-conferido contra o checksum publicado. O processo do app e o daemon iniciaram; os dois workspaces foram carregados
-e os papéis/conexões foram preservados. Abrir um workspace pode iniciar seus terminais. Inspeção visual do canvas ainda não realizada.
-A versão Linux tem numeração diferente do changelog geral 0.58.0.
-Neste ambiente, o lançamento padrão registrou falha de renderização/captura do
-canvas. O atalho local usa `--disable-gpu`; no reinício por software, os erros
-gráficos anteriores não se repetiram. Isso não substitui a conferência visual.
-Uma reinstalação pode recriar o atalho padrão; a cópia anterior está no backup.
+Estado e decisões ficam no repositório. Publicação, comunicação externa e push
+seguem a autorização da tarefa e as regras locais. Homologação de uma entrega
+real no Maestri continua em TASKS; teste de configuração não a substitui.
 
-A configuração nativa é local em `~/.maestri`; os dois espaços e papéis foram
-preparados para este projeto e o outro piloto. O login dos agentes é reaproveitado,
-sem exportação de tokens. As integrações nativas do Maestri ficam em
-`.agents/skills/maestri*` apenas nos dois repositórios, geradas pelo app e excluídas
-do Git local. O destino global automático foi arquivado no backup. O ID do Argon foi confirmado
-no catálogo do Antigravity CLI e configurado. Um prompt mínimo em pasta vazia
-retornou `OK`, status `SUCCESS`, sem fornecer arquivos dos projetos, via `agy --model gemini-4-argon-medium --mode plan`. Comunicação entre agentes e uma
-entrega real com limites/gates ainda precisam ser homologadas no Maestri.
-
-Reversão: retirar os espaços/papéis destes dois pilotos no Maestri e reverter
-os arquivos desta mudança no Git. A instalação pode ser removida pelo instalador
-oficial com `--uninstall`; manter dados/perfis existentes. Backup pré-configuração
-local em `~/.local/state/oracle-maestri-20261102/`.
-
-Fontes: [Linux oficial](https://www.themaestri.app/en/linux),
-[papéis](https://www.themaestri.app/en/docs/terminals),
-[Maestro](https://www.themaestri.app/en/docs/maestro),
-[partituras](https://www.themaestri.app/en/docs/partituras).
+Configuração nativa: `~/.maestri`. Backup antes desta simplificação:
+`~/.local/state/oracle-maestri-20261109-simplificacao/`. Perfis e logins existentes
+são reaproveitados. Referência: [presets e papéis do Maestri](https://www.themaestri.app/en/docs/terminals).

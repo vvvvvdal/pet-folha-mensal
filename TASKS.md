@@ -36,7 +36,7 @@
 - [x] Corrigir contraste das opções do seletor de mês no modo escuro, com teste de teclado e contraste nos dois temas; entrada/JSON/perfis refinados e publicados em `d93a128`. [Evidência local e produção](docs/validation/entry-theme-20261102/README.md).
 - [ ] Conferir a primeira execução remota do CI após push humano: workflow preparado com tipagem, lint, testes locais, build e Playwright.
 - [ ] Homologar a nova UI em smartphone físico, zoom real de 200% e impressora; matriz local emulada e PDFs conferidos. [Escopo](docs/validation/ui-ux-20261102/README.md).
-- [ ] Homologar o primeiro fluxo do [Maestri com Codex/Gemini Argon 4](docs/AGENT-WORKFLOW.md): confirmar modelo, comunicação, limites de escrita e gates reais.
+- [ ] Homologar uma entrega real com [principal e apoios sob demanda](docs/AGENT-WORKFLOW.md), no app ou Maestri: login/modelo, contexto passado ao apoio, limites de escrita e gates do projeto.
 - [x] **Deploy na Vercel (02/11/2026)**: snapshot de `d309198` publicado em produção, estado READY e domínio principal conferido. Retomada sem JSON, isolamento entre meses e fontes de 16px aprovados no navegador publicado. [Registro e limites](docs/validation/ui-ux-20261102/README.md#publicação-em-produção--02112026).
 
 ## Refinamento de UI/UX (31/10/2026)
