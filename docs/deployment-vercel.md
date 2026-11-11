@@ -6,7 +6,19 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
-Publicação atual de 10/11/2026, commit de origem `bc99b2a`, deployment
+Publicação atual de 10/11/2026, commit de origem `1e8e5fc`, deployment
+`dpl_531fHyMV7Hjy5MTiNgjUW8vJQuP2` em produção, estado READY.
+A composição escolhida mantém o formulário ao lado da lista no desktop e abre
+a inclusão em janela no celular. As janelas de edição e Forms usam ações fixas.
+A opção **Receber cópia por e-mail** foi removida do preparo e o link não emite
+mais `emailReceipt`. A mudança está nas novidades da aplicação.
+No domínio principal, foram conferidos o detalhe do evento, a ausência da opção
+e do parâmetro, a composição desktop e a preservação do rascunho em 390 px no
+Chromium emulado. Não houve envio de resposta ao Google Forms.
+Passaram 24 testes locais e 32 testes de navegador em desktop e celular emulado,
+build, tipagem e lint com três avisos legados.
+
+Publicação de 10/11/2026, commit de origem `bc99b2a`, deployment
 `dpl_9QiRrZRa1mz1tqHSF7sLZCSe71Xd` em produção, estado READY.
 O detalhe da atividade em eventos passou a ser sugerido, editável e incluído no
 link para a seção **Qual foi a atividade?**. A sugestão e o parâmetro do link
