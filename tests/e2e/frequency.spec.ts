@@ -474,7 +474,6 @@ test("seletor de mês mantém opções contrastantes nos dois temas e funciona p
     await expect(month).toHaveValue("2026-11");
     await month.focus();
     await page.keyboard.press("ArrowDown");
-    await page.keyboard.press("Enter");
     await expect(month).toHaveValue("2026-12");
     if (testInfo.project.name === "desktop") {
       await month.press("Alt+ArrowDown");
