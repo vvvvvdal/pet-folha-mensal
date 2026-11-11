@@ -4,7 +4,7 @@ import { Modal } from "./Modal";
 import React, { useState, useEffect } from "react";
 import { UserProfile, UserRole, GATInfo } from "@/types";
 import { normalizeName } from "@/lib/storage";
-import { X, Check, User } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { useDialog } from "@/context/DialogContext";
 
 interface ProfileModalProps {
@@ -84,104 +84,55 @@ export function ProfileModal({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      label="Identificação do participante"
-    >
-      <div
-        className="w-full max-w-md rounded-2xl border border-line bg-surface p-5 sm:p-6 shadow-[var(--page-shadow)] transition-all max-h-[90dvh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between pb-3.5 border-b border-line mb-4">
-          <div className="flex items-center gap-2">
-            <User className="size-4.5" style={{ color: "#10B981" }} />
-            <h3 className="text-sm sm:text-base font-bold text-ink">
-              Identificação do Participante
-            </h3>
+    <Modal isOpen={isOpen} onClose={onClose} label="Identificação do participante" variant="editor">
+      <form onSubmit={handleSave} className="editor-panel editor-narrow">
+        <header className="editor-head">
+          <div>
+            <h2>Identificação do participante</h2>
+            <p>Dados usados na folha e nos relatórios.</p>
           </div>
-          <button
-            onClick={onClose}
-            className="size-8 rounded-lg text-muted hover:text-ink hover:bg-raised flex items-center justify-center cursor-pointer transition-colors"
-            aria-label="Fechar"
-          >
-            <X className="size-4" />
+          <button type="button" className="icon-button" onClick={onClose} aria-label="Fechar">
+            <X size={20} aria-hidden="true" />
           </button>
-        </div>
-
-        <form onSubmit={handleSave} className="space-y-4">
+        </header>
+        <div className="editor-body editor-fields">
           <div className="field">
             <label htmlFor="profilemodal-field-1">Nome completo</label>
-            <input
-              id="profilemodal-field-1"
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <input id="profilemodal-field-1" type="text" required value={name}
+              onChange={(event) => setName(event.target.value)} />
           </div>
-
           <div className="field">
             <label htmlFor="profile-email">E-mail para o formulário (opcional)</label>
-            <input id="profile-email" type="email" value={email} autoComplete="email"
+            <input id="profile-email" type="email" autoComplete="email" value={email}
               onChange={(event) => setEmail(event.target.value)} />
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="pair-fields">
             <div className="field">
               <label htmlFor="profilemodal-field-2">Grupo tutorial (GAT)</label>
-              <select
-                id="profilemodal-field-2"
-                value={gatNumber}
-                onChange={(e) => setGatNumber(e.target.value)}
-              >
-                {Object.entries(gats).map(([num, info]) => (
-                  <option key={num} value={num}>
-                    GAT {num} ({info.name})
-                  </option>
+              <select id="profilemodal-field-2" value={gatNumber}
+                onChange={(event) => setGatNumber(event.target.value)}>
+                {Object.entries(gats).map(([number, info]) => (
+                  <option key={number} value={number}>GAT {number} ({info.name})</option>
                 ))}
               </select>
             </div>
-
             <div className="field">
               <label htmlFor="profilemodal-field-3">Função no PET</label>
-              <select
-                id="profilemodal-field-3"
-                value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
-              >
-                {roles.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
+              <select id="profilemodal-field-3" value={role}
+                onChange={(event) => setRole(event.target.value as UserRole)}>
+                {roles.map((option) => <option key={option} value={option}>{option}</option>)}
               </select>
             </div>
           </div>
-
-          <p className="text-xs text-muted leading-relaxed">
-            Seus dados são salvos exclusivamente no seu dispositivo (100% no
-            navegador).
-          </p>
-
-          <div className="flex justify-end gap-2 pt-2 border-t border-line">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 sm:flex-none min-h-[44px] px-4 py-2 text-xs sm:text-sm font-medium rounded-xl border border-line text-body hover:bg-raised cursor-pointer transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="flex-1 sm:flex-none min-h-[44px] px-5 py-2 text-xs sm:text-sm font-bold rounded-xl text-white bg-primary hover:bg-[var(--primary-hover)] cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-[var(--page-shadow)]"
-            >
-              <Check className="size-4" />
-              <span>Salvar Alterações</span>
-            </button>
+          <p className="field-hint">Seus dados ficam salvos neste navegador.</p>
+        </div>
+        <footer className="editor-foot">
+          <div className="editor-actions">
+            <button type="button" className="secondary-button" onClick={onClose}>Cancelar</button>
+            <button type="submit" className="primary-button"><Check size={18} aria-hidden="true" /> Salvar Alterações</button>
           </div>
-        </form>
-      </div>
+        </footer>
+      </form>
     </Modal>
   );
 }

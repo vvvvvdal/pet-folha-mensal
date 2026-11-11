@@ -56,9 +56,9 @@ function Conclusion({
     onConfirmExit();
   }
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Salvar folha e concluir">
-      <section className="conclusion-panel">
-        <div className="form-panel-heading">
+    <Modal isOpen={isOpen} onClose={onClose} label="Salvar folha e concluir" variant="editor">
+      <section className="editor-panel editor-narrow">
+        <header className="editor-head">
           <div>
             <h2>Guarde sua folha</h2>
             <p className="access-hint">{userName}</p>
@@ -66,7 +66,8 @@ function Conclusion({
           <button className="icon-button" onClick={onClose} aria-label="Fechar">
             <X size={20} />
           </button>
-        </div>
+        </header>
+        <div className="editor-body editor-fields conclusion-body">
         <div className="conclusion-option">
           <Download size={24} aria-hidden="true" />
           <div>
@@ -141,14 +142,15 @@ function Conclusion({
             </button>
           </div>
         )}
-        <div className="conclusion-actions">
+        </div>
+        <footer className="editor-foot conclusion-actions">
           <button className="secondary-button" onClick={onClose}>
             Continuar editando
           </button>
           <button className="primary-button" disabled={busy} onClick={leave}>
             Sair / trocar participante <ArrowRight size={18} />
           </button>
-        </div>
+        </footer>
       </section>
     </Modal>
   );

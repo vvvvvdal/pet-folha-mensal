@@ -157,12 +157,13 @@ A impressão divide frequências extensas automaticamente em A4 paisagem. Os cab
 
 O botão "Forms" de cada atividade abre o modal "Enviar ao Forms": e-mail, grupo,
 perfil e tipo de atividade, mais as perguntas do tipo escolhido (local da visita,
-nome do evento e dados do curso EAD), atendimento a usuários do SUS, declaração
-e cópia por e-mail. Em **Participação em eventos**, o campo **Qual foi a
+nome do evento e dados do curso EAD), atendimento a usuários do SUS e declaração.
+Em **Participação em eventos**, o campo **Qual foi a
 atividade?** sugere o trecho após o primeiro hífen ou travessão entre espaços.
 Se não houver separador, sugere o nome registrado. A pessoa pode editar a
 sugestão antes de abrir o Forms. Em **Outros**, a sugestão usa o nome registrado.
-O link pré-preenche todas as etapas do Forms oficial (campos mapeados em
+A opção **Receber cópia por e-mail** foi retirada do preparo e do link gerado.
+O link pré-preenche os campos preparados no Forms oficial (campos mapeados em
 `src/lib/form-report.ts`, horários em `entry.X_hour/_minute`). O participante
 confere, resolve o CAPTCHA, anexa o certificado do curso EAD (se houver) e envia
 pelo Google. O resumo continua disponível para copiar.
@@ -175,11 +176,20 @@ Cópias 1.0 e 1.1 entram com os relatórios pendentes.
 
 ## Layout em tela única
 
-No desktop (a partir de 1100 px de largura e 640 px de altura) a tela de
-lançamentos ocupa a janela sem rolar a página: barra superior em uma linha,
-resumo de horas na faixa do título, lembrete do formulário e "Conferir folha" em
-uma barra inferior. Só a lista de atividades rola, quando necessário. No celular
-a ordem é natural e a rolagem é esperada, com espaçamento compacto.
+No desktop, a tela mantém o formulário ao lado da lista. A partir de 900 px
+de largura e 760 px de altura, a área de trabalho cabe na janela e as listas
+rolam dentro da região. No celular, **Adicionar atividade** abre o formulário
+em janela de tela cheia. Voltar à lista preserva o rascunho e mostra
+**Continuar atividade**.
+
+Edição, identificação, preparo do Forms, vínculo de comprovantes e conclusão
+usam cabeçalho e rodapé visíveis, com rolagem no corpo quando necessário.
+O Forms agrupa dados da atividade e identificação em duas colunas no desktop.
+
+A revisão desta composição passou em 24 testes locais e 32 de navegador, em
+Chromium desktop e celular emulado, com temas claro e escuro. Foram conferidos
+rascunhos, edição, foco, impressão e compatibilidade das cópias. Build, tipagem e
+lint passaram, com os três avisos preexistentes do script legado.
 
 ## Peso dos comprovantes
 

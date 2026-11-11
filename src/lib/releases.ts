@@ -2,6 +2,15 @@
 export const RELEASES = [
   {
     date: "2026-11-10",
+    title: "Lançamentos e janelas reorganizados",
+    changes: [
+      "No computador, o formulário fica ao lado das atividades. No celular, Adicionar atividade abre uma janela de tela cheia e permite voltar à lista com o preenchimento guardado.",
+      "As janelas de edição e do Forms mantêm as ações visíveis enquanto você preenche os campos.",
+      "Removemos a opção Receber cópia por e-mail do preparo do Forms.",
+    ],
+  },
+  {
+    date: "2026-11-10",
     title: "Comprovantes por atividade",
     changes: [
       "Na Folha oficial, escolha uma atividade ao enviar arquivos ou use Vincular a atividades nos comprovantes já salvos.",

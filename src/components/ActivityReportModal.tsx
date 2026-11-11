@@ -58,13 +58,15 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
   const summary = useRef<HTMLTextAreaElement>(null);
   const served = extra.served === "sim" ? "sim" : "não";
   const declaration = extra.declaration === "sim" ? "sim" : "não";
-  const receipt = extra.receipt === "não" ? "não" : "sim";
   const typeFields = extraFieldsFor(activityType);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- A nested profile edit refreshes email without dropping the activity draft.
     setEmail(user.email ?? "");
   }, [user.email]);
+  useEffect(() => {
+    if (error) form.current?.querySelector('[role="alert"]')?.scrollIntoView({ block: "nearest" });
+  }, [error]);
 
   const setExtraValue = (key: string, value: string) => setExtra((current) => ({ ...current, [key]: value }));
 
@@ -85,9 +87,10 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
     setError("");
     setMessage("");
     const updatedUser = { ...user, email: email.trim() };
+    // Keep the legacy receipt answer when saving old reports so their confirmations remain comparable.
     const visible = new Set([...typeFields.map((field) => field.key), "served", "declaration",
       "receipt", ...(served === "sim" ? ["servedCount", "servedKind"] : [])]);
-    const cleanExtra = Object.fromEntries(Object.entries({ ...extra, served, declaration, receipt })
+    const cleanExtra = Object.fromEntries(Object.entries({ ...extra, served, declaration })
       .filter(([key, text]) => visible.has(key) && text.trim()));
     const report: FormReport = {
       group, role, activityType,
@@ -145,9 +148,9 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
 
   const state = formReportStatus(user, activity);
   return (
-    <Modal isOpen onClose={onClose} label="Enviar ao Forms">
-      <form ref={form} onSubmit={open} className="fm-panel">
-        <header className="fm-head">
+    <Modal isOpen onClose={onClose} label="Enviar ao Forms" variant="editor">
+      <form ref={form} onSubmit={open} className="editor-panel fm-panel">
+        <header className="editor-head fm-head">
           <div>
             <h2>Enviar ao Forms</h2>
             <p>
@@ -160,30 +163,11 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
           </button>
         </header>
 
-        <div className="fm-body">
-          <div className="fm-who">
-            <span><strong>{user.name}</strong></span>
-            <button type="button" className="text-button" onClick={onEditProfile}>Corrigir nome no perfil</button>
-          </div>
-          <div className="fm-grid">
-            <div className="field">
-              <label htmlFor="report-email">E-mail para o formulário</label>
-              <input id="report-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
-            </div>
-            <div className="field">
-              <label htmlFor="report-group">Grupo Tutorial no Forms</label>
-              <select id="report-group" required value={group} onChange={(event) => setGroup(event.target.value)}>
-                <option value="">Selecione</option>
-                {FORM_GROUPS.map((option) => <option key={option}>{option}</option>)}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="report-role">Perfil no Forms</label>
-              <select id="report-role" required value={role} onChange={(event) => setRole(event.target.value)}>
-                <option value="">Selecione</option>
-                {FORM_ROLES.map((option) => <option key={option}>{option}</option>)}
-              </select>
-            </div>
+        <div className="editor-body fm-body">
+          <div className="editor-columns">
+          <section className="editor-section">
+            <h3>Dados da atividade</h3>
+            <div className="editor-fields">
             <div className="field">
               <label htmlFor="report-type">Tipo de atividade no Forms</label>
               <select id="report-type" required value={activityType} onChange={(event) => {
@@ -210,11 +194,39 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
                 )}
               </div>
             ))}
-          </div>
-          <div className="fm-grid">
+            </div>
+          </section>
+          <section className="editor-section">
+            <h3>Identificação e declarações</h3>
+            <div className="editor-fields">
+              <div className="fm-who">
+                <strong>{user.name}</strong>
+                <button type="button" className="text-button" onClick={onEditProfile}>Corrigir nome no perfil</button>
+              </div>
+              <div className="pair-fields">
+                <div className="field">
+                  <label htmlFor="report-group">Grupo Tutorial no Forms</label>
+                  <select id="report-group" required value={group} onChange={(event) => setGroup(event.target.value)}>
+                    <option value="">Selecione</option>
+                    {FORM_GROUPS.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="report-role">Perfil no Forms</label>
+                  <select id="report-role" required value={role} onChange={(event) => setRole(event.target.value)}>
+                    <option value="">Selecione</option>
+                    {FORM_ROLES.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="field">
+                <label htmlFor="report-email">E-mail para o formulário</label>
+                <input id="report-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
+              </div>
+              <div className="fm-grid">
             <YesNo label="Atendeu usuários do SUS?" value={served} onChange={(value) => setExtraValue("served", value)} />
             <YesNo label="Precisa de declaração?" value={declaration} onChange={(value) => setExtraValue("declaration", value)} />
-            <YesNo label="Receber cópia por e-mail?" value={receipt} onChange={(value) => setExtraValue("receipt", value)} />
+              </div>
             {served === "sim" && (
               <>
                 <div className="field">
@@ -229,11 +241,23 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
                 </div>
               </>
             )}
+              <button className="text-button fm-copy" type="button" onClick={() => void copySummary()}>
+                <ClipboardCopy size={16} aria-hidden="true" /> Copiar resumo
+              </button>
+            </div>
+          </section>
           </div>
           <textarea ref={summary} className="sr-only" readOnly tabIndex={-1} aria-hidden="true" value={activitySummary(activity)} />
+          <p className="fm-note">
+            O CAPTCHA e o anexo do certificado (curso EAD) ficam no Google.{" "}
+            <a href={preparedUrl || ACTIVITY_FORM_URL} target="_blank" rel="noopener noreferrer" className="text-button">
+              {preparedUrl ? "Abrir o link preparado" : "Abrir formulário original"}
+            </a>
+          </p>
+          {message && <p role="status" className="fm-message">{message}</p>}
+          {error && <p role="alert" className="operation-notice">{error}</p>}
         </div>
-
-        <footer className="fm-foot">
+        <footer className="editor-foot fm-foot">
           <label className="fm-sent">
             <input type="checkbox" checked={state === "Enviado" || state === "Revisar envio"}
               onChange={(event) => toggleSent(event.target.checked)} />
@@ -242,22 +266,12 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
           </label>
           <span className="fm-status">{state}</span>
           <div className="fm-actions">
-            <button className="secondary-button" type="button" onClick={() => void copySummary()}>
-              <ClipboardCopy size={16} aria-hidden="true" /> Copiar resumo
-            </button>
+            <button className="secondary-button fm-cancel" type="button" onClick={onClose}>Cancelar</button>
             <button className="primary-button" type="submit">
               Abrir Forms preenchido <ExternalLink size={16} aria-hidden="true" />
             </button>
           </div>
         </footer>
-        <p className="fm-note">
-          O CAPTCHA e o anexo do certificado (curso EAD) ficam no Google.{" "}
-          <a href={preparedUrl || ACTIVITY_FORM_URL} target="_blank" rel="noopener noreferrer" className="text-button">
-            {preparedUrl ? "Abrir o link preparado" : "Abrir formulário original"}
-          </a>
-        </p>
-        {message && <p role="status" className="fm-message">{message}</p>}
-        {error && <p role="alert" className="operation-notice">{error}</p>}
       </form>
     </Modal>
   );

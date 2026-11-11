@@ -2,6 +2,21 @@
 
 Este guia adapta os padrões de estrutura, componentes e verificação do Frequência Hub à identidade e aos fluxos do PET. O comportamento da interface e as evidências de verificação ficam no [registro de UI/UX](ui-ux.md). A origem e a atribuição dos componentes adaptados de coss ui constam em [THIRD-PARTY-UI.md](THIRD-PARTY-UI.md).
 
+## Composição escolhida
+
+O mantenedor escolheu o formulário ao lado da lista no desktop no
+[protótipo navegável](wireframe-ui.html). No celular, a lista abre a inclusão
+em janela de tela cheia. A ação de voltar preserva o preenchimento em andamento.
+
+A prévia cobre lançamentos, folha e comprovantes, edição, identificação,
+Forms, vínculo de arquivos e conclusão. **Esqueleto** mostra a organização;
+**Aplicação visual** aplica tipografia, marca e tokens do PET. Os dados e as
+ações de salvar são simulados.
+
+As janelas propostas mantêm cabeçalho e ações visíveis, com rolagem no corpo.
+No desktop, Forms e edição usam duas colunas. No celular, a janela ocupa a
+tela. A composição da folha aproxima os comprovantes da prévia no desktop.
+
 ## Identidade, temas e tipografia
 
 A interface usa os tokens definidos em `src/app/globals.css` e as marcas do [manual de identidade do PET-Saúde Clima](visual-identity/manual-de-idv.pdf). A aplicação abre em tema escuro e guarda a preferência no navegador. Inter é a família do corpo e Plus Jakarta Sans a dos títulos, com alternativas definidas no CSS. A escala de referência usa 16 px para texto principal e campos, pelo menos 14 px para metadados e ações compactas, 20–24 px para títulos de blocos e 28 px para o título da área de trabalho. A folha oficial usa papel branco e sua escala própria.

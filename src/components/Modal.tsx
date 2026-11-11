@@ -8,11 +8,13 @@ export function Modal({
   isOpen,
   onClose,
   label,
+  variant = "default",
   children,
 }: {
   isOpen: boolean;
   onClose: () => void;
   label: string;
+  variant?: "default" | "editor";
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -34,7 +36,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className="pet-dialog screen-only"
+      className={"pet-dialog screen-only" + (variant === "editor" ? " pet-dialog-editor" : "")}
       aria-label={label}
       onCancel={(event) => {
         event.preventDefault();

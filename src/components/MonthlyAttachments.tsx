@@ -16,6 +16,7 @@ import { formatActivityForSheet, formatDateBR } from "@/lib/pet-calculator";
 import type { Activity } from "@/types";
 import { useDialog } from "@/context/DialogContext";
 import { Modal } from "./Modal";
+import { X } from "lucide-react";
 
 interface Props {
   profileId: string;
@@ -221,10 +222,19 @@ export function MonthlyAttachments({ profileId, monthKey, activities, busy, onBu
         </ol>
       )}
       {editing && (
-        <Modal isOpen label="Vincular a atividades" onClose={() => { if (!busy) setEditing(null); }}>
-          <div className="w-full max-w-xl space-y-4 rounded-2xl border border-line bg-surface p-4 sm:p-6">
-            <h2 className="text-xl font-semibold text-ink">Vincular a atividades</h2>
-            <p className="wrap-anywhere text-sm text-body">{editing.item.name}</p>
+        <Modal isOpen label="Vincular a atividades" variant="editor" onClose={() => { if (!busy) setEditing(null); }}>
+          <div className="editor-panel editor-narrow">
+            <header className="editor-head">
+              <div>
+                <h2>Vincular a atividades</h2>
+                <p className="wrap-anywhere">{editing.item.name}</p>
+              </div>
+              <button type="button" className="icon-button" disabled={busy}
+                onClick={() => setEditing(null)} aria-label="Fechar vínculos">
+                <X size={20} aria-hidden="true" />
+              </button>
+            </header>
+            <div className="editor-body editor-fields">
             <fieldset className="min-w-0 space-y-2" disabled={busy}>
               <legend className="mb-2 font-semibold text-ink">Atividades deste mês</legend>
               {activities.length === 0 && <p className="text-sm text-muted">Nenhuma atividade neste mês.</p>}
@@ -248,12 +258,13 @@ export function MonthlyAttachments({ profileId, monthKey, activities, busy, onBu
             </fieldset>
             <p className="text-sm text-muted">Sem seleção, o arquivo vai para o fim dos comprovantes no PDF.</p>
             {linkError && <p className="operation-notice" role="alert">{linkError}</p>}
-            <div className="flex flex-wrap justify-end gap-2">
+            </div>
+            <footer className="editor-foot">
               <button type="button" className="secondary-button" disabled={busy}
                 onClick={() => setEditing(null)}>Cancelar</button>
               <button type="button" className="primary-button" disabled={busy}
                 onClick={() => void saveLinks()}>{busy ? "Salvando…" : "Salvar vínculos"}</button>
-            </div>
+            </footer>
           </div>
         </Modal>
       )}

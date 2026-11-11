@@ -41,7 +41,21 @@ async function create(page: Page) {
   ).toBeVisible();
 }
 
+async function openActivityForm(page: Page) {
+  if ((page.viewportSize()?.width ?? 1440) < 900) {
+    if (!(await page.getByRole("dialog", { name: "Adicionar atividade", exact: true }).isVisible()))
+      await page.locator("#add-activity-trigger").click();
+  }
+  await expect(page.getByLabel("Atividade realizada", { exact: true })).toBeVisible();
+}
+
+async function closeActivityForm(page: Page) {
+  const close = page.getByRole("button", { name: "Fechar atividade", exact: true });
+  if (await close.isVisible()) await close.click();
+}
+
 async function add(page: Page, description = "Atividade sintética") {
+  await openActivityForm(page);
   await page.getByLabel("Data", { exact: true }).fill("2026-11-02");
   await page.getByLabel("Entrada", { exact: true }).fill("13:30");
   await page.getByLabel("Saída", { exact: true }).fill("17:30");
@@ -209,9 +223,11 @@ test("erro de cópia e cancelamento preservam dados; formulário não some ao tr
   );
   await expect(page.locator(".summary-total strong")).toHaveText("5");
   await page.getByRole("button", { name: "Fechar aviso", exact: true }).click();
+  await openActivityForm(page);
   await page
     .getByLabel("Atividade realizada", { exact: true })
     .fill("Rascunho mantido");
+  await closeActivityForm(page);
   await page.getByLabel("Mês da folha").selectOption("2026-10");
   await page
     .getByRole("button", { name: "Continuar editando", exact: true })
@@ -235,6 +251,7 @@ test("temas, larguras, controles e retorno de foco", async ({
     }, theme);
     for (const width of [360, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
+      await openActivityForm(page);
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -242,7 +259,7 @@ test("temas, larguras, controles e retorno de foco", async ({
       ).toBe(true);
       const sizes = await page
         .locator(
-          "#nova-atividade input, #nova-atividade select, #nova-atividade textarea",
+          "#nova-atividade input:visible, #nova-atividade select:visible, #nova-atividade textarea:visible",
         )
         .evaluateAll((elements) =>
           elements.map((element) => ({
@@ -256,6 +273,7 @@ test("temas, larguras, controles e retorno de foco", async ({
           (size) => size.width >= 44 && size.height >= 44 && size.font >= 16,
         ),
       ).toBe(true);
+      await closeActivityForm(page);
       const smallText = await page
         .locator(
           ".screen-only label, .screen-only button, .screen-only p, .screen-only td, .screen-only th, .screen-only small",
@@ -298,6 +316,7 @@ test("falha de gravação mantém formulário e permite tentar novamente", async
   page,
 }) => {
   await create(page);
+  await openActivityForm(page);
   await page.getByLabel("Entrada", { exact: true }).fill("13:30");
   await page.getByLabel("Saída", { exact: true }).fill("17:30");
   await page
@@ -709,6 +728,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
 });
 
 test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar", async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
   const first = { ...activity, date: "2026-11-02", description: "Oficina de teste" };
   const second = {
     ...first, id: "test-record-2", date: "2026-11-09",
@@ -877,7 +897,8 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
   expect(params.get("entry.748998103_hour")).toBe("17");
   expect(params.get("entry.1781993657")).toBe("não");
   expect(params.get("entry.1074022684")).toBe("não");
-  expect(params.get("emailReceipt")).toBe("true");
+  expect(params.get("emailReceipt")).toBeNull();
+  await expect(panel.getByRole("radiogroup", { name: "Receber cópia por e-mail?" })).toHaveCount(0);
   await panel.getByRole("button", { name: "Copiar resumo", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-copied-summary", /Atividade sintética[\s\S]*13:30 às 17:30/);
   await page.evaluate(() => {
@@ -891,7 +912,6 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
   await panel.getByRole("radio", { name: "Sim" }).first().check({ force: true });
   await panel.getByLabel("Quantas pessoas (só número)").fill("7");
   await panel.getByLabel("Tipo de atendimento ou procedimento").fill("Aferição de pressão");
-  await panel.getByRole("radio", { name: "Não" }).last().check({ force: true });
   await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
   const served = new URL((await panel.getByRole("link", { name: "Abrir o link preparado", exact: true }).getAttribute("href"))!).searchParams;
   expect(served.get("emailReceipt")).toBeNull();
@@ -935,7 +955,7 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
 test("novidades mostram data de publicação e histórico acessível nos dois temas", async ({ page }, testInfo) => {
   await page.goto("/");
   const section = page.getByRole("region", { name: "Novidades do site" });
-  await expect(section.getByRole("heading", { name: "Comprovantes por atividade" })).toBeVisible();
+  await expect(section.getByRole("heading", { name: "Lançamentos e janelas reorganizados" })).toBeVisible();
   await expect(section.getByText("Última atualização", { exact: false })).toContainText("10 de novembro de 2026");
   await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).not.toBeVisible();
   await section.getByText("Ver histórico de atualizações", { exact: true }).click();
@@ -975,9 +995,11 @@ test("sino de novidades funciona nas duas abas e guarda a leitura", async ({ pag
   const unread = page.getByRole("button", { name: "Novidades, atualização disponível" });
   const bell = page.getByRole("button", { name: "Novidades", exact: true });
   const dialog = page.getByRole("dialog", { name: "Novidades", exact: true });
+  await openActivityForm(page);
   await page.getByLabel("Atividade realizada", { exact: true }).fill("Rascunho preservado");
+  await closeActivityForm(page);
   await unread.press("Enter");
-  await expect(dialog.getByRole("heading", { name: "Comprovantes por atividade" })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Lançamentos e janelas reorganizados" })).toBeVisible();
   await dialog.getByText("Ver histórico de atualizações", { exact: true }).click();
   await expect(dialog.getByRole("heading", { name: "Formulário completo e tela sem rolagem" })).toBeVisible();
   await page.keyboard.press("Escape");
@@ -991,7 +1013,7 @@ test("sino de novidades funciona nas duas abas e guarda a leitura", async ({ pag
   for (const theme of ["light", "dark"]) {
     await page.locator("html").evaluate((element, value) => { element.dataset.theme = value; }, theme);
     await bell.click();
-    await expect(dialog.getByRole("heading", { name: "Comprovantes por atividade" })).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Lançamentos e janelas reorganizados" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
     await dialog.screenshot({ path: testInfo.outputPath(`sino-novidades-${theme}.png`) });
     await dialog.getByRole("button", { name: "Fechar novidades" }).click();

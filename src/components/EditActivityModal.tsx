@@ -4,13 +4,14 @@ import { Modal } from "./Modal";
 import React, { useState, useEffect } from "react";
 import { Activity, ModalityType, ActivityTemplate } from "@/types";
 import { calcPetHours, cleanActivityDescription } from "@/lib/pet-calculator";
-import { X, Calendar, Clock, Check, Edit3 } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { useDialog } from "@/context/DialogContext";
 
 interface EditActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
   activity: Activity | null;
+  onDelete?: (id: string) => void;
   onSave: (
     data: Omit<Activity, "id" | "hours">,
     editingId?: string,
@@ -26,6 +27,7 @@ export function EditActivityModal({
   onClose,
   activity,
   onSave,
+  onDelete,
   defaultGatNumber = "04",
   defaultGatName = "Mangaba",
   templates = [],
@@ -108,287 +110,97 @@ export function EditActivityModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Editar atividade">
-      <div
-        className="w-full max-w-2xl rounded-2xl border border-line bg-surface shadow-[var(--page-shadow)] p-4 sm:p-6 space-y-5 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto"
-        role="dialog"
-        aria-modal="true"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-line">
-          <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-xl bg-accent/15 text-accent  flex items-center justify-center font-bold">
-              <Edit3 className="size-4" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-ink">Editar Atividade</h3>
-              <p className="text-xs text-muted">
-                Atualize os horários, modalidade ou descrição do registro
-              </p>
-            </div>
-          </div>
-          <button
-            aria-label="Fechar"
-            type="button"
-            onClick={onClose}
-            className="size-8 rounded-lg border border-line hover:bg-raised text-muted hover:text-body flex items-center justify-center transition-colors cursor-pointer"
-            title="Fechar"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-
-        {/* Modelos rápidos no modal */}
-        {templates && templates.length > 0 && (
-          <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-canvas border border-line">
-            <span className="text-xs text-muted">Preenchimento rápido:</span>
-            <select
-              aria-label="Modelo de atividade para preenchimento rápido"
-              onChange={(e) => {
-                const tplId = e.target.value;
-                if (!tplId) return;
-                const found = templates.find((t) => t.id === tplId);
-                if (found) {
-                  const rawName =
-                    found.name ||
-                    (
-                      found as ActivityTemplate & {
-                        descriptionTemplate?: string;
-                      }
-                    ).descriptionTemplate ||
-                    "";
-                  const finalTitle = cleanActivityDescription(
-                    rawName
-                      .replace("{gatNumber}", defaultGatNumber)
-                      .replace(
-                        "{gatName}",
-                        defaultGatName || `GAT ${defaultGatNumber}`,
-                      ),
-                  );
-                  setDescription(finalTitle);
-                  setModality(found.modality);
-                }
-                e.target.value = "";
-              }}
-              defaultValue=""
-              className="text-xs px-2.5 py-1.5 rounded-lg bg-surface border border-line text-body outline-none cursor-pointer focus:border-accent"
-            >
-              <option value="" disabled>
-                Selecionar modelo...
-              </option>
-              {templates.map((tpl) => {
-                const tplName =
-                  tpl?.name ||
-                  (tpl as ActivityTemplate & { descriptionTemplate?: string })
-                    ?.descriptionTemplate ||
-                  "Atividade";
-                const isGat =
-                  Boolean(tpl?.isGatSpecific) ||
-                  tplName.includes("{gatNumber}");
-                const label = isGat
-                  ? `Reunião do GAT ${defaultGatNumber} (${tpl.modality})`
-                  : `${tplName} (${tpl.modality})`;
-                return (
-                  <option key={tpl.id} value={tpl.id}>
-                    {label}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Row 1: Data + Entrada + Saída + Duração */}
-          <div className="grid grid-cols-2 sm:grid-cols-[1.25fr_1fr_1fr_auto] gap-3 items-end">
-            {/* Data */}
-            <div>
-              <label
-                htmlFor="editactivitymodal-wrapped-1"
-                className="block text-xs font-semibold text-body mb-1.5"
-              >
-                Data
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  id="editactivitymodal-wrapped-1"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  onClick={(e) => {
-                    try {
-                      e.currentTarget.showPicker?.();
-                    } catch {}
-                  }}
-                  required
-                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
-                />
-                <Calendar className="absolute right-3 size-4 text-body pointer-events-none z-1" />
-              </div>
-            </div>
-
-            {/* Entrada */}
-            <div>
-              <label
-                htmlFor="editactivitymodal-wrapped-2"
-                className="block text-xs font-semibold text-body mb-1.5"
-              >
-                Entrada
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  id="editactivitymodal-wrapped-2"
-                  type="time"
-                  value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                  onClick={(e) => {
-                    try {
-                      e.currentTarget.showPicker?.();
-                    } catch {}
-                  }}
-                  required
-                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
-                />
-                <Clock className="absolute right-3 size-4 text-body pointer-events-none z-1" />
-              </div>
-            </div>
-
-            {/* Saída */}
-            <div>
-              <label
-                htmlFor="editactivitymodal-wrapped-3"
-                className="block text-xs font-semibold text-body mb-1.5"
-              >
-                Saída
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  id="editactivitymodal-wrapped-3"
-                  type="time"
-                  value={end}
-                  onChange={(e) => setEnd(e.target.value)}
-                  onClick={(e) => {
-                    try {
-                      e.currentTarget.showPicker?.();
-                    } catch {}
-                  }}
-                  required
-                  className="w-full min-h-[44px] pl-3 pr-10 py-2 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors cursor-pointer"
-                />
-                <Clock className="absolute right-3 size-4 text-body pointer-events-none z-1" />
-              </div>
-            </div>
-
-            {/* Duração Calculada */}
-            <div
-              className="col-span-2 sm:col-span-1 min-h-[44px] px-4 py-1 rounded-xl bg-canvas border border-line flex flex-col items-center justify-center leading-tight"
-              aria-live="polite"
-            >
-              <span className="text-[11px] font-medium text-muted">Duração</span>
-              <span className="text-sm font-bold text-accent whitespace-nowrap">
-                {previewHours} {previewHours === 1 ? "hora" : "horas"}
-              </span>
-            </div>
-          </div>
-
-          {/* Row 2: Modalidade */}
-          <fieldset>
-            <legend className="block text-xs font-semibold text-body mb-1.5">
-              Modalidade
-            </legend>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button
-                type="button"
-                aria-pressed={modality === "Síncrona virtual"}
-                onClick={() => setModality("Síncrona virtual")}
-                className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  modality === "Síncrona virtual"
-                    ? "bg-[#00A3E0]/15 border-info/50 text-info  font-semibold"
-                    : "bg-canvas border-line text-muted hover:text-body"
-                }`}
-              >
-                <span
-                  className={`size-2 rounded-full ${modality === "Síncrona virtual" ? "bg-[#00A3E0]" : "bg-line"}`}
-                />
-                <span>Síncrona Virtual</span>
-              </button>
-
-              <button
-                type="button"
-                aria-pressed={modality === "Síncrona presencial"}
-                onClick={() => setModality("Síncrona presencial")}
-                className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  modality === "Síncrona presencial"
-                    ? "bg-info/10 border-info/50 text-info  font-semibold"
-                    : "bg-canvas border-line text-muted hover:text-body"
-                }`}
-              >
-                <span
-                  className={`size-2 rounded-full ${modality === "Síncrona presencial" ? "bg-info" : "bg-line"}`}
-                />
-                <span>Síncrona Presencial</span>
-              </button>
-
-              <button
-                type="button"
-                aria-pressed={modality === "Assíncrona virtual"}
-                onClick={() => setModality("Assíncrona virtual")}
-                className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  modality === "Assíncrona virtual"
-                    ? "bg-info/10 border-info/50 text-info  font-semibold"
-                    : "bg-canvas border-line text-muted hover:text-body"
-                }`}
-              >
-                <span
-                  className={`size-2 rounded-full ${modality === "Assíncrona virtual" ? "bg-info" : "bg-line"}`}
-                />
-                <span>Assíncrona Virtual</span>
-              </button>
-            </div>
-          </fieldset>
-
-          {/* Row 3: Descrição */}
+    <Modal isOpen={isOpen} onClose={onClose} label="Editar atividade" variant="editor">
+      <form onSubmit={handleSubmit} className="editor-panel">
+        <header className="editor-head">
           <div>
-            <label
-              htmlFor="editactivitymodal-field-1"
-              className="block text-xs font-semibold text-body mb-1.5"
-            >
-              Descrição da Atividade
-            </label>
-            <textarea
-              id="editactivitymodal-field-1"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              required
-              placeholder="Ex: Reunião do GAT 04, Oficina formativa..."
-              className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-canvas border border-line text-body outline-none focus:border-accent transition-colors resize-y min-h-[110px] max-h-[40vh] [field-sizing:content]"
-            />
-            <p className="text-[11px] text-muted mt-1">
-              O tipo da atividade selecionado acima é incluído automaticamente
-              na Folha oficial.
-            </p>
+            <h2>Editar atividade</h2>
+            <p>Atualize os dados do registro antes de salvar.</p>
           </div>
-
-          {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-line">
-            <button
-              type="button"
-              onClick={onClose}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl border border-line hover:bg-raised text-body text-sm font-semibold transition-colors cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="min-h-[44px] px-5 py-2.5 rounded-xl bg-primary hover:bg-[var(--primary-hover)] text-white text-sm font-bold transition-all shadow-[var(--page-shadow)] flex items-center gap-2 cursor-pointer"
-            >
-              <Check className="size-4" />
-              <span>Salvar Alterações</span>
-            </button>
+          <button type="button" className="icon-button" onClick={onClose} aria-label="Fechar">
+            <X size={20} aria-hidden="true" />
+          </button>
+        </header>
+        <div className="editor-body">
+          <div className="editor-columns">
+            <section className="editor-section editor-fields">
+              <h3>Dados da atividade</h3>
+              <div className="field">
+                <label htmlFor="edit-description">Descrição da Atividade</label>
+                <textarea id="edit-description" required rows={4} value={description}
+                  onChange={(event) => setDescription(event.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="edit-date">Data</label>
+                <input id="edit-date" type="date" required value={date}
+                  onChange={(event) => setDate(event.target.value)} />
+              </div>
+              <div className="pair-fields">
+                <div className="field">
+                  <label htmlFor="edit-start">Entrada</label>
+                  <input id="edit-start" type="time" required value={start}
+                    onChange={(event) => setStart(event.target.value)} />
+                </div>
+                <div className="field">
+                  <label htmlFor="edit-end">Saída</label>
+                  <input id="edit-end" type="time" required value={end}
+                    onChange={(event) => setEnd(event.target.value)} />
+                </div>
+              </div>
+            </section>
+            <section className="editor-section editor-fields">
+              <h3>Modalidade e carga horária</h3>
+              {templates.length > 0 && (
+                <div className="field">
+                  <label htmlFor="edit-template">Preenchimento rápido</label>
+                  <select id="edit-template" aria-label="Modelo de atividade para preenchimento rápido"
+                    defaultValue="" onChange={(event) => {
+                      const found = templates.find((template) => template.id === event.target.value);
+                      if (found) {
+                        const name = found.name || (found as ActivityTemplate & { descriptionTemplate?: string }).descriptionTemplate || "";
+                        setDescription(cleanActivityDescription(name
+                          .replace("{gatNumber}", defaultGatNumber)
+                          .replace("{gatName}", defaultGatName || `GAT ${defaultGatNumber}`)));
+                        setModality(found.modality);
+                      }
+                      event.target.value = "";
+                    }}>
+                    <option value="">Selecionar modelo…</option>
+                    {templates.map((template) => {
+                      const name = template.name || (template as ActivityTemplate & { descriptionTemplate?: string }).descriptionTemplate || "Atividade";
+                      const label = template.isGatSpecific || name.includes("{gatNumber}")
+                        ? `Reunião do GAT ${defaultGatNumber} (${template.modality})`
+                        : `${name} (${template.modality})`;
+                      return <option key={template.id} value={template.id}>{label}</option>;
+                    })}
+                  </select>
+                </div>
+              )}
+              <div className="field">
+                <label htmlFor="edit-modality">Modalidade</label>
+                <select id="edit-modality" value={modality}
+                  onChange={(event) => setModality(event.target.value as ModalityType)}>
+                  <option>Síncrona virtual</option>
+                  <option>Síncrona presencial</option>
+                  <option>Assíncrona virtual</option>
+                </select>
+              </div>
+              <div className="hours-preview">
+                <span>Horas PET</span>
+                <strong>{previewHours}h</strong>
+              </div>
+              <p className="field-hint">Cada hora do relógio iniciada conta para a carga horária.</p>
+            </section>
           </div>
-        </form>
-      </div>
+        </div>
+        <footer className="editor-foot">
+          {onDelete && <button type="button" className="text-button editor-danger" onClick={() => onDelete(activity.id)}>Excluir atividade</button>}
+          <div className="editor-actions">
+            <button type="button" className="secondary-button" onClick={onClose}>Cancelar</button>
+            <button type="submit" className="primary-button"><Check size={18} aria-hidden="true" /> Salvar Alterações</button>
+          </div>
+        </footer>
+      </form>
     </Modal>
   );
 }

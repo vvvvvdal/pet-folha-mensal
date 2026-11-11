@@ -530,6 +530,10 @@ test("preparo do Forms codifica as opções oficiais e a confirmação acompanha
   assert.equal(url.searchParams.get("entry.1810741336"), "OUTUBRO/2026");
   assert.equal(url.searchParams.get("entry.1919744864"), "GT 4");
   assert.equal(url.searchParams.get("emailAddress"), user.email);
+  assert.equal(url.searchParams.has("emailReceipt"), false);
+  assert.equal(new URL(forms.buildFormUrl(user, sampleActivity, {
+    ...report, extra: { receipt: "sim" },
+  })).searchParams.has("emailReceipt"), false);
   assert.equal(forms.formReportStatus(user, { ...sampleActivity, formReport: report }), "Pendente");
   report.confirmation = {
     at: "2026-11-07T15:00:00.000Z",

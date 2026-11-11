@@ -93,7 +93,13 @@ export function ActivityTable({
           <a
             className="secondary-button"
             href="#nova-atividade"
-            onClick={() => document.getElementById("activity-date")?.focus()}
+            onClick={(event) => {
+              const trigger = document.getElementById("add-activity-trigger");
+              if (trigger) {
+                event.preventDefault();
+                trigger.click();
+              } else document.getElementById("activity-description")?.focus();
+            }}
           >
             Registrar primeira atividade
           </a>

@@ -41,6 +41,7 @@
 - [x] **Deploy na Vercel (02/11/2026)**: snapshot de `d309198` publicado em produção, estado READY e domínio principal conferido. Retomada sem JSON, isolamento entre meses e fontes de 16px aprovados no navegador publicado. [Registro e limites](docs/validation/ui-ux-20261102/README.md#publicação-em-produção--02112026).
 
 ## Refinamento de UI/UX (31/10/2026)
+- [x] Aplicar a composição escolhida no [esqueleto navegável](docs/wireframe-ui.html), com formulário ao lado da lista no desktop, inclusão em janela no celular e ações visíveis nas janelas de edição e Forms.
 - [x] Entrada com acesso prioritário e FAQ; refinada em 02/11 com explicação visível de JSON/PDF, componentes do Hub e tratamento não destrutivo dos exemplos antigos. Prévia demonstrativa removida. [Detalhes](docs/ui-ux.md).
 - [x] Temas por tokens semânticos, navegação responsiva, campos associados e modais nativos.
 - [x] Verificação de tipos, lint e compilação de produção; regressão de cálculo e cópias de segurança.

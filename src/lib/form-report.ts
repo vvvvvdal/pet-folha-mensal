@@ -181,8 +181,6 @@ export function buildFormUrl(user: UserProfile, activity: Activity, report: Form
   const served = SIM_NAO.includes(extra.served) ? extra.served : "não";
   url.searchParams.set("entry.1781993657", served);
   url.searchParams.set("entry.1074022684", SIM_NAO.includes(extra.declaration) ? extra.declaration : "não");
-  // "Enviar uma cópia das respostas para o meu e-mail": marcada por padrão.
-  if (extra.receipt !== "não") url.searchParams.set("emailReceipt", "true");
   for (const field of extraFieldsFor(report.activityType)) {
     const entry = field.key === "detail" ? DETAIL_ENTRY[report.activityType] : EXTRA_ENTRIES[field.key];
     if (entry && extra[field.key]?.trim()) url.searchParams.set(entry, extra[field.key].trim());

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Activity, ModalityType, ActivityTemplate } from "@/types";
 import {
   calcPetHours,
@@ -8,7 +8,17 @@ import {
   getCurrentMonth,
   getDefaultActivityDate,
 } from "@/lib/pet-calculator";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { Modal } from "./Modal";
+
+const COMPACT_MEDIA = "(max-width: 899px)";
+function subscribeToLayout(onChange: () => void) {
+  const query = window.matchMedia(COMPACT_MEDIA);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const compactLayout = () => window.matchMedia(COMPACT_MEDIA).matches;
+const serverLayout = () => false;
 
 interface ActivityFormProps {
   onSave: (
@@ -37,10 +47,17 @@ export function ActivityForm({
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [templateId, setTemplateId] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
+  const compact = useSyncExternalStore(subscribeToLayout, compactLayout, serverLayout);
+  useEffect(() => {
+    if (error) document.getElementById("activity-error")?.scrollIntoView({ block: "nearest" });
+  }, [error]);
   const hours = calcPetHours(start, end);
   const [year, month] = monthKey.split("-").map(Number);
   const lastDate = `${monthKey}-${new Date(year, month, 0).getDate()}`;
   function dirty() {
+    setHasDraft(true);
     onDirtyChange?.(true);
     setError("");
   }
@@ -67,23 +84,30 @@ export function ActivityForm({
       setDescription("");
       setTemplateId("");
       setError("");
+      setHasDraft(false);
+      setDialogOpen(false);
       onDirtyChange?.(false);
+    } else {
+      setError("Não foi possível salvar. Seu preenchimento foi mantido. Tente novamente.");
     }
   }
-  return (
-    <section
-      id="nova-atividade"
-      className="activity-form form-panel"
-      aria-labelledby="activity-form-title"
-    >
-      <form onSubmit={submit} className="activity-fields">
-        <div className="form-panel-heading">
-          <h2 id="activity-form-title">Adicionar atividade</h2>
+  const fields = (
+      <form onSubmit={submit} className={compact ? "editor-panel activity-entry" : "activity-fields"}>
+        <header className={compact ? "editor-head" : "form-panel-heading"}>
+          <div>
+            <h2 id="activity-form-title">Adicionar atividade</h2>
+            {compact && <p>Atividades de {monthKey.split("-").reverse().join("/")}</p>}
+          </div>
+          {compact && (
+            <button type="button" className="icon-button" onClick={() => setDialogOpen(false)} aria-label="Fechar atividade">
+              <X size={20} aria-hidden="true" />
+            </button>
+          )}
+        </header>
+        <div className={compact ? "editor-body editor-fields" : "activity-entry-fields"}>
           {templates.length > 0 && (
-            <div className="field template-field">
-              <label htmlFor="activity-template" className="sr-only">
-                Preenchimento rápido
-              </label>
+            <div className="field entry-template">
+              <label htmlFor="activity-template">Preenchimento rápido <span className="field-hint">(opcional)</span></label>
               <select
                 id="activity-template"
                 value={templateId}
@@ -116,6 +140,20 @@ export function ActivityForm({
               </select>
             </div>
           )}
+        <div className="field">
+          <label htmlFor="activity-description">Atividade realizada</label>
+          <textarea
+            id="activity-description"
+            required
+            rows={2}
+            placeholder="Descreva o que você realizou"
+            value={description}
+            onChange={(event) => {
+              setDescription(event.target.value);
+              setTemplateId("");
+              dirty();
+            }}
+          />
         </div>
         <div className="pair-fields">
           <div className="field">
@@ -186,31 +224,34 @@ export function ActivityForm({
             <strong>{hours}h</strong>
           </div>
         </div>
-        <div className="field">
-          <label htmlFor="activity-description">Atividade realizada</label>
-          <textarea
-            id="activity-description"
-            required
-            rows={2}
-            placeholder="Descreva o que você realizou"
-            value={description}
-            onChange={(event) => {
-              setDescription(event.target.value);
-              setTemplateId("");
-              dirty();
-            }}
-          />
-        </div>
         {error && (
           <p id="activity-error" role="alert" className="inline-error">
             {error}
           </p>
         )}
-        <button type="submit" className="primary-button w-full">
+        </div>
+        <footer className={compact ? "editor-foot" : "activity-entry-actions"}>
+          {compact && <button type="button" className="secondary-button" onClick={() => setDialogOpen(false)}>Voltar à lista</button>}
+        <button type="submit" className="primary-button">
           <Plus size={18} />
           Adicionar atividade
         </button>
+        </footer>
       </form>
+  );
+
+  return compact ? (
+    <div className="mobile-activity-entry">
+      <button id="add-activity-trigger" type="button" className="primary-button" onClick={() => setDialogOpen(true)}>
+        <Plus size={18} aria-hidden="true" /> {hasDraft ? "Continuar atividade" : "Adicionar atividade"}
+      </button>
+      <Modal isOpen={dialogOpen} onClose={() => setDialogOpen(false)} label="Adicionar atividade" variant="editor">
+        <section id="nova-atividade" className="new-activity-dialog">{fields}</section>
+      </Modal>
+    </div>
+  ) : (
+    <section id="nova-atividade" className="activity-form form-panel" aria-labelledby="activity-form-title">
+      {fields}
     </section>
   );
 }

@@ -775,7 +775,7 @@ export default function Home() {
 
           {/* ABA 1: PAINEL DE LANÇAMENTOS */}
           {activeTab === "dashboard" && (
-            <div>
+            <div className="frequency-page">
               <div className="frequency-workbench">
                 <ActivityForm
                   key={`${activeUser.id}-${monthKey}-${formRevision}`}
@@ -941,6 +941,7 @@ export default function Home() {
             onClose={() => setEditingActivity(null)}
             activity={editingActivity}
             onSave={handleSaveActivity}
+            onDelete={handleDeleteActivity}
             defaultGatNumber={activeUser.gatNumber}
             defaultGatName={
               activeUser.gatName || gats[activeUser.gatNumber]?.name
