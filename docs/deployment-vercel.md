@@ -6,7 +6,16 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
-Publicação atual de 10/11/2026, commit de origem `dfac167`, deployment
+Publicação atual de 10/11/2026, commit de origem `bc99b2a`, deployment
+`dpl_9QiRrZRa1mz1tqHSF7sLZCSe71Xd` em produção, estado READY.
+O detalhe da atividade em eventos passou a ser sugerido, editável e incluído no
+link para a seção **Qual foi a atividade?**. A sugestão e o parâmetro do link
+foram conferidos no domínio principal em Chromium móvel emulado. A conferência
+na página autenticada do Google Forms depende da sessão Google do participante.
+Passaram 24 testes locais, quatro testes de Forms e quatro de novidades em
+desktop e celular emulado, build, tipagem e lint com três avisos legados.
+
+Publicação de 10/11/2026, commit de origem `dfac167`, deployment
 `dpl_6JwzCt4AYbz6R4p5b1YrweUcygHX` em produção, estado READY. O domínio
 principal foi conferido em Chromium móvel emulado com dados sintéticos. A nota
 de comprovantes aparece na entrada e no sino da folha. O fluxo vinculou um
