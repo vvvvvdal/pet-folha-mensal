@@ -543,7 +543,7 @@ test("preparo do Forms codifica as opções oficiais e a confirmação acompanha
   assert.throws(() => forms.buildFormUrl({ ...user, email: "" }, activity, report));
 });
 
-test("cópias 1.2 preservam relatórios e cópias antigas começam pendentes", () => {
+test("cópias 1.2 e 1.3 preservam relatórios e cópias antigas começam pendentes", () => {
   isolatedStorage();
   const forms = load("./src/lib/form-report.ts");
   const report = {
@@ -556,10 +556,12 @@ test("cópias 1.2 preservam relatórios e cópias antigas começam pendentes", (
   };
   storage.saveActivitiesForMonth(sampleUser.id, "2026-10", [{ ...sampleActivity, formReport: report }]);
   const exported = JSON.parse(storage.exportUserData(sampleUser, "2026-10", []));
-  assert.equal(exported.version, "1.2");
-  const result = storage.inspectUserData(JSON.stringify(exported));
-  assert.equal(result.success, true);
-  assert.deepEqual(result.activities[0].formReport, report);
+  assert.equal(exported.version, "1.3");
+  for (const version of ["1.2", "1.3"]) {
+    const result = storage.inspectUserData(JSON.stringify({ ...exported, version }));
+    assert.equal(result.success, true);
+    assert.deepEqual(result.activities[0].formReport, report);
+  }
   for (const version of ["1.0", "1.1"]) {
     const restored = storage.inspectUserData(JSON.stringify({ ...exported, version }));
     assert.equal(restored.success, true);

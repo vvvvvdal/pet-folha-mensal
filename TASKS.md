@@ -29,6 +29,7 @@
 ## Comprovantes da folha mensal
 
 - [x] Anexar comprovantes opcionais por perfil e mês, incluir no PDF para assinatura e levar os originais na cópia de segurança. [Fluxo e limites](docs/ui-ux.md).
+- [x] Vincular comprovantes a atividades, reutilizar originais e atualizar PDF e cópia 1.3, com compatibilidade das versões anteriores. [Fluxo](docs/ui-ux.md#cópia-restauração-e-conclusão) e [padrão visual](docs/ui-design.md#comprovantes-e-cópia).
 
 ## Próximos Passos (Postergados para Etapa Futura)
 - [x] Conferir a base após o pull: baseline antiga de 19 erros/5 avisos superada. Lint atual sem erros, com 3 avisos legados; demais gates e ambiente nas [evidências](docs/validation/ui-ux-20261102/README.md).

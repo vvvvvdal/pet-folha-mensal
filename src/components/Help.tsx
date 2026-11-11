@@ -30,7 +30,7 @@ const questions = [
   ],
   [
     "Como imprimo e assino?",
-    "Se o seu GAT pedir comprovantes, abra “Minha folha” na aba “Folha oficial” e anexe PDFs, JPEGs ou PNGs abaixo da prévia. Em “Imprimir / salvar PDF”, use papel A4 em paisagem. Confira a folha e os comprovantes nas páginas seguintes antes de assinar o PDF completo.",
+    "Na aba “Folha oficial”, escolha a atividade e anexe PDFs, JPEGs ou PNGs abaixo da prévia. Use “Vincular a atividades” para associar arquivos já enviados. No PDF, os comprovantes aparecem depois da folha, na ordem das atividades. Arquivos sem vínculo ficam no final. Use papel A4 em paisagem e confira o PDF completo antes de assinar.",
   ],
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { UserProfile, GATS } from "@/types";
 import { useTheme } from "@/lib/theme";
 import {
@@ -13,8 +13,16 @@ import {
   Sun,
   Upload,
   ArrowRight,
+  Bell,
+  X,
 } from "lucide-react";
 import { Brand } from "./Brand";
+import { Modal } from "./Modal";
+import { ReleaseNotes } from "./ReleaseNotes";
+import { RELEASES } from "@/lib/releases";
+
+const LAST_SEEN_RELEASE_KEY = "pet_folha_last_seen_release";
+const latestRelease = RELEASES[0].date + " " + RELEASES[0].title;
 
 interface NavbarProps {
   user: UserProfile;
@@ -44,6 +52,24 @@ export function Navbar({
 }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [newsOpen, setNewsOpen] = useState(false);
+  const [hasUnreadNews, setHasUnreadNews] = useState(() => {
+    try {
+      return typeof window !== "undefined" && localStorage.getItem(LAST_SEEN_RELEASE_KEY) !== latestRelease;
+    } catch {
+      return false;
+    }
+  });
+
+  function openNews() {
+    setNewsOpen(true);
+    setHasUnreadNews(false);
+    try {
+      localStorage.setItem(LAST_SEEN_RELEASE_KEY, latestRelease);
+    } catch {
+      // The news remains available when browser storage is disabled.
+    }
+  }
   return (
     <header className="workspace-nav">
       <a href="#conteudo" className="skip-link">
@@ -66,6 +92,16 @@ export function Navbar({
           </span>
         </button>
         <div className="workspace-tools">
+          <button type="button"
+            className="icon-button news-button"
+            onClick={openNews}
+            aria-haspopup="dialog"
+            aria-label={hasUnreadNews ? "Novidades, atualização disponível" : "Novidades"}
+            title="Novidades"
+          >
+            <Bell size={20} aria-hidden="true" />
+            {hasUnreadNews && <span className="news-dot" aria-hidden="true" />}
+          </button>
           <button
             className="icon-button"
             onClick={onOpenHelp}
@@ -91,6 +127,19 @@ export function Navbar({
           </button>
         </div>
       </div>
+      {newsOpen && (
+        <Modal isOpen label="Novidades" onClose={() => setNewsOpen(false)}>
+          <div className="release-panel">
+            <div className="release-panel-header">
+              <h2>Novidades</h2>
+              <button type="button" className="icon-button" aria-label="Fechar novidades" onClick={() => setNewsOpen(false)}>
+                <X size={20} aria-hidden="true" />
+              </button>
+            </div>
+            <ReleaseNotes inDialog />
+          </div>
+        </Modal>
+      )}
       <div className="workspace-nav-bottom">
         <nav className="workspace-tabs" aria-label="Seções da folha">
           <button

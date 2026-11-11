@@ -1,5 +1,7 @@
 # Interface e experiência de uso
 
+O [guia de design](ui-design.md) reúne a identidade visual, os padrões de componentes e os critérios de verificação da interface.
+
 ## Percurso entregue — 02/11/2026
 
 A prioridade é preencher a frequência com poucos passos, inclusive no celular:
@@ -72,12 +74,20 @@ preservados. A folha oficial mantém sua escala em pontos e entrelinha própria.
 “Salvar cópia” produz o JSON para continuar editando e leva os comprovantes originais. “Imprimir / salvar PDF”
 abre a impressão da folha para assinatura. A conclusão distingue as duas ações e
 mantém confirmação de saída quando existem alterações sem cópia acionada.
-Em **Minha folha**, a seção opcional **Comprovantes** fica abaixo da prévia.
-Aceita PDFs, JPEGs e PNGs de até 20 MB por arquivo, com limite mensal de 40 MB
-e 30 páginas de comprovantes. A impressão mantém a folha oficial primeiro e
-acrescenta uma página A4 em paisagem para cada imagem ou página de PDF, na ordem
-da lista. As páginas de comprovantes saem como imagens. Assine o PDF completo.
-Restaurar uma cópia antiga preserva os comprovantes locais daquele mês.
+Na aba **Folha oficial**, a seção opcional **Comprovantes** fica abaixo da prévia.
+Escolha **Atividade** para o lote ou use **Vincular a atividades** nos arquivos já
+salvos. O mesmo arquivo pode aparecer em várias atividades. O navegador guarda
+um original, com limites de 20 MB por arquivo, 40 MB por mês e 30 páginas de
+comprovantes no PDF, contando cada repetição.
+
+O PDF acrescenta os comprovantes em A4 paisagem após as assinaturas, na ordem
+das atividades e dos arquivos enviados. Os sem vínculo aparecem no final.
+Cada página identifica o arquivo e, quando vinculada, a atividade. Assine o PDF completo.
+
+A cópia JSON 1.3 inclui originais, vínculos e dados do Forms. As versões 1.1
+e 1.2 restauram os arquivos da cópia sem vínculo. A versão 1.0 preserva os
+arquivos locais e os vínculos cujas atividades existem no mês antes e depois
+da restauração.
 
 Os avisos descrevem a ação iniciada, sem afirmar que um download/PDF foi salvo
 quando o navegador não fornece essa confirmação.
@@ -127,6 +137,14 @@ O CI está preparado; sua primeira execução remota depende do push humano.
 Conferência física de smartphone, zoom real de 200% e impressora continuam
 pendentes. O piloto Maestri tem sua homologação própria e não bloqueia esta UI.
 
+Em 10/11/2026, a validação de comprovantes passou em 23 testes locais e 28 de
+navegador, com Chromium desktop e celular emulado. A matriz da seção cobre
+360, 768 e 1440 px nos temas claro e escuro, incluindo teclado e foco.
+O PDF sintético em A4 paisagem gerou duas páginas de folha e cinco de
+comprovantes, com assinaturas antes dos anexos. A cópia 1.3 foi restaurada em
+um contexto limpo do navegador. Build, tipagem e lint passaram, com três avisos
+preexistentes no script legado do Google Sheets.
+
 ## Referências
 
 - [Design do Frequência Hub](</mnt/hddw/Users/felip/Documents/GitHub/frequencia-hub/docs/UI-DESIGN.md>) e [formulários refinados](</mnt/hddw/Users/felip/Documents/GitHub/frequencia-hub/docs/validation/design-refinement/README.md>).
@@ -168,8 +186,10 @@ abaixo dos 5 MB aceitos para assinatura. Fotos que já cabem na página não sã
 recodificadas. O tamanho final não foi medido com comprovantes reais.
 
 Na entrada, Novidades apresenta a publicação mais recente e um histórico
-expansível antes das dúvidas frequentes. As datas vêm de publicações
-registradas em src/lib/releases.ts. A retomada de perfil é descrita como
+expansível antes das dúvidas frequentes. O sino no cabeçalho da folha abre o
+mesmo histórico em um diálogo nas duas abas da aplicação. O ponto no sino
+indica uma publicação ainda não aberta neste navegador. As datas vêm de
+publicações registradas em `src/lib/releases.ts`. A retomada de perfil é descrita como
 dados guardados no navegador.
 
 Validação de 07/11/2026 para Forms assistido: 22 testes locais, build e tipagem

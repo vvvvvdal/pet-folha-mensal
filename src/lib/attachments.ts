@@ -1,3 +1,5 @@
+import { getActivitiesForMonth } from "./storage";
+
 export const ATTACHMENT_LIMIT_MB = 20;
 export const MONTH_LIMIT_MB = 40;
 export const MONTH_PAGE_LIMIT = 30;
@@ -13,12 +15,14 @@ export interface Attachment {
   name: string;
   file: Blob;
   pages: number;
+  activityIds?: string[];
 }
 
 export interface BackupAttachment {
   id: string;
   name: string;
   base64: string;
+  activityIds: string[];
 }
 
 interface AttachmentScope {
@@ -82,21 +86,54 @@ export function listAttachments(scope: AttachmentScope) {
 
 export function replaceAttachments(
   scope: AttachmentScope,
-  attachments: Attachment[],
+  attachments: Attachment[] | ((current: Attachment[]) => Attachment[]),
   beforeCommit: () => void,
 ) {
-  return withMonth(scope, () => attachments, beforeCommit);
+  return withMonth(scope, typeof attachments === "function" ? attachments : () => attachments, beforeCommit);
 }
 
 export function removeAttachment(scope: AttachmentScope, id: string) {
   return withMonth(scope, (items) => items.filter((item) => item.id !== id));
 }
 
-function limitError(items: Attachment[]): string | undefined {
+export function linkedActivityIds(item: Attachment, activityIds: ReadonlySet<string>) {
+  return (item.activityIds ?? []).filter((id) => activityIds.has(id));
+}
+
+export function countAttachmentPages(items: Attachment[], activityIds: ReadonlySet<string>) {
+  return items.reduce((count, item) =>
+    count + item.pages * Math.max(1, linkedActivityIds(item, activityIds).length), 0);
+}
+
+function limitError(items: Attachment[], activityIds = new Set<string>()): string | undefined {
   if (items.reduce((size, { file }) => size + file.size, 0) > MONTH_LIMIT_MB * MIB)
     return "a folha atingiu o limite de 40 MB de comprovantes.";
-  if (items.reduce((count, { pages }) => count + pages, 0) > MONTH_PAGE_LIMIT)
+  if (countAttachmentPages(items, activityIds) > MONTH_PAGE_LIMIT)
     return "a folha atingiu o limite de 30 páginas de comprovantes.";
+}
+
+function currentActivityIds({ profileId, monthKey }: AttachmentScope) {
+  return new Set(getActivitiesForMonth(profileId, monthKey, false).map(({ id }) => id));
+}
+
+export class AttachmentLinkError extends Error {}
+
+function checkActivityIds(ids: string[], available: ReadonlySet<string>) {
+  if (new Set(ids).size !== ids.length || ids.some((id) => !available.has(id)))
+    throw new AttachmentLinkError("Confira as atividades selecionadas. A lista deste mês mudou.");
+}
+
+export function updateAttachmentLinks(scope: AttachmentScope, attachmentId: string, activityIds: string[]) {
+  return withMonth(scope, (current) => {
+    if (!current.some(({ id }) => id === attachmentId))
+      throw new AttachmentLinkError("Este comprovante já foi removido.");
+    const available = currentActivityIds(scope);
+    checkActivityIds(activityIds, available);
+    const next = current.map((item) => item.id === attachmentId ? { ...item, activityIds } : item);
+    if (countAttachmentPages(next, available) > MONTH_PAGE_LIMIT)
+      throw new AttachmentLinkError("Com estes vínculos, o PDF ultrapassa o limite de 30 páginas de comprovantes.");
+    return next;
+  });
 }
 
 async function detectType(file: Blob): Promise<AttachmentType> {
@@ -164,7 +201,7 @@ async function validateAttachment(id: string, name: string, blob: Blob): Promise
   return { id, name, file, pages };
 }
 
-export async function addAttachments(scope: AttachmentScope, files: File[]) {
+export async function addAttachments(scope: AttachmentScope, files: File[], activityId: string) {
   const rejected: string[] = [];
   const candidates: Attachment[] = [];
   for (const file of files) {
@@ -172,7 +209,7 @@ export async function addAttachments(scope: AttachmentScope, files: File[]) {
       const candidate = await validateAttachment(crypto.randomUUID(), file.name, file);
       const error = limitError([...candidates, candidate]);
       if (error) throw new Error(error);
-      candidates.push(candidate);
+      candidates.push(activityId ? { ...candidate, activityIds: [activityId] } : candidate);
     } catch (error) {
       rejected.push(describeAttachmentError(file.name, error));
     }
@@ -180,9 +217,11 @@ export async function addAttachments(scope: AttachmentScope, files: File[]) {
 
   let added = 0;
   const attachments = await withMonth(scope, (current) => {
+    const available = currentActivityIds(scope);
+    if (activityId) checkActivityIds([activityId], available);
     const next = [...current];
     for (const candidate of candidates) {
-      const error = limitError([...next, candidate]);
+      const error = limitError([...next, candidate], available);
       if (error) {
         rejected.push(describeAttachmentError(candidate.name, new Error(error)));
       } else {
@@ -211,29 +250,34 @@ function encodeFile(file: Blob): Promise<string> {
   });
 }
 
-export async function encodeAttachments(items: Attachment[]): Promise<BackupAttachment[]> {
-  return Promise.all(items.map(async ({ id, name, file }) => ({
-    id,
-    name,
-    base64: await encodeFile(file),
+export async function encodeAttachments(items: Attachment[], activityIds: ReadonlySet<string>): Promise<BackupAttachment[]> {
+  return Promise.all(items.map(async (item) => ({
+    id: item.id,
+    name: item.name,
+    activityIds: linkedActivityIds(item, activityIds),
+    base64: await encodeFile(item.file),
   })));
 }
 
-export async function decodeAttachments(values: unknown[]): Promise<Attachment[]> {
+export async function decodeAttachments(values: unknown[], activityIds?: Set<string>): Promise<Attachment[]> {
   if (values.length > MONTH_PAGE_LIMIT) throw new Error("A cópia excede o limite de comprovantes.");
   const items: Attachment[] = [];
   const ids = new Set<string>();
   for (const value of values) {
-    const { id, name, base64 } = (value ?? {}) as Partial<BackupAttachment>;
+    const { id, name, base64, activityIds: links } = (value ?? {}) as Partial<BackupAttachment>;
     if (typeof id !== "string" || !id.trim() || ids.has(id) ||
         typeof name !== "string" || !name.trim() ||
         typeof base64 !== "string" || !base64.length ||
         base64.length > Math.ceil(ATTACHMENT_LIMIT_MB * MIB / 3) * 4)
       throw new Error("A cópia contém um comprovante inválido ou acima do limite.");
+    if (activityIds && (!Array.isArray(links) ||
+        new Set(links).size !== links.length || links.some((link) => !activityIds.has(link))))
+      throw new Error("A cópia contém vínculos de comprovantes inválidos.");
     try {
       const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
       const item = await validateAttachment(id, name, new Blob([bytes]));
-      const error = limitError([...items, item]);
+      if (activityIds) item.activityIds = links;
+      const error = limitError([...items, item], activityIds);
       if (error) throw new Error(error);
       items.push(item);
       ids.add(id);
@@ -246,23 +290,17 @@ export async function decodeAttachments(values: unknown[]): Promise<Attachment[]
 
 export async function prepareAttachmentPages(items: Attachment[]) {
   const urls: string[] = [];
-  const images: HTMLImageElement[] = [];
+  const pagesByAttachment = new Map<string, HTMLImageElement[]>();
   const release = () => urls.splice(0).forEach((url) => URL.revokeObjectURL(url));
   const openPage = (blob: Blob) => {
     const url = URL.createObjectURL(blob);
     urls.push(url);
     return loadImage(url);
   };
-  const addPage = async (blob: Blob) => {
-    images.push(await openPage(blob));
-  };
-  const addPhoto = async (blob: Blob) => {
+  const preparePhoto = async (blob: Blob) => {
     const photo = await openPage(blob);
     const scale = printScale(photo.naturalWidth, photo.naturalHeight);
-    if (scale >= 1) {
-      images.push(photo);
-      return;
-    }
+    if (scale >= 1) return photo;
 
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.floor(photo.naturalWidth * scale));
@@ -280,21 +318,23 @@ export async function prepareAttachmentPages(items: Attachment[]) {
       canvas.width = 0;
       canvas.height = 0;
     }
-    await addPage(resized);
+    return openPage(resized);
   };
 
   for (const item of items) {
     try {
+      const images: HTMLImageElement[] = [];
       if (item.file.type === "application/pdf") {
         const { renderPdfPages } = await import("./attachment-pdf");
-        await renderPdfPages(item.file, addPage);
+        await renderPdfPages(item.file, async (blob) => { images.push(await openPage(blob)); });
       } else {
-        await addPhoto(item.file);
+        images.push(await preparePhoto(item.file));
       }
+      pagesByAttachment.set(item.id, images);
     } catch (error) {
       release();
       throw new Error(describeAttachmentError(item.name, error));
     }
   }
-  return { images, release };
+  return { pagesByAttachment, release };
 }

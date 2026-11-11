@@ -2,16 +2,25 @@ import { useEffect, useId, useState } from "react";
 import {
   addAttachments,
   ATTACHMENT_LIMIT_MB,
+  AttachmentLinkError,
+  countAttachmentPages,
+  linkedActivityIds,
   listAttachments,
   MONTH_LIMIT_MB,
   MONTH_PAGE_LIMIT,
   removeAttachment,
+  updateAttachmentLinks,
   type Attachment,
 } from "@/lib/attachments";
+import { formatActivityForSheet, formatDateBR } from "@/lib/pet-calculator";
+import type { Activity } from "@/types";
+import { useDialog } from "@/context/DialogContext";
+import { Modal } from "./Modal";
 
 interface Props {
   profileId: string;
   monthKey: string;
+  activities: Activity[];
   busy: boolean;
   onBusyChange: (busy: boolean) => void;
   onChange: () => void;
@@ -30,13 +39,25 @@ function openAttachment(file: Blob) {
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export function MonthlyAttachments({ profileId, monthKey, busy, onBusyChange, onChange }: Props) {
+function activityLabel(activity: Activity) {
+  return `${formatDateBR(activity.date)} · ${activity.start} às ${activity.end} · ${formatActivityForSheet(activity.description, activity.modality)}`;
+}
+
+export function MonthlyAttachments({ profileId, monthKey, activities, busy, onBusyChange, onChange }: Props) {
+  const { confirm } = useDialog();
   const headingId = useId();
   const hintId = useId();
+  const activityFieldId = useId();
   const [items, setItems] = useState<Attachment[] | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const [uploadActivity, setUploadActivity] = useState("");
+  const [editing, setEditing] = useState<{ item: Attachment; ids: string[] } | null>(null);
+  const [linkError, setLinkError] = useState("");
+  const activityIds = new Set(activities.map(({ id }) => id));
+  const selectedUpload = activityIds.has(uploadActivity) ? uploadActivity : "";
+  const pages = items ? countAttachmentPages(items, activityIds) : 0;
 
   useEffect(() => {
     let current = true;
@@ -54,26 +75,54 @@ export function MonthlyAttachments({ profileId, monthKey, busy, onBusyChange, on
     setStatus("Conferindo os arquivos…");
     setErrors([]);
     try {
-      const result = await addAttachments({ profileId, monthKey }, files);
+      const result = await addAttachments({ profileId, monthKey }, files, selectedUpload);
       setItems(result.attachments);
       setErrors(result.rejected);
       setStatus(result.added ? "Comprovantes salvos neste navegador." : "");
       if (result.added) onChange();
-    } catch {
+    } catch (error) {
       setStatus("");
-      setErrors(["Não foi possível salvar os arquivos. Verifique o espaço disponível e tente novamente."]);
+      setErrors([error instanceof AttachmentLinkError
+        ? error.message
+        : "Não foi possível salvar os arquivos. Verifique o espaço disponível e tente novamente."]);
     } finally {
       onBusyChange(false);
     }
   }
 
-  async function remove(id: string) {
+  async function saveLinks() {
+    if (!editing || busy) return;
+    onBusyChange(true);
+    setLinkError("");
+    try {
+      const next = await updateAttachmentLinks({ profileId, monthKey }, editing.item.id, editing.ids);
+      setItems(next);
+      setEditing(null);
+      setErrors([]);
+      setStatus("Vínculos atualizados.");
+      onChange();
+    } catch (error) {
+      setLinkError(error instanceof AttachmentLinkError
+        ? error.message
+        : "Não foi possível atualizar os vínculos. Tente novamente.");
+    } finally {
+      onBusyChange(false);
+    }
+  }
+
+  async function remove(item: Attachment) {
     if (busy) return;
+    if (!(await confirm({
+      title: "Remover comprovante?",
+      message: `O arquivo “${item.name}” e todos os seus vínculos serão removidos deste mês.`,
+      confirmText: "Remover arquivo",
+      variant: "danger",
+    }))) return;
     onBusyChange(true);
     setErrors([]);
     setStatus("");
     try {
-      setItems(await removeAttachment({ profileId, monthKey }, id));
+      setItems(await removeAttachment({ profileId, monthKey }, item.id));
       setStatus("Comprovante removido.");
       onChange();
     } catch {
@@ -91,16 +140,27 @@ export function MonthlyAttachments({ profileId, monthKey, busy, onBusyChange, on
         </h2>
         <p id={hintId} className="mt-1 text-sm text-muted">
           Se o seu GAT pedir comprovantes, anexe PDFs ou imagens JPEG e PNG.
-          Eles saem depois da folha, na ordem desta lista.
-          Até {ATTACHMENT_LIMIT_MB} MB por arquivo, {MONTH_LIMIT_MB} MB e {MONTH_PAGE_LIMIT} páginas no total.
+          Eles saem depois da folha, agrupados por atividade.
+          Até {ATTACHMENT_LIMIT_MB} MB por arquivo e {MONTH_LIMIT_MB} MB por mês.
         </p>
       </div>
-      <label className="block text-sm font-semibold text-body">
-        Adicionar comprovantes
-        <span className="mt-2 flex flex-wrap items-center gap-3 font-normal">
+      <div className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="field min-w-0">
+          <label htmlFor={activityFieldId}>Atividade</label>
+          <select id={activityFieldId} className="w-full min-w-0 truncate" value={selectedUpload}
+            disabled={busy || !items || !activities.length}
+            onChange={(event) => setUploadActivity(event.target.value)}>
+            <option value="">Sem atividade vinculada</option>
+            {activities.map((activity) =>
+              <option key={activity.id} value={activity.id}>{activityLabel(activity)}</option>
+            )}
+          </select>
+        </div>
+        <label className="block font-semibold text-body">
           <input
             type="file"
             multiple
+            aria-label="Adicionar comprovantes"
             accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
             disabled={busy || !items}
             aria-describedby={hintId}
@@ -111,30 +171,91 @@ export function MonthlyAttachments({ profileId, monthKey, busy, onBusyChange, on
               void add(files);
             }}
           />
-          <span className="inline-flex min-h-[44px] cursor-pointer items-center rounded-lg border border-line bg-raised px-4 font-semibold text-ink hover:bg-hover peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-info peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
+          <span className="inline-flex min-h-12 cursor-pointer items-center rounded-lg border border-line bg-raised px-4 font-semibold text-ink hover:bg-hover peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-info peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
             Escolher arquivos
           </span>
-          <span className="text-muted">PDF, JPEG ou PNG</span>
-        </span>
-      </label>
+        </label>
+      </div>
+      <p className="text-sm text-muted" role="status">
+        {items
+          ? `${pages} de ${MONTH_PAGE_LIMIT} páginas de comprovantes no PDF. Cada vínculo conta as páginas do arquivo.`
+          : errors.length === 0 && "Carregando comprovantes…"}
+      </p>
       {items?.length === 0 && (
         <p className="text-sm text-muted">Nenhum comprovante neste mês.</p>
       )}
       {!!items?.length && (
         <ol className="divide-y divide-line rounded-lg border border-line">
-          {items.map((item) => (
-            <li key={item.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
-              <div className="min-w-0 flex-1 basis-40">
-                <p className="break-all text-sm font-medium text-ink">{item.name}</p>
-                <p className="text-xs text-muted">{formatSize(item.file.size)}</p>
-              </div>
-              <button type="button" className="secondary-button" aria-label={"Abrir " + item.name}
-                onClick={() => openAttachment(item.file)}>Abrir</button>
-              <button type="button" className="secondary-button" aria-label={"Remover " + item.name}
-                disabled={busy} onClick={() => void remove(item.id)}>Remover</button>
-            </li>
-          ))}
+          {items.map((item) => {
+            const ids = linkedActivityIds(item, activityIds);
+            const linked = activities.filter(({ id }) => ids.includes(id));
+            return (
+              <li key={item.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
+                <div className="min-w-0 flex-1 basis-60">
+                  <p className="wrap-anywhere font-medium text-ink">{item.name}</p>
+                  <p className="text-sm text-muted">
+                    {formatSize(item.file.size)} · {item.pages} {item.pages === 1 ? "página" : "páginas"}
+                  </p>
+                  {linked.length > 0 ? (
+                    <ul aria-label="Atividades vinculadas" className="mt-1 space-y-0.5 text-sm text-body">
+                      {linked.map((activity) =>
+                        <li key={activity.id} className="line-clamp-2 wrap-anywhere">{activityLabel(activity)}</li>
+                      )}
+                    </ul>
+                  ) : <p className="mt-1 text-sm text-muted">Sem atividade vinculada</p>}
+                </div>
+                <div className="flex min-w-0 flex-wrap gap-2">
+                  <button type="button" className="secondary-button" aria-label={"Abrir " + item.name}
+                    onClick={() => openAttachment(item.file)}>Abrir</button>
+                  <button type="button" className="secondary-button" aria-label={"Vincular a atividades " + item.name}
+                    disabled={busy} onClick={() => {
+                      setLinkError("");
+                      setEditing({ item, ids });
+                    }}>Vincular a atividades</button>
+                  <button type="button" className="secondary-button" aria-label={"Remover arquivo " + item.name}
+                    disabled={busy} onClick={() => void remove(item)}>Remover arquivo</button>
+                </div>
+              </li>
+            );
+          })}
         </ol>
+      )}
+      {editing && (
+        <Modal isOpen label="Vincular a atividades" onClose={() => { if (!busy) setEditing(null); }}>
+          <div className="w-full max-w-xl space-y-4 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+            <h2 className="text-xl font-semibold text-ink">Vincular a atividades</h2>
+            <p className="wrap-anywhere text-sm text-body">{editing.item.name}</p>
+            <fieldset className="min-w-0 space-y-2" disabled={busy}>
+              <legend className="mb-2 font-semibold text-ink">Atividades deste mês</legend>
+              {activities.length === 0 && <p className="text-sm text-muted">Nenhuma atividade neste mês.</p>}
+              {activities.map((activity) => (
+                <label key={activity.id} className="flex min-h-[44px] items-start gap-3 rounded-lg border border-line px-3 py-2.5 text-body">
+                  <input type="checkbox" className="mt-1 size-4 shrink-0 accent-info"
+                    checked={editing.ids.includes(activity.id)}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setLinkError("");
+                      setEditing((current) => current && ({
+                        ...current,
+                        ids: checked
+                          ? [...current.ids, activity.id]
+                          : current.ids.filter((id) => id !== activity.id),
+                      }));
+                    }} />
+                  <span className="min-w-0 wrap-anywhere">{activityLabel(activity)}</span>
+                </label>
+              ))}
+            </fieldset>
+            <p className="text-sm text-muted">Sem seleção, o arquivo vai para o fim dos comprovantes no PDF.</p>
+            {linkError && <p className="operation-notice" role="alert">{linkError}</p>}
+            <div className="flex flex-wrap justify-end gap-2">
+              <button type="button" className="secondary-button" disabled={busy}
+                onClick={() => setEditing(null)}>Cancelar</button>
+              <button type="button" className="primary-button" disabled={busy}
+                onClick={() => void saveLinks()}>{busy ? "Salvando…" : "Salvar vínculos"}</button>
+            </div>
+          </div>
+        </Modal>
       )}
       {status && <p className="text-sm text-muted" role="status">{status}</p>}
       {errors.length > 0 && (

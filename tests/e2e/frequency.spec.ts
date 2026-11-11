@@ -471,6 +471,7 @@ test("seletor de mês mantém opções contrastantes nos dois temas e funciona p
     expect(colors.scheme).toBe(theme);
     expect(colors.contrast).toBeGreaterThanOrEqual(4.5);
     await month.selectOption("2026-11");
+    await expect(month).toHaveValue("2026-11");
     await month.focus();
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Enter");
@@ -551,6 +552,7 @@ async function restoreCopy(page: Page, data: object, inputLabel = "Restaurar có
   });
   const dialog = page.getByRole("dialog", { name: "Restaurar esta cópia?" });
   await dialog.getByRole("button", { name: "Restaurar cópia", exact: true }).click();
+  await expect(page.getByText("Lendo e conferindo a cópia…", { exact: true })).toHaveCount(0);
 }
 
 test("comprovantes opcionais persistem por mês e perfil e entram nas duas impressões", async ({ page }, testInfo) => {
@@ -568,7 +570,7 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
   await expect(notices).toContainText("invalido.png — formato inválido");
   await expect(notices).toContainText("grande.pdf — o PDF excede o limite de 30 páginas");
   await expect(notices).toContainText("corrompido.pdf — o PDF está ilegível");
-  await expect(proofs(page).getByRole("listitem").filter({ has: page.getByRole("button", { name: /^Abrir/ }) })).toHaveCount(2);
+  await expect(proofs(page).getByRole("button", { name: /^Abrir / })).toHaveCount(2);
 
   await page.reload();
   await openSheet(page);
@@ -602,7 +604,13 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
   await page.getByLabel("Mês da folha").selectOption("2026-10");
   await expect(proofs(page)).toContainText("Nenhum comprovante neste mês.");
   await page.getByLabel("Mês da folha").selectOption("2026-11");
-  await proofs(page).getByRole("button", { name: "Remover foto.png" }).click();
+  const removePhoto = proofs(page).getByRole("button", { name: "Remover arquivo foto.png" });
+  await removePhoto.click();
+  const confirmation = page.getByRole("dialog", { name: "Remover comprovante?" });
+  await confirmation.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await expect(removePhoto).toBeFocused();
+  await removePhoto.click();
+  await confirmation.getByRole("button", { name: "Remover arquivo", exact: true }).click();
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toHaveCount(0);
   await expect(proofs(page).getByRole("button", { name: "Abrir relatorio.pdf" })).toBeVisible();
 
@@ -620,6 +628,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   await create(page);
   await add(page);
   await openSheet(page);
+  await proofs(page).getByRole("combobox", { name: "Atividade", exact: true }).selectOption({ index: 1 });
   const input = proofs(page).getByLabel("Adicionar comprovantes");
   await input.setInputFiles(imageProof);
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
@@ -631,7 +640,8 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   const file = testInfo.outputPath("copia-com-comprovantes.json");
   await (await downloadPromise).saveAs(file);
   const data = JSON.parse(await readFile(file, "utf8"));
-  expect(data.version).toBe("1.2");
+  expect(data.version).toBe("1.3");
+  expect(data.attachments[0].activityIds).toEqual([data.activities[0].id]);
   expect(data.attachments.map(({ name, base64 }: { name: string; base64: string }) =>
     [name, Buffer.from(base64, "base64")])).toEqual([["foto.png", png]]);
 
@@ -644,6 +654,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
     await expect(fresh.locator(".summary-total strong")).toHaveText("5");
     await openSheet(fresh);
     await expect(proofs(fresh).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+    await expect(proofs(fresh).getByRole("list", { name: "Atividades vinculadas" })).toContainText("Atividade sintética");
   } finally {
     await secondBrowser.close();
   }
@@ -651,6 +662,14 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   const legacy = { ...data, version: "1.0", attachments: undefined };
   await restoreCopy(page, legacy);
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toContainText("Atividade sintética");
+
+  const invalid = { ...data, attachments: [{ ...data.attachments[0], activityIds: ["id-ausente"] }] };
+  await page.getByLabel("Restaurar cópia de segurança", { exact: true }).setInputFiles({
+    name: "copia.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(invalid)),
+  });
+  await expect(page.getByText("A cópia contém vínculos de comprovantes inválidos.")).toBeVisible();
+  await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toContainText("Atividade sintética");
 
   await page.evaluate(() => {
     const put = IDBObjectStore.prototype.put;
@@ -665,7 +684,9 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
   await expect(proofs(page).getByRole("button", { name: "Abrir nao-salvo.png" })).toHaveCount(0);
 
-  const replacement = { ...data, activities: [], attachments: [{ ...data.attachments[0], name: "substituta.png" }] };
+  const replacement = {
+    ...data, activities: [], attachments: [{ ...data.attachments[0], name: "substituta.png", activityIds: [] }],
+  };
   await restoreCopy(page, replacement);
   await expect(page.getByText("Não foi possível restaurar", { exact: true })).toBeVisible();
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
@@ -675,9 +696,144 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   await page.reload();
   await openSheet(page);
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await restoreCopy(page, { ...legacy, activities: [] });
+  await restoreCopy(page, legacy);
+  await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toHaveCount(0);
+  for (const version of ["1.1", "1.2"]) {
+    await restoreCopy(page, { ...data, version });
+    await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+    await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toHaveCount(0);
+  }
   await restoreCopy(page, replacement);
   await expect(proofs(page).getByRole("button", { name: "Abrir substituta.png" })).toBeVisible();
   await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toHaveCount(0);
+});
+
+test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar", async ({ page }, testInfo) => {
+  const first = { ...activity, date: "2026-11-02", description: "Oficina de teste" };
+  const second = {
+    ...first, id: "test-record-2", date: "2026-11-09",
+    description: "Atualização do site " + "com descrição longa para verificar a paginação ".repeat(22) + "FIM DA DESCRIÇÃO",
+  };
+  await page.addInitScript(({ user, records }) => {
+    if (localStorage.getItem("test-seeded")) return;
+    localStorage.setItem("pet_folha_profiles_v2", JSON.stringify([user]));
+    localStorage.setItem("pet_folha_active_profile_id_v2", user.id);
+    localStorage.setItem(`pet_folha_activities_v2_${user.id}_2026-11`, JSON.stringify(records));
+    localStorage.setItem("test-seeded", "1");
+  }, { user, records: [second, first] });
+  await page.goto("/");
+  await openSheet(page);
+  const region = proofs(page);
+  const input = region.getByLabel("Adicionar comprovantes");
+  await input.setInputFiles(imageProof);
+  const select = region.getByRole("combobox", { name: "Atividade", exact: true });
+  await expect(select).toHaveValue("");
+  await select.selectOption(second.id);
+  await input.setInputFiles({
+    name: "arquivo-" + "longo".repeat(40) + ".pdf",
+    mimeType: "application/pdf", buffer: makePdf(2),
+  });
+  const shared = region.getByRole("button", { name: "Vincular a atividades foto.png" });
+  const dialog = page.getByRole("dialog", { name: "Vincular a atividades" });
+  const firstCheck = dialog.getByRole("checkbox", { name: /Oficina de teste/ });
+  const secondCheck = dialog.getByRole("checkbox", { name: /Atualização do site/ });
+  const saveLinks = dialog.getByRole("button", { name: "Salvar vínculos", exact: true });
+
+  await expect(shared).toBeEnabled();
+  await shared.focus();
+  await expect(shared).toBeFocused();
+  await page.keyboard.press("Enter");
+  await firstCheck.check();
+  await page.keyboard.press("Escape");
+  await expect(shared).toBeFocused();
+  await shared.click();
+  await expect(firstCheck).not.toBeChecked();
+  await firstCheck.check();
+  await secondCheck.check();
+  await saveLinks.click();
+  await expect(region).toContainText("4 de 30 páginas");
+
+  await page.reload();
+  await openSheet(page);
+  await expect(region.getByRole("button", { name: "Abrir foto.png" })).toHaveCount(1);
+  await expect(region).toContainText("4 de 30 páginas");
+  await input.setInputFiles({ ...imageProof, name: "avulso.png" });
+  await expect(region).toContainText("5 de 30 páginas");
+
+  await page.evaluate(() => { window.print = () => { document.body.dataset.printed = "true"; }; });
+  await page.getByRole("button", { name: "Imprimir / salvar PDF", exact: true }).click();
+  await expect(page.locator("body")).toHaveAttribute("data-printed", "true");
+  const pages = page.locator(".print-attachment-page");
+  await expect(pages.locator("h2")).toHaveText([
+    "Comprovantes · Atividade 1",
+    "Comprovantes · Atividade 2",
+    "Comprovantes · Atividade 2",
+    "Comprovantes · Atividade 2",
+    "Comprovantes · Sem atividade vinculada",
+  ]);
+  await expect(pages.nth(0)).toContainText("02/11/2026 · Chegada 14:00 · Saída 15:30");
+  await expect(pages.nth(2)).toContainText("Página 1 de 2");
+  await expect(pages.nth(3)).toContainText("Página 2 de 2");
+  const imageUrls = await pages.locator("img").evaluateAll((images) =>
+    images.map((image) => (image as HTMLImageElement).src));
+  expect(imageUrls[0]).toBe(imageUrls[1]);
+  if (testInfo.project.name === "desktop") {
+    const pdf = await page.pdf({ path: testInfo.outputPath("folha-com-vinculos.pdf"), preferCSSPageSize: true });
+    // Two official pages, including the one with signatures, followed by five proof pages.
+    expect(pdf.toString("latin1").match(/\/Type \/Page\b/g)).toHaveLength(7);
+    for (const width of [360, 768, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      for (const theme of ["light", "dark"]) {
+        await page.locator("html").evaluate((element, value) => { element.dataset.theme = value; }, theme);
+        await region.scrollIntoViewIfNeeded();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+        await region.screenshot({ path: testInfo.outputPath(`comprovantes-${width}-${theme}.png`) });
+        await shared.click();
+        await expect(firstCheck).toBeChecked();
+        await expect(secondCheck).toBeChecked();
+        await dialog.screenshot({ path: testInfo.outputPath(`vinculos-${width}-${theme}.png`) });
+        await page.keyboard.press("Escape");
+        await expect(shared).toBeFocused();
+      }
+    }
+  }
+
+  await input.setInputFiles({ name: "limite.pdf", mimeType: "application/pdf", buffer: makePdf(16) });
+  await expect(region).toContainText("21 de 30 páginas");
+  await region.getByRole("button", { name: "Vincular a atividades limite.pdf" }).click();
+  await firstCheck.check();
+  await secondCheck.check();
+  await saveLinks.click();
+  await expect(dialog.getByRole("alert")).toContainText("ultrapassa o limite de 30 páginas");
+  await expect(firstCheck).toBeChecked();
+  await expect(secondCheck).toBeChecked();
+  await dialog.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await expect(region).toContainText("21 de 30 páginas");
+
+  await page.getByRole("button", { name: "Minha frequência", exact: true }).click();
+  await page.getByRole("button", { name: "Editar atividade: Oficina de teste" }).click();
+  await page.getByLabel("Descrição da Atividade", { exact: true }).fill("Oficina atualizada");
+  await page.getByRole("button", { name: "Salvar Alterações", exact: true }).click();
+  await openSheet(page);
+  await expect(region).toContainText("Oficina atualizada");
+  await page.getByRole("button", { name: "Minha frequência", exact: true }).click();
+  await page.getByRole("button", { name: "Excluir atividade: Oficina atualizada" }).click();
+  await page.getByRole("button", { name: "Sim, excluir" }).click();
+  await openSheet(page);
+  await expect(region).toContainText("20 de 30 páginas");
+  await expect(region.getByRole("list", { name: "Atividades vinculadas" }).first()).toContainText("Atualização do site");
+  await expect(region.getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Minha frequência", exact: true }).click();
+  await page.getByRole("button", { name: /^Excluir atividade: Atualização do site/ }).click();
+  await page.getByRole("button", { name: "Sim, excluir" }).click();
+  await openSheet(page);
+  await expect(region.getByRole("list", { name: "Atividades vinculadas" })).toHaveCount(0);
+  await expect(region.getByRole("listitem").filter({
+    has: page.getByRole("button", { name: "Vincular a atividades foto.png" }),
+  })).toContainText("Sem atividade vinculada");
+  await expect(region).toContainText("20 de 30 páginas");
 });
 
 test("preparar Forms, confirmar envio, revisar edição e restaurar relatório", async ({ page }, testInfo) => {
@@ -763,7 +919,7 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
   const backupPath = testInfo.outputPath("relatorio-1.2.json");
   await (await pendingDownload).saveAs(backupPath);
   const backup = JSON.parse(await readFile(backupPath, "utf8"));
-  expect(backup.version).toBe("1.2");
+  expect(backup.version).toBe("1.3");
   expect(backup.activities[0].formReport.confirmation.at).toBeTruthy();
   await restoreCopy(page, { ...backup, version: "1.1" });
   await expect(page.locator(".report-state:visible")).toHaveText("Pendente");
@@ -780,8 +936,8 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
 test("novidades mostram data de publicação e histórico acessível nos dois temas", async ({ page }, testInfo) => {
   await page.goto("/");
   const section = page.getByRole("region", { name: "Novidades do site" });
-  await expect(section.getByRole("heading", { name: "Formulário completo e tela sem rolagem" })).toBeVisible();
-  await expect(section.getByText("Última atualização", { exact: false })).toContainText("08 de novembro de 2026");
+  await expect(section.getByRole("heading", { name: "Comprovantes por atividade" })).toBeVisible();
+  await expect(section.getByText("Última atualização", { exact: false })).toContainText("10 de novembro de 2026");
   await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).not.toBeVisible();
   await section.getByText("Ver histórico de atualizações", { exact: true }).click();
   await expect(section.getByText("Sua folha continua neste navegador", { exact: true })).toBeVisible();
@@ -789,5 +945,34 @@ test("novidades mostram data de publicação e histórico acessível nos dois te
     await page.evaluate((theme) => { document.documentElement.dataset.theme = theme; }, theme);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await section.screenshot({ path: testInfo.outputPath("novidades-" + theme + ".png") });
+  }
+});
+
+test("sino de novidades funciona nas duas abas e guarda a leitura", async ({ page }, testInfo) => {
+  await create(page);
+  const unread = page.getByRole("button", { name: "Novidades, atualização disponível" });
+  const bell = page.getByRole("button", { name: "Novidades", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Novidades", exact: true });
+  await page.getByLabel("Atividade realizada", { exact: true }).fill("Rascunho preservado");
+  await unread.press("Enter");
+  await expect(dialog.getByRole("heading", { name: "Comprovantes por atividade" })).toBeVisible();
+  await dialog.getByText("Ver histórico de atualizações", { exact: true }).click();
+  await expect(dialog.getByRole("heading", { name: "Formulário completo e tela sem rolagem" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(bell).toBeFocused();
+  await expect(page.getByLabel("Atividade realizada", { exact: true })).toHaveValue("Rascunho preservado");
+
+  await page.reload();
+  await expect(unread).toHaveCount(0);
+  await openSheet(page);
+  if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 360, height: 800 });
+  for (const theme of ["light", "dark"]) {
+    await page.locator("html").evaluate((element, value) => { element.dataset.theme = value; }, theme);
+    await bell.click();
+    await expect(dialog.getByRole("heading", { name: "Comprovantes por atividade" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
+    await dialog.screenshot({ path: testInfo.outputPath(`sino-novidades-${theme}.png`) });
+    await dialog.getByRole("button", { name: "Fechar novidades" }).click();
+    await expect(bell).toBeFocused();
   }
 });

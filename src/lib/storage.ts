@@ -492,6 +492,7 @@ export function generateSeedActivities(
 export function getActivitiesForMonth(
   profileId: string,
   monthKey: string,
+  seedDemo = true,
 ): Activity[] {
   if (typeof window === "undefined") return [];
   const key = `${ACTIVITIES_PREFIX}${profileId}_${monthKey}`;
@@ -499,7 +500,7 @@ export function getActivitiesForMonth(
     const raw = localStorage.getItem(key);
     if (!raw) {
       // Apenas o perfil inicial de demonstração (felipe-vidal) recebe atividades semente automaticamente
-      if (monthKey === "2026-09" && profileId === "felipe-vidal") {
+      if (seedDemo && monthKey === "2026-09" && profileId === "felipe-vidal") {
         const initialActs = generateSeedActivities("04", "Mangaba", "2026-09");
         saveActivitiesForMonth(profileId, monthKey, initialActs);
         return initialActs;
@@ -555,12 +556,12 @@ export function exportUserData(
   user: UserProfile,
   monthKey: string,
   attachments?: BackupAttachment[],
+  activities = getActivitiesForMonth(user.id, monthKey),
 ): string {
-  const activities = getActivitiesForMonth(user.id, monthKey);
-  const includesReports = attachments !== undefined || activities.some((activity) => activity.formReport !== undefined);
+  const includesReports = activities.some((activity) => activity.formReport !== undefined);
   const data = {
-    version: includesReports ? "1.2" : "1.0",
-    attachments: includesReports ? (attachments ?? []) : undefined,
+    version: attachments !== undefined ? "1.3" : includesReports ? "1.2" : "1.0",
+    attachments: attachments ?? (includesReports ? [] : undefined),
     exportedAt: new Date().toISOString(),
     user: removeLegacyPin(user),
     monthKey,
@@ -583,6 +584,7 @@ export type RestoreResult = {
   monthKey?: string;
   activities?: Activity[];
   attachmentData?: unknown[];
+  hasAttachmentLinks?: boolean;
   error?: string;
   code: RestoreCode;
 };
@@ -594,7 +596,7 @@ const restoreMessages: Record<RestoreCode, string> = {
   INVALID_BACKUP:
     "A cópia está incompleta ou contém registros inválidos. Selecione outra cópia. Seus registros não foram alterados.",
   UNSUPPORTED_VERSION:
-    "Esta versão de cópia não é compatível. Use uma cópia no formato 1.0, 1.1 ou 1.2. Seus registros não foram alterados.",
+    "Esta versão de cópia não é compatível. Use uma cópia no formato 1.0, 1.1, 1.2 ou 1.3. Seus registros não foram alterados.",
   PROFILE_CONFLICT:
     "Já existe um perfil com este nome e outra identificação neste navegador. Continue com o perfil local ou peça ajuda antes de restaurar.",
   STORAGE_FAILED:
@@ -627,9 +629,11 @@ export function inspectUserData(jsonStr: string): RestoreResult {
   }
   if (!data || typeof data !== "object")
     return restoreFailure("INVALID_BACKUP");
-  if (data.version !== undefined && data.version !== "1.0" && data.version !== "1.1" && data.version !== "1.2")
+  if (data.version !== undefined && !["1.0", "1.1", "1.2", "1.3"].includes(data.version))
     return restoreFailure("UNSUPPORTED_VERSION");
-  if (["1.1", "1.2"].includes(data.version) && !Array.isArray(data.attachments))
+  const hasAttachments = ["1.1", "1.2", "1.3"].includes(data.version);
+  const hasReports = data.version === "1.2" || data.version === "1.3";
+  if (hasAttachments && !Array.isArray(data.attachments))
     return restoreFailure("INVALID_BACKUP");
   const profile = data.user;
   if (
@@ -661,7 +665,7 @@ export function inspectUserData(jsonStr: string): RestoreResult {
       ].includes(record.modality)
     )
       return restoreFailure("INVALID_BACKUP");
-    if (data.version === "1.2" && record.formReport !== undefined && !isFormReport(record.formReport))
+    if (hasReports && record.formReport !== undefined && !isFormReport(record.formReport))
       return restoreFailure("INVALID_BACKUP");
     ids.add(record.id);
     activities.push({
@@ -672,7 +676,7 @@ export function inspectUserData(jsonStr: string): RestoreResult {
       description: record.description,
       modality: record.modality,
       hours: calcPetHours(record.start, record.end),
-      ...(data.version === "1.2" && record.formReport && { formReport: record.formReport }),
+      ...(hasReports && record.formReport && { formReport: record.formReport }),
     });
   }
   const user: UserProfile = {
@@ -690,7 +694,8 @@ export function inspectUserData(jsonStr: string): RestoreResult {
     user,
     monthKey: data.monthKey,
     activities: sortActivitiesChronologically(activities),
-    ...(["1.1", "1.2"].includes(data.version) && { attachmentData: data.attachments }),
+    ...(hasAttachments && { attachmentData: data.attachments }),
+    ...(data.version === "1.3" && { hasAttachmentLinks: true }),
   };
 }
 
@@ -772,7 +777,7 @@ export function getRestoreDiagnostic(code: RestoreCode): string {
     ? code
     : "INVALID_BACKUP";
   return JSON.stringify(
-    { operation: "restore_backup", code: safeCode, supportedSchema: "1.2" },
+    { operation: "restore_backup", code: safeCode, supportedSchema: "1.3" },
     null,
     2,
   );

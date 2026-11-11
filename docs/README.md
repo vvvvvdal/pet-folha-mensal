@@ -29,6 +29,7 @@ Este diretório concentra a documentação técnica, arquitetural e normativa da
 
 ## Interface e usabilidade
 
+- [Guia de design](ui-design.md): identidade, tokens, componentes e padrões de interação e validação.
 - [Interface, componentes e verificação](ui-ux.md): organização das telas, temas, ajuda compartilhada e limites de verificação desta entrega.
 
 O [plano da reestruturação](ui-ux-restructure-plan.md) e suas

@@ -1,6 +1,15 @@
 // Dates are publication dates in São Paulo, not the build or the visitor's date.
 export const RELEASES = [
   {
+    date: "2026-11-10",
+    title: "Comprovantes por atividade",
+    changes: [
+      "Na Folha oficial, escolha uma atividade ao enviar arquivos ou use Vincular a atividades nos comprovantes já salvos.",
+      "Um arquivo pode comprovar várias atividades. No PDF, ele aparece em cada atividade selecionada. Os arquivos sem vínculo aparecem no final.",
+      "A cópia de segurança guarda os arquivos e seus vínculos. Use o sino no cabeçalho da folha para acompanhar as novidades.",
+    ],
+  },
+  {
     date: "2026-11-08",
     title: "Formulário completo e tela sem rolagem",
     changes: [

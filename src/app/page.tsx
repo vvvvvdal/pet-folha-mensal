@@ -19,7 +19,6 @@ import {
   saveActivitiesForMonth,
   loadSampleActivitiesForUser,
   exportUserData,
-  applyUserData,
   inspectUserData,
   getRestoreDiagnostic,
   type RestoreCode,
@@ -35,6 +34,7 @@ import {
   prepareAttachmentPages,
 } from "@/lib/attachments";
 import { restoreWithAttachments } from "@/lib/attachment-backup";
+import { buildAttachmentPrintPages } from "@/lib/attachment-print";
 import {
   calcPetHours,
   getMonthYearLabel,
@@ -103,12 +103,14 @@ export default function Home() {
   const [preparingPrint, setPreparingPrint] = useState(false);
   const printInProgress = useRef(false);
   const printSheetRef = useRef<HTMLDivElement>(null);
+  const printActivitiesRef = useRef(activities);
   const printAttachmentsRef = useRef<HTMLDivElement>(null);
   const clearPrintAttachments = useRef<(() => void) | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const activeProfileId = activeUser?.id;
   useEffect(() => () => clearPrintAttachments.current?.(), [activeProfileId, monthKey, showBlankTemplate]);
+  useEffect(() => { printActivitiesRef.current = activities; }, [activities]);
 
   // Estados Dinâmicos de Configuração (GATs, Funções e Templates)
   const [gats, setGats] = useState<Record<string, GATInfo>>({});
@@ -368,7 +370,7 @@ export default function Home() {
   const handlePrint = async (blank = showBlankTemplate): Promise<boolean> => {
     const wrapper = printSheetRef.current;
     const proofs = printAttachmentsRef.current;
-    if (!wrapper || !proofs || !activeUser || printInProgress.current || attachmentsBusy)
+    if (!wrapper || !proofs || !activeUser || printInProgress.current || attachmentsBusy || importInProgress.current)
       return false;
 
     printInProgress.current = true;
@@ -378,6 +380,7 @@ export default function Home() {
       const scope = { profileId: activeUser.id, monthKey };
       const stillCurrent = () =>
         wrapper.isConnected &&
+        printActivitiesRef.current === activities &&
         wrapper.dataset.profileId === scope.profileId &&
         wrapper.dataset.month === scope.monthKey &&
         wrapper.dataset.blank === String(blank);
@@ -396,18 +399,17 @@ export default function Home() {
           });
           if (!proceed) return false;
         } else if (attachments.length) {
-          const { images, release } = await prepareAttachmentPages(attachments);
+          const { pagesByAttachment, release } = await prepareAttachmentPages(attachments);
+          const pages = await buildAttachmentPrintPages(attachments, activities, pagesByAttachment)
+            .catch((error: unknown) => {
+              release();
+              throw error;
+            });
           if (!stillCurrent()) {
             release();
             return false;
           }
-          proofs.replaceChildren(...images.map((image) => {
-            const page = document.createElement("div");
-            page.className = "print-attachment-page";
-            image.alt = "";
-            page.append(image);
-            return page;
-          }));
+          proofs.replaceChildren(pages);
           const cleanup = () => {
             proofs.replaceChildren();
             release();
@@ -446,11 +448,13 @@ export default function Home() {
 
   // Exportar Backup Local em JSON
   const handleExportBackup = async (): Promise<boolean> => {
-    if (!activeUser || attachmentsBusy) return false;
+    if (!activeUser || attachmentsBusy || importInProgress.current) return false;
     let jsonString: string;
     try {
       const items = await listAttachments({ profileId: activeUser.id, monthKey });
-      jsonString = exportUserData(activeUser, monthKey, await encodeAttachments(items));
+      const snapshot = getActivitiesForMonth(activeUser.id, monthKey);
+      const activityIds = new Set(snapshot.map(({ id }) => id));
+      jsonString = exportUserData(activeUser, monthKey, await encodeAttachments(items, activityIds), snapshot);
     } catch {
       setStorageError(
         "Não foi possível ler os registros para criar a cópia. Verifique o armazenamento e tente novamente.",
@@ -523,6 +527,13 @@ export default function Home() {
   // Importar Backup Local em JSON
   const handleImportBackup = async (file: File) => {
     if (importInProgress.current) return;
+    if (attachmentsBusy || printInProgress.current) {
+      await alert({
+        title: "Aguarde a operação em andamento",
+        message: "Quando terminar, selecione novamente a cópia que deseja restaurar.",
+      });
+      return;
+    }
     importInProgress.current = true;
     if (!(await confirmDraft())) {
       importInProgress.current = false;
@@ -540,7 +551,10 @@ export default function Home() {
       let attachments;
       try {
         if (preview.attachmentData)
-          attachments = await decodeAttachments(preview.attachmentData);
+          attachments = await decodeAttachments(
+            preview.attachmentData,
+            preview.hasAttachmentLinks ? new Set(preview.activities?.map(({ id }) => id)) : undefined,
+          );
       } catch (error) {
         setRestoreIssue({
           code: "INVALID_BACKUP",
@@ -562,9 +576,7 @@ export default function Home() {
         variant: "warning",
       });
       if (!accepted) return;
-      const result = attachments === undefined
-        ? applyUserData(preview)
-        : await restoreWithAttachments(preview, preview.user!.id, preview.monthKey!, attachments);
+      const result = await restoreWithAttachments(preview, preview.user!.id, preview.monthKey!, attachments);
       if (!result.success) {
         setRestoreIssue({ code: result.code, message: result.error! });
         return;
@@ -891,7 +903,8 @@ export default function Home() {
                   key={JSON.stringify([activeUser.id, monthKey, formRevision])}
                   profileId={activeUser.id}
                   monthKey={monthKey}
-                  busy={attachmentsBusy || preparingPrint}
+                  activities={activities}
+                  busy={attachmentsBusy || preparingPrint || restoring}
                   onBusyChange={setAttachmentsBusy}
                   onChange={() => setHasChanges(true)}
                 />
