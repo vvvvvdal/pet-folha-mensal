@@ -543,6 +543,34 @@ test("preparo do Forms codifica as opções oficiais e a confirmação acompanha
   assert.throws(() => forms.buildFormUrl({ ...user, email: "" }, activity, report));
 });
 
+test("o link de eventos também preenche Qual foi a atividade?", () => {
+  const forms = load("./src/lib/form-report.ts");
+  const user = { ...sampleUser, email: "teste@example.com" };
+  const activity = { ...sampleActivity, description: "Congresso - Mesa 13: PET-Saúde" };
+  const report = {
+    ...forms.defaultFormReport(user),
+    activityType: "Participação em eventos",
+    extra: { detail: "Congresso", eventKind: forms.FORM_PARTICIPATION[4] },
+  };
+  const params = new URL(forms.buildFormUrl(user, activity, report)).searchParams;
+  assert.equal(params.get("entry.2090033171"), "Congresso");
+  assert.equal(params.get("entry.1720416074"), report.extra.eventKind);
+  assert.equal(params.get("entry.2101167383"), "Mesa 13: PET-Saúde");
+
+  const simple = { ...activity, description: "Oficina PET (Síncrona virtual)" };
+  assert.equal(new URL(forms.buildFormUrl(user, simple, report)).searchParams.get("entry.2101167383"), "Oficina PET");
+  assert.equal(forms.suggestEventActivity("Congresso – Mesa – debate"), "Mesa – debate");
+  assert.equal(forms.suggestEventActivity("Congresso — Mesa PET-Saúde"), "Mesa PET-Saúde");
+  const edited = { ...report, extra: { ...report.extra, eventActivity: "Mesa e debate" } };
+  assert.equal(new URL(forms.buildFormUrl(user, activity, edited)).searchParams.get("entry.2101167383"), "Mesa e debate");
+  assert.equal(forms.isFormReport(edited), true);
+  assert.notEqual(forms.formSnapshot(user, activity, edited), forms.formSnapshot(user, activity, report));
+  assert.equal(JSON.parse(forms.formSnapshot(user, activity, report)).at(-1).length, 10);
+
+  const other = { ...report, activityType: "Outros", extra: { detail: "Atividade avulsa" } };
+  assert.equal(new URL(forms.buildFormUrl(user, activity, other)).searchParams.get("entry.2101167383"), "Atividade avulsa");
+});
+
 test("cópias 1.2 e 1.3 preservam relatórios e cópias antigas começam pendentes", () => {
   isolatedStorage();
   const forms = load("./src/lib/form-report.ts");

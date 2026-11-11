@@ -6,7 +6,7 @@ import type { Activity, FormReport, UserProfile } from "@/types";
 import {
   ACTIVITY_FORM_URL, FORM_ACTIVITY_TYPES, FORM_GROUPS, FORM_ROLES,
   activitySummary, buildFormUrl, defaultFormReport, extraFieldsFor,
-  formReportStatus, formSnapshot, suggestActivityType,
+  formReportStatus, formSnapshot, suggestActivityType, suggestEventActivity,
 } from "@/lib/form-report";
 import { cleanActivityDescription, formatDateBR } from "@/lib/pet-calculator";
 import { Modal } from "./Modal";
@@ -20,8 +20,9 @@ interface Props {
   onSave: (report: FormReport) => boolean;
 }
 
-// "Outros" pergunta qual foi a atividade: já sugere o nome registrado.
 function withDefaultDetail(activityType: string, extra: Record<string, string>, activity: Activity) {
+  if (activityType === FORM_ACTIVITY_TYPES[8] && !extra.eventActivity?.trim())
+    return { ...extra, eventActivity: suggestEventActivity(activity.description) };
   if (activityType !== FORM_ACTIVITY_TYPES[14] || extra.detail?.trim()) return extra;
   return { ...extra, detail: cleanActivityDescription(activity.description).slice(0, 300) };
 }

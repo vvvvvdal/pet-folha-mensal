@@ -41,13 +41,13 @@ async function create(page: Page) {
   ).toBeVisible();
 }
 
-async function add(page: Page) {
+async function add(page: Page, description = "Atividade sintética") {
   await page.getByLabel("Data", { exact: true }).fill("2026-11-02");
   await page.getByLabel("Entrada", { exact: true }).fill("13:30");
   await page.getByLabel("Saída", { exact: true }).fill("17:30");
   await page
     .getByLabel("Atividade realizada", { exact: true })
-    .fill("Atividade sintética");
+    .fill(description);
   await page
     .getByRole("button", { name: "Adicionar atividade", exact: true })
     .click();
@@ -945,6 +945,29 @@ test("novidades mostram data de publicação e histórico acessível nos dois te
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await section.screenshot({ path: testInfo.outputPath("novidades-" + theme + ".png") });
   }
+});
+
+test("Forms de eventos sugere a atividade e preserva ajustes manuais", async ({ page }) => {
+  await create(page);
+  await add(page, "Congresso - Mesa 13: PET-Saúde");
+  const launch = page.getByRole("button", { name: /^Enviar ao Forms:/ });
+  await launch.click();
+  const panel = page.getByRole("dialog", { name: "Enviar ao Forms", exact: true });
+  await panel.getByLabel("E-mail para o formulário").fill("teste@example.com");
+  await panel.getByLabel("Tipo de atividade no Forms").selectOption("Participação em eventos");
+  await panel.getByLabel("Nome do evento").fill("Congresso");
+  const detail = panel.getByLabel("Qual foi a atividade?");
+  await expect(detail).toHaveValue("Mesa 13: PET-Saúde");
+  await detail.fill("Mesa 13 e debate");
+  await page.evaluate(() => { window.open = () => null; });
+  await panel.getByRole("button", { name: "Abrir Forms preenchido", exact: true }).click();
+  const href = await panel.getByRole("link", { name: "Abrir o link preparado", exact: true }).getAttribute("href");
+  const params = new URL(href!).searchParams;
+  expect(params.get("entry.2090033171")).toBe("Congresso");
+  expect(params.get("entry.2101167383")).toBe("Mesa 13 e debate");
+  await page.reload();
+  await launch.click();
+  await expect(detail).toHaveValue("Mesa 13 e debate");
 });
 
 test("sino de novidades funciona nas duas abas e guarda a leitura", async ({ page }, testInfo) => {

@@ -1,5 +1,5 @@
 import type { Activity, FormReport, UserProfile } from "@/types";
-import { formatDateBR, getMonthYearLabel } from "./pet-calculator";
+import { cleanActivityDescription, formatDateBR, getMonthYearLabel } from "./pet-calculator";
 
 // First-stage fields checked against the responder form on 07/11/2026.
 export const ACTIVITY_FORM_URL =
@@ -46,12 +46,14 @@ const FORM_MODALITIES: Record<string, string> = {
 // Pergunta extra que o Forms faz conforme o tipo de atividade (etapa 2).
 export interface ExtraField { key: string; label: string; options?: string[]; numeric?: boolean; optional?: boolean }
 const EAD = FORM_ACTIVITY_TYPES[1];
+const EVENTS = FORM_ACTIVITY_TYPES[8];
 export function extraFieldsFor(activityType: string): ExtraField[] {
   if (activityType === FORM_ACTIVITY_TYPES[3]) return [{ key: "detail", label: "Onde foi a visita técnica ou territorialização?" }];
   if (activityType === FORM_ACTIVITY_TYPES[12]) return [{ key: "detail", label: "Com quem foi a reunião externa?" }];
-  if (activityType === FORM_ACTIVITY_TYPES[8]) return [
+  if (activityType === EVENTS) return [
     { key: "detail", label: "Nome do evento" },
     { key: "eventKind", label: "Tipo de participação", options: FORM_PARTICIPATION, optional: true },
+    { key: "eventActivity", label: "Qual foi a atividade?" },
   ];
   if (activityType === FORM_ACTIVITY_TYPES[14]) return [{ key: "detail", label: "Qual foi a atividade?" }];
   if (activityType === EAD) return [
@@ -77,12 +79,14 @@ const EXTRA_ENTRIES: Record<string, string> = {
   servedCount: "entry.2115801122", servedKind: "entry.1412130923",
 };
 // O campo "detail" muda de entry conforme o tipo.
+const ACTIVITY_DETAIL_ENTRY = "entry.2101167383";
 const DETAIL_ENTRY: Record<string, string> = {
   [FORM_ACTIVITY_TYPES[3]]: "entry.636865296", [FORM_ACTIVITY_TYPES[12]]: "entry.2068027245",
-  [FORM_ACTIVITY_TYPES[8]]: "entry.2090033171", [FORM_ACTIVITY_TYPES[14]]: "entry.2101167383",
+  [EVENTS]: "entry.2090033171", [FORM_ACTIVITY_TYPES[14]]: ACTIVITY_DETAIL_ENTRY,
   [EAD]: "entry.326083041",
 };
-export const FORM_EXTRA_KEYS = [...Object.keys(EXTRA_ENTRIES), "served", "declaration", "receipt"];
+const SNAPSHOT_EXTRA_KEYS = [...Object.keys(EXTRA_ENTRIES), "served", "declaration", "receipt"];
+export const FORM_EXTRA_KEYS = [...SNAPSHOT_EXTRA_KEYS, "eventActivity"];
 const SIM_NAO = ["sim", "não"];
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
 function setTime(url: URL, entry: string, value: string) {
@@ -98,6 +102,13 @@ export function suggestActivityType(description: string): string {
   if (/reuniao (do|de) gat\b/.test(text)) return FORM_ACTIVITY_TYPES[9];
   if (/reuniao geral/.test(text)) return FORM_ACTIVITY_TYPES[11];
   return "";
+}
+
+export function suggestEventActivity(description: string): string {
+  const text = cleanActivityDescription(description);
+  const separator = /\s+[-–—]\s+/.exec(text);
+  const detail = separator ? text.slice(separator.index + separator[0].length).trim() : text;
+  return (detail || text).slice(0, 300);
 }
 
 export function defaultFormReport(user: UserProfile): FormReport {
@@ -127,7 +138,9 @@ export function formSnapshot(user: UserProfile, activity: Activity, report: Form
     report.group, report.role, report.activityType,
   ];
   // Sem respostas extras, mantém o formato anterior para não invalidar confirmações antigas.
-  const extras = FORM_EXTRA_KEYS.map((key) => report.extra?.[key] ?? "");
+  const extras = SNAPSHOT_EXTRA_KEYS.map((key) => report.extra?.[key] ?? "");
+  if (report.activityType === EVENTS && report.extra?.eventActivity)
+    extras.push(report.extra.eventActivity);
   return JSON.stringify(extras.some(Boolean) ? [...base, extras] : base);
 }
 
@@ -173,6 +186,11 @@ export function buildFormUrl(user: UserProfile, activity: Activity, report: Form
   for (const field of extraFieldsFor(report.activityType)) {
     const entry = field.key === "detail" ? DETAIL_ENTRY[report.activityType] : EXTRA_ENTRIES[field.key];
     if (entry && extra[field.key]?.trim()) url.searchParams.set(entry, extra[field.key].trim());
+  }
+  // The event path can continue to the same activity detail section as "Outros".
+  if (report.activityType === EVENTS) {
+    const detail = extra.eventActivity?.trim() || suggestEventActivity(activity.description);
+    if (detail) url.searchParams.set(ACTIVITY_DETAIL_ENTRY, detail);
   }
   if (served === "sim") {
     if (extra.servedCount?.trim()) url.searchParams.set(EXTRA_ENTRIES.servedCount, extra.servedCount.trim());

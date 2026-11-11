@@ -157,8 +157,11 @@ A impressão divide frequências extensas automaticamente em A4 paisagem. Os cab
 
 O botão "Forms" de cada atividade abre o modal "Enviar ao Forms": e-mail, grupo,
 perfil e tipo de atividade, mais as perguntas do tipo escolhido (local da visita,
-nome do evento, dados do curso EAD; em "Outros", a atividade vem com o nome
-registrado), atendimento a usuários do SUS, declaração e cópia por e-mail.
+nome do evento e dados do curso EAD), atendimento a usuários do SUS, declaração
+e cópia por e-mail. Em **Participação em eventos**, o campo **Qual foi a
+atividade?** sugere o trecho após o primeiro hífen ou travessão entre espaços.
+Se não houver separador, sugere o nome registrado. A pessoa pode editar a
+sugestão antes de abrir o Forms. Em **Outros**, a sugestão usa o nome registrado.
 O link pré-preenche todas as etapas do Forms oficial (campos mapeados em
 `src/lib/form-report.ts`, horários em `entry.X_hour/_minute`). O participante
 confere, resolve o CAPTCHA, anexa o certificado do curso EAD (se houver) e envia

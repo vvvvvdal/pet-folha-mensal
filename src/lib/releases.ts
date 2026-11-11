@@ -7,6 +7,7 @@ export const RELEASES = [
       "Na Folha oficial, escolha uma atividade ao enviar arquivos ou use Vincular a atividades nos comprovantes já salvos.",
       "Um arquivo pode comprovar várias atividades. No PDF, ele aparece em cada atividade selecionada. Os arquivos sem vínculo aparecem no final.",
       "A cópia de segurança guarda os arquivos e seus vínculos. Use o sino no cabeçalho da folha para acompanhar as novidades.",
+      "No Forms de eventos, o campo Qual foi a atividade? já vem sugerido e pode ser ajustado antes de abrir o formulário.",
     ],
   },
   {
