@@ -6,7 +6,23 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
-Publicação atual de 12/11/2026, commit de origem `4ea40af`, deployment
+Publicação atual de 12/11/2026, commit de origem `d838926`, deployment
+`dpl_2EbBmde1QPpctxRuwqGsG8s4GZ4y`, produção, estado READY. O conteúdo exato
+do commit foi enviado pela API conectada, com Next.js e Node 22. Build remoto
+concluído em cerca de 21 segundos. Domínio principal:
+https://pet-folha-mensal.vercel.app.
+
+No domínio publicado foram conferidos os rótulos Tema e Configurações, sidebar
+de 304 px, ausência do nome duplicado e de Lembretes da folha, seletor Modelo,
+prévia real de PNG e da primeira página de PDF, conferência antes de gravar e
+salvamento dos dois arquivos com atividades. No celular emulado de 390 px, a
+cópia 1.3 foi baixada e restaurada pelo menu Cópia, com dois originais, vínculos
+e atividade de 5 h conferidos. HTTP 200 e nenhum erro de página no contexto
+isolado. Consulta de logs error/fatal deste deployment nos últimos dez minutos
+sem registros. Nenhum drain externo configurado.
+[Registro e limites](validation/comprovantes-deslop-20261112/README.md#publicação-em-produção).
+
+Publicação de 12/11/2026, commit de origem `4ea40af`, deployment
 `dpl_35cfSEy4xJceigtxW2Nf1xrspGhz`, produção, estado READY. O conteúdo do commit
 foi enviado pela API conectada, com Next.js e Node 22, sem push no GitHub.
 Build remoto concluído em cerca de 28 segundos. Domínio principal:

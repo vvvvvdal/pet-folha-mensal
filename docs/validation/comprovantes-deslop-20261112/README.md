@@ -77,3 +77,20 @@ Chromium desktop e celular emulado. Homologação em aparelho físico, leitor de
 real, zoom de sistema e impressora continuam próprias. Não houve envio de resposta
 real ao Forms. Miniaturas são geradas no navegador e os originais permanecem na
 cópia 1.3. O formato e as regras de impressão oficiais foram preservados.
+
+## Publicação em produção
+
+- Data: 12/11/2026. Código de origem `d838926`, enviado pela API conectada.
+- Deployment `dpl_2EbBmde1QPpctxRuwqGsG8s4GZ4y`, produção, estado READY.
+- [Domínio principal](https://pet-folha-mensal.vercel.app), HTTP 200.
+- Next.js, Node 22. Build remoto de aproximadamente 21 segundos.
+- Conferidos Tema/Configurações, sidebar de 304 px, ausência do nome no topo
+  e de Lembretes, seletor Modelo e fluxo real de conferência de dois arquivos.
+- PNG e primeira página do PDF renderizados. Nenhum comprovante gravado antes
+  de Salvar. Ambos foram salvos com a atividade selecionada.
+- Cópia 1.3 baixada e restaurada em 390 px, com dois originais, vínculos e 5 h
+  conferidos. Download padrão exercitado com seletor nativo de salvamento
+  desabilitado apenas no navegador de teste.
+- Zero erros de página. Consulta de error/fatal deste deployment nos últimos dez
+  minutos sem registros. Sem drains externos configurados.
+- [Captura do domínio publicado](producao-comprovantes.png), somente com dados sintéticos.
