@@ -127,7 +127,6 @@ export function LandingPage({
       <main className="start-main">
         <section className="entry-hero" aria-labelledby="entry-title">
           <div className="entry-hero-copy">
-            <span className="entry-eyebrow">Folha de frequência mensal</span>
             <h1 id="entry-title">Sua folha do mês, pronta para assinar.</h1>
             <p>Anote cada atividade quando ela acontece. O PET Folha soma as horas pela regra do programa e monta a folha oficial em PDF.</p>
             <div className="entry-hero-actions">
