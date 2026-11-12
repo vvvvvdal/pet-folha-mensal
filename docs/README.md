@@ -32,6 +32,9 @@ Este diretório concentra a documentação técnica, arquitetural e normativa da
 - [Guia de design](ui-design.md): identidade, tokens, componentes e padrões de interação e validação.
 - [Interface, componentes e verificação](ui-ux.md): organização das telas, temas, ajuda compartilhada e limites de verificação desta entrega.
 
+- [Proposta de nova interface](ui-nova-interface.md): desenho em revisão, referências, tokens e roteiro de implementação.
+- [Melhorias e ideias](melhorias-e-ideias.md): achados e sugestões para planejamento.
+
 O [plano da reestruturação](ui-ux-restructure-plan.md) e suas
 [evidências de UI/UX](validation/ui-ux-20261102/README.md) detalham a retomada sem
 JSON, a escala de leitura, o diagnóstico local e a validação de impressão.
