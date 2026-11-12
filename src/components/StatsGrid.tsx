@@ -43,7 +43,7 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32, activ
           <span>{activitiesCount} {activitiesCount === 1 ? "atividade" : "atividades"}</span>
           {weeks.length > 0 && <SegmentedControl aria-label="Período do resumo">
             <SegmentedControlItem selected={view === "monthly"} onClick={() => selectView("monthly")}>Mensal</SegmentedControlItem>
-            <SegmentedControlItem selected={view === "weekly"} onClick={() => selectView("weekly")}>Semanal</SegmentedControlItem>
+            <SegmentedControlItem title="Semanas de segunda a domingo, com as atividades deste mês" selected={view === "weekly"} onClick={() => selectView("weekly")}>Semanal</SegmentedControlItem>
           </SegmentedControl>}
         </div>
         {view === "weekly" && weeks.length > 0 ? <>
@@ -53,7 +53,6 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32, activ
               <div className="progress-track" role="progressbar" aria-label={`Dias ${week.start} a ${week.end}: horas no mês`} aria-valuenow={week.hours} aria-valuemin={0} aria-valuemax={Math.max(8, week.hours)}><span style={{ width: `${Math.min(100, Math.max(0, week.hours / 8 * 100))}%` }} /></div>
             </div>
           ))}</div>
-          <p className="summary-note">Semanas começam na segunda-feira; nas bordas aparecem apenas as horas deste mês.</p>
         </> : <div className="summary-week">
           <div><span>{monthKey ? getMonthYearLabel(monthKey) : "No mês"}</span><span>{totalHours} de {targetHours} h</span></div>
           <div className="progress-track" role="progressbar" aria-label="Referência mensal de horas" aria-valuenow={totalHours} aria-valuemin={0} aria-valuemax={Math.max(targetHours, totalHours)}><span style={{ width: `${progress}%` }} /></div>

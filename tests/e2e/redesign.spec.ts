@@ -100,6 +100,7 @@ test("novidades abre pelo sino, fecha com Escape e devolve foco", async ({ page 
   await expect(region).toBeVisible();
   await expect(page.getByRole("button", { name: "Fechar novidades" })).toHaveAttribute("aria-expanded", "true");
   await expect(region.getByRole("button", { name: /fechar/i })).toHaveCount(0);
+  await expect(region).not.toContainText(/sino.*fechar/i);
   await page.keyboard.press("Escape");
   await expect(region).toBeHidden();
   await expect(trigger).toBeFocused();
@@ -172,19 +173,86 @@ test("desfazer altera só a última atividade e expira ao mudar de seção", asy
   expect(await storedDescriptions(page)).toContain("Registro preservado após troca");
 });
 
-test("lembretes mostram cópia pendente e explicam semana parcial", async ({ page }) => {
+test("frequência não repete identificação nem mostra lembretes", async ({ page }) => {
   await seedProfile(page);
-  await page.clock.setSystemTime(new Date("2026-11-30T15:00:00Z"));
   await page.goto("/");
-  const notices = page.locator(".local-notices");
-  await notices.locator("summary").click();
-  await expect(notices).toContainText("De 30 a 30: 2 de 8 h de referência");
-  await expect(notices).toContainText("Confira também as atividades fora deste mês");
-  await expect(notices).not.toContainText("Há alterações nesta sessão");
-  await addRedesignActivity(page, "Registro para aviso de cópia");
-  await expect(notices.locator("summary")).toContainText("cópia pendente");
-  await expect(notices).toContainText("Há alterações nesta sessão desde a última cópia.");
-  await expect(notices.getByRole("button", { name: "Salvar cópia agora" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+  await expect(page.getByText("Lembretes da folha", { exact: false })).toHaveCount(0);
+  await expect(page.locator(".app-topbar")).not.toContainText(user.name);
+  await expect(page.locator(".profile-trigger")).toHaveCount(1);
+  const trigger = page.locator("#add-activity-trigger");
+  if (await trigger.isVisible()) await trigger.click();
+  await expect(page.getByLabel("Modelo", { exact: true })).toBeVisible();
+});
+
+test("rodapé mantém tipografia uniforme em links e botões", async ({ page }) => {
+  await page.goto("/");
+  const footer = page.locator(".entry-page .site-footer");
+  await expect(footer).toBeVisible();
+  const styles = await footer.locator("a, button").evaluateAll((elements) => elements.map((element) => {
+    const style = getComputedStyle(element);
+    return { size: style.fontSize, line: style.lineHeight, weight: style.fontWeight };
+  }));
+  expect(styles.length).toBeGreaterThan(2);
+  for (const style of styles) {
+    expect(style.size).toBe("14px");
+    expect(style.line).toBe("21px");
+    expect(style.weight).toBe(styles[0].weight);
+  }
+});
+
+test("opções de acesso mantêm a mesma área ao trocar", async ({ page }) => {
+  await page.addInitScript((profile) => {
+    localStorage.setItem("pet_folha_profiles_v2", JSON.stringify([profile]));
+    localStorage.removeItem("pet_folha_active_profile_id_v2");
+    localStorage.setItem("pet_folha_onboarding_seen", "1");
+  }, user);
+  await page.goto("/");
+  const frame = page.locator("#acesso .ui-frame");
+  const choices = page.getByRole("group", { name: "Como deseja começar" });
+  await expect(choices).toBeVisible();
+  const sizes = [];
+  for (const name of ["Continuar", "Primeiro acesso", "Restaurar cópia"]) {
+    await choices.getByRole("button", { name, exact: true }).click();
+    const box = await frame.boundingBox();
+    expect(box).not.toBeNull();
+    sizes.push(box!);
+  }
+  for (const box of sizes) {
+    expect(Math.abs(box.width - sizes[0].width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(box.height - sizes[0].height)).toBeLessThanOrEqual(1);
+    expect(box.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+    expect(box.height).toBeGreaterThanOrEqual(500);
+  }
+  if (page.viewportSize()!.width >= 900) expect(sizes[0].width).toBeCloseTo(720, 0);
+});
+
+test("janelas usam largura coerente e cabem na tela", async ({ page }) => {
+  await seedProfile(page);
+  await page.goto("/");
+  await openAccount(page);
+  const avatar = page.getByRole("button", { name: "Abrir Conta" });
+  if (await avatar.isVisible()) await page.getByRole("button", { name: "Meu perfil", exact: true }).click();
+  else await page.getByRole("menuitem", { name: "Meu perfil" }).click();
+  const profile = page.getByRole("dialog", { name: "Identificação do participante" });
+  await expect(profile).toBeVisible();
+  const profileBox = await profile.boundingBox();
+  expect(profileBox).not.toBeNull();
+  expect(profileBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  if (page.viewportSize()!.width >= 900) expect(profileBox!.width).toBeCloseTo(720, 0);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Avaliar", exact: true }).click();
+  const feedback = page.getByRole("dialog", { name: "Avaliação e sugestões" });
+  await expect(feedback).toBeVisible();
+  const feedbackBox = await feedback.boundingBox();
+  expect(feedbackBox).not.toBeNull();
+  expect(feedbackBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  if (page.viewportSize()!.width >= 900) {
+    expect(feedbackBox!.width).toBeCloseTo(profileBox!.width, 0);
+    const contents = await feedback.locator(":scope > div").boundingBox();
+    expect(contents!.width).toBeCloseTo(feedbackBox!.width, 0);
+  }
+  await page.keyboard.press("Escape");
 });
 
 test("Minhas folhas preserva rascunho ao cancelar descarte do mês atual", async ({ page }) => {
@@ -207,4 +275,48 @@ test("Minhas folhas preserva rascunho ao cancelar descarte do mês atual", async
   await expect(page.getByLabel("Entrada", { exact: true })).toHaveValue("14:00");
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-11");
   await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+});
+
+test("navegação e menus cabem na tela e o perfil acompanha o rodapé", async ({ page }, testInfo) => {
+  await seedProfile(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+  if (testInfo.project.name === "desktop") {
+    for (const width of [1000, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const sidebar = page.locator(".app-sidebar");
+      const footer = page.locator(".dashboard-shell > .site-footer");
+      const profile = page.locator(".profile-trigger");
+      await footer.scrollIntoViewIfNeeded();
+      const sidebarBox = await sidebar.boundingBox();
+      const footerBox = await footer.boundingBox();
+      expect(sidebarBox!.width).toBe(width === 1440 ? 304 : 280);
+      expect(footerBox!.width).toBe(width);
+      expect(Math.abs(sidebarBox!.y + sidebarBox!.height - footerBox!.y)).toBeLessThanOrEqual(2);
+      await profile.click();
+      const menu = page.locator("#profile-menu");
+      const menuBox = await menu.boundingBox();
+      expect(menuBox!.x).toBeGreaterThanOrEqual(sidebarBox!.x);
+      expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(sidebarBox!.x + sidebarBox!.width);
+      const triggerBox = await profile.boundingBox();
+      expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(triggerBox!.y);
+      await page.keyboard.press("Escape");
+    }
+  } else {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+  }
+});
+
+test("opções da entrada são acessíveis por teclado", async ({ page }) => {
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: "Mais opções" });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  const panel = page.getByRole("region", { name: "Mais opções" });
+  await expect(panel.getByRole("button", { name: "Ajuda", exact: true })).toBeVisible();
+  await expect(panel.getByRole("button", { name: /Ativar tema/ })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Configurações locais" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(trigger).toBeFocused();
 });

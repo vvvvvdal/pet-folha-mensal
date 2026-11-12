@@ -61,4 +61,11 @@
 
 - [x] Implementar entrada/onboarding, navegação Frequência/Folha/Comprovantes, perfil/Conta, temas Claro/Escuro/Sistema, resumo mensal/semanal e novidades no sino conforme HTML e [decisões confirmadas](docs/ui-nova-interface.md).
 - [x] Manter Salvar cópia como ação diária nos dois tamanhos e Sair com preservação dos dados e aviso de cópia.
-- [x] Acrescentar lembretes locais expansíveis e Desfazer da última inclusão/edição, invalidado por alterações posteriores ou troca de seção/mês.
+- [x] Oferecer Desfazer da última inclusão/edição, invalidado por alterações posteriores ou troca de seção/mês. Lembretes locais foram retirados na revisão do mantenedor.
+
+## Comprovantes e revisão geral — 12/11/2026
+
+- [x] Miniaturas de fotos e primeira página dos PDFs, abertura do original e atividades por arquivo na conferência antes de salvar, com gravação atômica e preservação após erro.
+- [x] Revisar textos e consistência visual: rodapés, janelas, acesso, sidebar e cabeçalho da entrada. Retirar nome duplicado, Lembretes da folha e instrução de fechar sino. Usar seletor Modelo e botão Sair.
+
+- [x] Corrigir a sincronização do tema Sistema quando a preferência do aparelho muda antes da hidratação após recarregar.

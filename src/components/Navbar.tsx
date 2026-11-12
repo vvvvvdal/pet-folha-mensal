@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UserProfile } from "@/types";
 import { Download, FileText, CircleHelp, ListChecks, Settings2, Upload, ChevronDown, ChevronUp, Paperclip, User, LogOut, ArrowLeft, ChevronRight } from "lucide-react";
 import { Brand } from "./Brand";
 import { NewsPopover } from "./NewsPopover";
 import { ThemeSelector } from "./ThemeSelector";
+import "./navigation-refinement.css";
 
 export type WorkspaceTab = "dashboard" | "official" | "attachments" | "account";
 interface NavbarProps {
@@ -31,6 +32,23 @@ export function Navbar(props: NavbarProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [backupOpen, setBackupOpen] = useState(false);
   const backupRef = useRef<HTMLDivElement>(null);
+  function positionProfileMenu() {
+    const trigger = profileRef.current;
+    const menu = menuRef.current;
+    if (!trigger || !menu) return;
+    const rect = trigger.getBoundingClientRect();
+    menu.style.setProperty("--profile-bottom", `${Math.max(8, window.innerHeight - rect.top + 8)}px`);
+    menu.style.setProperty("--profile-max-height", `${Math.max(80, rect.top - 16)}px`);
+  }
+  useEffect(() => {
+    if (!profileOpen) return;
+    window.addEventListener("scroll", positionProfileMenu, true);
+    window.addEventListener("resize", positionProfileMenu);
+    return () => {
+      window.removeEventListener("scroll", positionProfileMenu, true);
+      window.removeEventListener("resize", positionProfileMenu);
+    };
+  }, [profileOpen]);
   function menuAction(action: () => void) { menuRef.current?.hidePopover(); action(); }
   const tabs = [{value: "dashboard", label: "Frequência", Icon: ListChecks}, {value: "official", label: "Folha", Icon: FileText}, {value: "attachments", label: "Comprovantes", Icon: Paperclip}] as const;
   return <>
@@ -47,7 +65,7 @@ export function Navbar(props: NavbarProps) {
             requestAnimationFrame(() => menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus());
           }
         }}><span className="avatar">{initials(user.name)}</span><span><strong>{user.name}</strong><small>{user.role} · GAT {user.gatNumber}</small></span><ChevronUp size={18} /></button>
-        <div ref={menuRef} id="profile-menu" popover="auto" className="profile-popover" onToggle={(event) => setProfileOpen(event.newState === "open")} onKeyDown={(event) => {
+        <div ref={menuRef} id="profile-menu" popover="auto" className="profile-popover" onBeforeToggle={(event) => { if (event.newState === "open") positionProfileMenu(); }} onToggle={(event) => setProfileOpen(event.newState === "open")} onKeyDown={(event) => {
           const items = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('button') || []);
           const index = items.indexOf(document.activeElement as HTMLButtonElement);
           if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus(); }
@@ -61,7 +79,7 @@ export function Navbar(props: NavbarProps) {
         </div>
       </div>
     </aside>
-    <header className="app-topbar"><div className="mobile-brand"><Brand /></div><span className="desktop-context">{user.name} · {user.role}</span><div className="app-top-actions"><button className="secondary-button top-restore" onClick={() => fileRef.current?.click()}><Upload size={18} aria-hidden="true" />Restaurar cópia</button><button className="secondary-button top-save" onClick={onExportBackup}><Download size={18} aria-hidden="true" /><span>Salvar cópia</span>{hasChanges && <span className="change-indicator" aria-label="Alterações sem cópia" />}</button><button type="button" className="secondary-button mobile-copy" popoverTarget="mobile-backup-menu" aria-expanded={backupOpen} aria-controls="mobile-backup-menu"><Download size={18} aria-hidden="true" />Cópia<ChevronDown size={16} aria-hidden="true" />{hasChanges && <span className="change-indicator" aria-label="Alterações sem cópia" />}</button>
+    <header className="app-topbar"><div className="mobile-brand"><Brand /></div><div className="app-top-actions"><button className="secondary-button top-restore" onClick={() => fileRef.current?.click()}><Upload size={18} aria-hidden="true" />Restaurar cópia</button><button className="secondary-button top-save" onClick={onExportBackup}><Download size={18} aria-hidden="true" /><span>Salvar cópia</span>{hasChanges && <span className="change-indicator" aria-label="Alterações sem cópia" />}</button><button type="button" className="secondary-button mobile-copy" popoverTarget="mobile-backup-menu" aria-expanded={backupOpen} aria-controls="mobile-backup-menu"><Download size={18} aria-hidden="true" />Cópia<ChevronDown size={16} aria-hidden="true" />{hasChanges && <span className="change-indicator" aria-label="Alterações sem cópia" />}</button>
       <div ref={backupRef} id="mobile-backup-menu" popover="auto" className="backup-popover" role="region" aria-label="Cópia de segurança" onToggle={(event) => setBackupOpen(event.newState === "open")}>
         <h2>Cópia de segurança</h2>
         <button type="button" onClick={() => { backupRef.current?.hidePopover(); onExportBackup(); }}><Download size={22} aria-hidden="true" /><span><strong>Salvar cópia</strong><small>Baixar seus registros e comprovantes.</small></span></button>

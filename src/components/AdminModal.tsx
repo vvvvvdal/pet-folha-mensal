@@ -537,7 +537,7 @@ export function AdminModal({
                 Configurações Locais
               </h4>
               <p className="text-xs sm:text-sm text-body mt-1.5 max-w-md">
-                Digite o PIN para acessar as configurações de templates, GATs e
+                Digite o PIN para acessar as configurações de modelos, GATs e
                 funções deste navegador.
               </p>
             </div>

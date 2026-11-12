@@ -518,7 +518,7 @@ test("entrada oferece os perfis locais sem exigir cópia e resumo não promete a
     }),
   );
   assert.match(html, /Continuar/);
-  assert.match(html, /sem o arquivo anterior/);
+  assert.match(html, /Você pode começar um novo mês sem o arquivo anterior/);
   assert.match(html, /Participante de teste/);
   const { StatsGrid } = load("./src/components/StatsGrid.tsx");
   const summary = renderToStaticMarkup(

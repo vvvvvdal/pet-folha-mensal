@@ -129,7 +129,7 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
     }
     tab.opener = null;
     tab.location.replace(url);
-    setMessage("Forms aberto com todas as etapas preenchidas. Confira, resolva o CAPTCHA e envie.");
+    setMessage("Confira os dados no Forms, resolva o CAPTCHA e envie.");
   }
 
   function toggleSent(sent: boolean) {

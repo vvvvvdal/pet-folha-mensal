@@ -592,7 +592,7 @@ export type RestoreResult = {
 const restoreMessages: Record<RestoreCode, string> = {
   RESTORED: "Cópia restaurada.",
   INVALID_JSON:
-    "Não foi possível ler esta cópia. Selecione o arquivo .json salvo pelo sistema; o PDF não restaura os registros.",
+    "Não foi possível ler esta cópia. Selecione a cópia .json. O PDF não restaura os registros.",
   INVALID_BACKUP:
     "A cópia está incompleta ou contém registros inválidos. Selecione outra cópia. Seus registros não foram alterados.",
   UNSUPPORTED_VERSION:

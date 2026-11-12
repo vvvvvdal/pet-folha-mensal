@@ -24,7 +24,7 @@
 .entry-preview-row strong { color: var(--foreground); }
 .entry-preview-note { display: flex; align-self: flex-end; gap: 12px; align-items: center; padding: 12px 16px; border-radius: 16px; background: var(--surface); color: var(--body); box-shadow: 0 8px 24px #173b241a; font-size: 14px; }
 .entry-preview-note svg { color: var(--accent); flex-shrink: 0; }
-.entry-page .start-layout { display: block; max-width: 720px; margin: 0 auto; padding: 0 0 48px; scroll-margin-top: 16px; }
+.entry-page .start-layout { display: block; max-width: var(--dialog-width); margin: 0 auto; padding: 0 0 48px; scroll-margin-top: 16px; }
 .entry-page .ui-frame { border-radius: 24px; }
 .entry-page .ui-frame-panel { border-radius: 18px; }
 .entry-how, .entry-files { padding: 72px 0; border-top: 1px solid var(--border); }
@@ -54,4 +54,31 @@
   .entry-steps, .entry-files, .entry-file-cards { grid-template-columns: 1fr; }
   .entry-how, .entry-files, .entry-page .faq-section { padding: 48px 0; }
   .entry-page .entry-header-access { display: none; }
+}
+
+.entry-page .ui-frame-panel {min-height:572px;display:flex;flex-direction:column}
+@media (max-width: 760px) { .entry-page .ui-frame-panel { min-height: 760px; } }
+.entry-page .ui-frame-panel > .ui-segmented {flex-shrink:0}
+.entry-page .start-form {margin-block:24px;flex:1;align-content:start}
+.entry-page .local-note {margin-top:auto}
+
+/* Compact entry header actions */
+.entry-page .entry-header-inner { gap: 24px; }
+.entry-page .entry-header nav { gap: 8px; }
+.entry-page .entry-options-trigger { flex-shrink: 0; }
+.entry-options-panel {
+  position: fixed; inset: var(--options-top, 72px) var(--options-right, 12px) auto auto;
+  margin: 0; padding: 8px; width: min(260px, calc(100vw - 24px));
+  border: 1px solid var(--border); border-radius: 16px;
+  background: var(--surface); color: var(--foreground);
+}
+.entry-options-panel > button {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px;
+  padding: 10px 12px; text-align: left; border-radius: 10px;
+}
+.entry-options-panel > button:hover { background: var(--surface-raised); }
+.entry-options-panel svg { flex-shrink: 0; }
+@media (max-width: 760px) {
+  .entry-page .entry-header-inner { gap: 8px; }
+  .entry-page .entry-header nav { gap: 4px; }
 }

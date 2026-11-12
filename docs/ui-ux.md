@@ -75,8 +75,8 @@ preservados. A folha oficial mantém sua escala em pontos e entrelinha própria.
 abre a impressão da folha para assinatura. A janela “Antes de sair” distingue as duas ações e
 mantém confirmação de saída quando existem alterações sem cópia acionada.
 A aba **Comprovantes** reúne os arquivos opcionais do perfil e mês selecionados.
-Escolha **Atividade** para o lote ou use **Vincular a atividades** nos arquivos já
-salvos. O mesmo arquivo pode aparecer em várias atividades. O navegador guarda
+Escolha os arquivos, confira as prévias e selecione as atividades de cada um antes
+de **Salvar comprovantes**. Use **Alterar atividades** nos arquivos já salvos. O mesmo arquivo pode aparecer em várias atividades. O navegador guarda
 um original, com limites de 20 MB por arquivo, 40 MB por mês e 30 páginas de
 comprovantes no PDF, contando cada repetição.
 
@@ -200,8 +200,8 @@ atalho para restaurar cópia; aparece apenas no primeiro acesso do navegador.
 As confirmações de operação aparecem por cinco segundos, pausando ao receber
 foco ou ponteiro. A última inclusão/edição pode ser desfeita enquanto não houver
 outra alteração ou troca de seção/mês; outras operações invalidam a ação.
-Lembretes locais ficam numa seção expansível: prazo institucional, referência
-da semana corrente (com aviso das semanas parciais) e cópia pendente.
+O bloco Lembretes da folha foi retirado. O prazo permanece na ajuda e a cópia
+continua acessível no cabeçalho.
 
 
 ## Peso dos comprovantes
@@ -224,3 +224,19 @@ visual em 390 e 1440 px, nos dois temas. O teste legado do seletor de mês foi
 separado desta rodada; sua falha no mobile já foi reproduzida na versão anterior.
 O pré-preenchimento real foi conferido na primeira etapa do Forms, encerrando
 a verificação antes de avançar ou enviar respostas.
+
+## Comprovantes e refinamento geral — 12/11/2026
+
+A listagem passou a ter miniaturas de fotos e da primeira página dos PDFs.
+Tocar na miniatura abre o original em outra aba. Na inclusão, as atividades são
+escolhidas por arquivo em uma conferência, antes de gravar. Um arquivo pode
+comprovar várias atividades. Cancelar a seleção não altera os comprovantes salvos.
+Falhas e limites mantêm o lote disponível para correção e nova tentativa.
+
+Foram unificados largura e espaçamento das janelas, tipografia dos rodapés e
+área das abas de acesso. A barra lateral ficou mais larga, o menu de perfil
+cabe nela e o rodapé ocupa a largura da aplicação. Ajuda, tema e configurações
+ficam em Mais opções no cabeçalho da entrada. Identificação duplicada, instruções
+redundantes no sino e Lembretes da folha foram retirados. Modelo voltou ao
+seletor e o botão de saída passou a Sair. A revisão de linguagem mantém prazos,
+avisos de perda de dados, cálculo e confirmação manual de envio do Forms.

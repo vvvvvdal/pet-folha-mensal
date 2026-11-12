@@ -105,14 +105,20 @@ export function ActivityForm({
           )}
         </header>
         <div className={compact ? "editor-body editor-fields" : "activity-entry-fields"}>
-          {templates.length > 0 && <div className="field entry-template"><span id="templates-label">Começar por um modelo</span><div className="template-choices" role="group" aria-labelledby="templates-label">
-            {templates.map((template) => <button type="button" key={template.id} aria-pressed={templateId === template.id} onClick={() => {
-              setTemplateId(template.id);
-              setDescription(cleanActivityDescription(template.name.replaceAll("{gatNumber}", defaultGatNumber).replaceAll("{gatName}", defaultGatName)));
-              setModality(template.modality); dirty();
-            }}>{template.name.replaceAll("{gatNumber}", defaultGatNumber).replaceAll("{gatName}", defaultGatName)}</button>)}
-            <button type="button" aria-pressed={!templateId} onClick={() => { setTemplateId(""); setDescription(""); dirty(); }}>Em branco</button>
-          </div></div>}
+          {templates.length > 0 && <div className="field entry-template">
+            <label htmlFor="activity-template">Modelo</label>
+            <select id="activity-template" value={templateId} onChange={(event) => {
+              const id = event.target.value;
+              const template = templates.find((item) => item.id === id);
+              setTemplateId(id);
+              setDescription(template ? cleanActivityDescription(template.name.replaceAll("{gatNumber}", defaultGatNumber).replaceAll("{gatName}", defaultGatName)) : "");
+              if (template) setModality(template.modality);
+              dirty();
+            }}>
+              <option value="">Em branco</option>
+              {templates.map((template) => <option key={template.id} value={template.id}>{template.name.replaceAll("{gatNumber}", defaultGatNumber).replaceAll("{gatName}", defaultGatName)}</option>)}
+            </select>
+          </div>}
 
         <div className="field">
           <label htmlFor="activity-description">Atividade realizada</label>

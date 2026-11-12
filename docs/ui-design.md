@@ -58,11 +58,40 @@ Use transições discretas de foco, hover e abertura onde os componentes já as 
 
 ## Comprovantes e cópia
 
-Na aba **Comprovantes**, os arquivos pertencem ao perfil e mês selecionados; a impressão continua na aba **Folha**. O seletor **Atividade** e o envio dividem uma linha quando há espaço. No celular, o seletor vem acima de **Escolher arquivos**. A escolha vale para o lote. Cada arquivo ocupa uma linha de lista com nome, tamanho, páginas e atividades vinculadas. Os botões quebram linha conforme a largura.
+A aba **Comprovantes** mostra uma miniatura ao lado de cada arquivo. Fotos mantêm
+as proporções. PDFs mostram a primeira página e o total de páginas. A miniatura
+abre o arquivo original em outra aba. Nome, tipo, páginas e atividades ficam
+juntos. **Alterar atividades** é a ação secundária. Remover usa ícone com nome
+acessível e confirmação.
 
-**Vincular a atividades** abre o diálogo de seleção múltipla. Data, horário e descrição ajudam a distinguir os registros. O original é único e pode ser reutilizado. A remoção do arquivo pede confirmação. A contagem de páginas mostra o efeito da repetição no PDF. Os limites, a ordenação na impressão e a compatibilidade de cópias estão no [fluxo de cópia, restauração e conclusão](ui-ux.md#cópia-restauração-e-conclusão).
+A inclusão segue **escolher arquivos → conferir prévias e atividades → salvar**.
+Cada arquivo pode comprovar várias atividades ou ficar sem atividade. A seleção
+fica temporária até **Salvar comprovantes**. Cancelar pede confirmação. O lote
+revisado é gravado inteiro ou permanece para correção se houver erro, excesso de
+páginas ou mudança nas atividades. Os originais e os formatos de cópia são mantidos.
 
-A referência atual de composição é o HTML fornecido pelo mantenedor em 12/11/2026, com os ajustes em [ui-nova-interface.md](ui-nova-interface.md). Tokens de escala e painéis ficam em `src/app/interface.css`; entrada e resumo possuem CSS local. As fontes são carregadas por `next/font`, preservando a folha impressa.
+Os limites ficam em **Formatos e limites**, junto da quantidade de páginas do PDF.
+Prévia e atividades aparecem também ao alterar um arquivo já salvo.
+
+## Consistência de telas e linguagem
+
+- Janelas usam a largura comum de 720 px, limitada pela tela. Cabeçalho, corpo
+  rolável e ações seguem os mesmos espaçamentos. No celular, editores usam
+  folha inferior com ações acessíveis. A altura cresce com conteúdo e zoom.
+- O acesso mantém a mesma área entre Continuar, Primeiro acesso e Restaurar
+  cópia, com mínimo suficiente para a maior aba em cada largura.
+- Rodapés da entrada e aplicação compartilham estrutura e links. Texto, links
+  e botões usam 14 px, mesma entrelinha e peso. O rodapé da aplicação ocupa a
+  largura completa e encontra o limite inferior da barra lateral.
+- Barra lateral de 304 px em telas largas e 280 px entre 900–1199 px. O menu
+  de perfil cabe dentro dela. Painéis flutuantes usam sombra neutra, sem brilho verde.
+- O cabeçalho da entrada reúne ajuda, tema e configurações em Mais opções.
+  Na aplicação, a identificação fica no perfil, sem repetição no cabeçalho.
+- Modelo de atividade usa seletor. O botão de saída diz Sair. O bloco Lembretes
+  da folha e a instrução repetida de fechar o sino foram removidos.
+- Textos da interface usam frases diretas, sem travessões ou ponto e vírgula.
+  Evitar instrução óbvia e repetição. Preservar rótulos, unidades, prazos,
+  riscos de perda de dados e confirmação manual dos envios.
 
 ## Referências
 

@@ -49,6 +49,27 @@ export function countPdfPages(file: Blob) {
   });
 }
 
+/** Render only the first page at preview size, independently of print rendering. */
+export function renderPdfThumbnail(file: Blob): Promise<Blob> {
+  return withPdf(file, async (pdf) => {
+    const page = await pdf.getPage(1);
+    const canvas = document.createElement("canvas");
+    try {
+      const base = page.getViewport({ scale: 1 });
+      const viewport = page.getViewport({ scale: Math.min(1, 320 / Math.max(base.width, base.height)) });
+      canvas.width = Math.max(1, Math.ceil(viewport.width));
+      canvas.height = Math.max(1, Math.ceil(viewport.height));
+      paintWhite(canvas);
+      await page.render({ canvas, viewport }).promise;
+      return await canvasToBlob(canvas);
+    } finally {
+      page.cleanup();
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+  });
+}
+
 export function renderPdfPages(file: Blob, addPage: (blob: Blob) => Promise<void>) {
   return withPdf(file, async (pdf) => {
     const canvas = document.createElement("canvas");

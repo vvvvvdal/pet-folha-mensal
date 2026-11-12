@@ -25,7 +25,7 @@ export interface BackupAttachment {
   activityIds: string[];
 }
 
-interface AttachmentScope {
+export interface AttachmentScope {
   profileId: string;
   monthKey: string;
 }
@@ -201,6 +201,42 @@ async function validateAttachment(id: string, name: string, blob: Blob): Promise
   return { id, name, file, pages };
 }
 
+/** Validate each file without writing anything, so links can be reviewed first. */
+export async function prepareAttachmentFiles(files: File[]): Promise<{ accepted: Attachment[]; rejected: string[] }> {
+  const accepted: Attachment[] = [];
+  const rejected: string[] = [];
+  for (const file of files) {
+    try {
+      accepted.push(await validateAttachment(crypto.randomUUID(), file.name, file));
+    } catch (error) {
+      rejected.push(describeAttachmentError(file.name, error));
+    }
+  }
+  return { accepted, rejected };
+}
+
+/** Commit the entire reviewed batch, or leave the month unchanged on any error. */
+export function savePreparedAttachments(scope: AttachmentScope, candidates: Attachment[]): Promise<Attachment[]> {
+  return withMonth(scope, (current) => {
+    if (!candidates.length) return current;
+    const available = currentActivityIds(scope);
+    const ids = new Set(current.map(({ id }) => id));
+    for (const candidate of candidates) {
+      if (!candidate.id || ids.has(candidate.id))
+        throw new Error("Um comprovante selecionado já existe. Selecione os arquivos novamente.");
+      ids.add(candidate.id);
+      if (!(candidate.file instanceof Blob) || candidate.file.size > ATTACHMENT_LIMIT_MB * MIB ||
+          !Number.isInteger(candidate.pages) || candidate.pages < 1 || candidate.pages > MONTH_PAGE_LIMIT)
+        throw new Error("Um comprovante selecionado é inválido. Selecione os arquivos novamente.");
+      checkActivityIds(candidate.activityIds ?? [], available);
+    }
+    const next = [...current, ...candidates];
+    const error = limitError(next, available);
+    if (error) throw new Error(error);
+    return next;
+  });
+}
+
 export async function addAttachments(scope: AttachmentScope, files: File[], activityId: string) {
   const rejected: string[] = [];
   const candidates: Attachment[] = [];
@@ -235,7 +271,7 @@ export async function addAttachments(scope: AttachmentScope, files: File[], acti
 }
 
 function describeAttachmentError(name: string, error: unknown) {
-  return name + " — " + (error instanceof Error ? error.message : "não foi possível ler o arquivo.");
+  return name + ": " + (error instanceof Error ? error.message : "não foi possível ler o arquivo.");
 }
 
 function encodeFile(file: Blob): Promise<string> {

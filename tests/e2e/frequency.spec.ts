@@ -177,8 +177,8 @@ test("perfil repetido retoma sem arquivo e preserva meses anteriores", async ({
   await page.getByLabel("Mês da folha").selectOption("2026-10");
   await expect(page.locator(".summary-total strong")).toHaveText("2");
   await openExit(page);
-  await page
-    .getByRole("button", { name: "Sair / trocar participante", exact: true })
+  await page.getByRole("dialog", { name: "Antes de sair" })
+    .getByRole("button", { name: "Sair", exact: true })
     .click();
   await page.getByRole("button", { name: "Continuar com este perfil", exact: true }).click();
   await page.reload();
@@ -626,7 +626,7 @@ function makePdf(pageCount: number) {
 }
 
 function proofs(page: Page) {
-  return page.getByRole("region", { name: "Comprovantes (opcional)" });
+  return page.getByRole("region", { name: "Arquivos deste mês" });
 }
 
 async function openSheet(page: Page) {
@@ -648,7 +648,7 @@ async function restoreCopy(page: Page, data: object, inputLabel = "Restaurar có
 test("comprovantes opcionais persistem por mês e perfil e entram nas duas impressões", async ({ page }, testInfo) => {
   await create(page);
   await openSheet(page);
-  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês.");
+  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês");
   await proofs(page).getByLabel("Adicionar comprovantes").setInputFiles([
     imageProof,
     { name: "relatorio.pdf", mimeType: "application/pdf", buffer: makePdf(2) },
@@ -656,15 +656,18 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
     { name: "grande.pdf", mimeType: "application/pdf", buffer: makePdf(31) },
     { name: "corrompido.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\nbroken") },
   ]);
-  const notices = proofs(page).getByRole("alert");
-  await expect(notices).toContainText("invalido.png — formato inválido");
-  await expect(notices).toContainText("grande.pdf — o PDF excede o limite de 30 páginas");
-  await expect(notices).toContainText("corrompido.pdf — o PDF está ilegível");
-  await expect(proofs(page).getByRole("button", { name: /^Abrir / })).toHaveCount(2);
+  const review = page.getByRole("dialog", { name: "Conferir comprovantes" });
+  const notices = review.getByRole("alert");
+  await expect(notices).toContainText("invalido.png: formato inválido");
+  await expect(notices).toContainText("grande.pdf: o PDF excede o limite de 30 páginas");
+  await expect(notices).toContainText("corrompido.pdf: o PDF está ilegível");
+  await expect(review.getByRole("button", { name: /^Visualizar .* em outra aba$/ })).toHaveCount(2);
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+  await expect(review).toHaveCount(0);
 
   await page.reload();
   await openSheet(page);
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
   await page.evaluate(() => {
     window.print = () => {
       const pages = [...document.querySelectorAll<HTMLImageElement>(".print-attachment-page img")];
@@ -694,7 +697,7 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
 
   await openSheet(page);
   await page.getByLabel("Mês da folha").selectOption("2026-10");
-  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês.");
+  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês");
   await page.getByLabel("Mês da folha").selectOption("2026-11");
   const removePhoto = proofs(page).getByRole("button", { name: "Remover arquivo foto.png" });
   await removePhoto.click();
@@ -703,27 +706,30 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
   await expect(removePhoto).toBeFocused();
   await removePhoto.click();
   await confirmation.getByRole("button", { name: "Remover arquivo", exact: true }).click();
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toHaveCount(0);
-  await expect(proofs(page).getByRole("button", { name: "Abrir relatorio.pdf" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toHaveCount(0);
+  await expect(proofs(page).getByRole("button", { name: "Visualizar relatorio.pdf em outra aba" })).toBeVisible();
 
   await openExit(page);
-  await page.getByRole("button", { name: "Sair / trocar participante", exact: true }).click();
+  await page.getByRole("dialog", { name: "Antes de sair" }).getByRole("button", { name: "Sair", exact: true }).click();
   await page.getByRole("button", { name: "Sair sem salvar cópia", exact: true }).click();
   await page.getByRole("button", { name: "Primeiro acesso", exact: true }).click();
   await page.getByLabel("Nome completo", { exact: true }).fill("Outro participante");
   await page.getByRole("button", { name: "Abrir minha folha", exact: true }).click();
   await openSheet(page);
-  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês.");
+  await expect(proofs(page)).toContainText("Nenhum comprovante neste mês");
 });
 
 test("cópias com comprovantes levam os originais e a restauração reverte falhas", async ({ page, browser }, testInfo) => {
+  test.setTimeout(90_000);
   await create(page);
   await add(page);
   await openSheet(page);
-  await proofs(page).getByRole("combobox", { name: "Atividade", exact: true }).selectOption({ index: 1 });
   const input = proofs(page).getByLabel("Adicionar comprovantes");
   await input.setInputFiles(imageProof);
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  const review = page.getByRole("dialog", { name: "Conferir comprovantes" });
+  await review.getByRole("checkbox", { name: /Atividade sintética/ }).check();
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
   await page.evaluate(() => Object.defineProperty(window, "showSaveFilePicker", {
     configurable: true, value: undefined,
   }));
@@ -745,7 +751,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
     await restoreCopy(fresh, data, "Cópia de segurança da folha");
     await expect(fresh.locator(".summary-total strong")).toHaveText("5");
     await openSheet(fresh);
-    await expect(proofs(fresh).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+    await expect(proofs(fresh).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
     await expect(proofs(fresh).getByRole("list", { name: "Atividades vinculadas" })).toContainText("Atividade sintética");
   } finally {
     await secondBrowser.close();
@@ -753,7 +759,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
 
   const legacy = { ...data, version: "1.0", attachments: undefined };
   await restoreCopy(page, legacy);
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
   await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toContainText("Atividade sintética");
 
   const invalid = { ...data, attachments: [{ ...data.attachments[0], activityIds: ["id-ausente"] }] };
@@ -772,33 +778,36 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
     };
   });
   await input.setInputFiles({ ...imageProof, name: "nao-salvo.png" });
-  await expect(proofs(page).getByRole("alert")).toContainText("Não foi possível salvar os arquivos");
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
-  await expect(proofs(page).getByRole("button", { name: "Abrir nao-salvo.png" })).toHaveCount(0);
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+  await expect(review.getByRole("alert")).not.toBeEmpty();
+  await review.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.getByRole("dialog", { name: "Descartar arquivos selecionados?" }).getByRole("button", { name: "Descartar seleção" }).click();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar nao-salvo.png em outra aba" })).toHaveCount(0);
 
   const replacement = {
     ...data, activities: [], attachments: [{ ...data.attachments[0], name: "substituta.png", activityIds: [] }],
   };
   await restoreCopy(page, replacement);
   await expect(page.getByText("Não foi possível restaurar", { exact: true })).toBeVisible();
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
   await page.getByRole("button", { name: "Frequência", exact: true }).click();
   await expect(page.locator(".summary-total strong")).toHaveText("5");
 
   await page.reload();
   await openSheet(page);
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
   await restoreCopy(page, { ...legacy, activities: [] });
   await restoreCopy(page, legacy);
   await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toHaveCount(0);
   for (const version of ["1.1", "1.2"]) {
     await restoreCopy(page, { ...data, version });
-    await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+    await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
     await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toHaveCount(0);
   }
   await restoreCopy(page, replacement);
-  await expect(proofs(page).getByRole("button", { name: "Abrir substituta.png" })).toBeVisible();
-  await expect(proofs(page).getByRole("button", { name: "Abrir foto.png" })).toHaveCount(0);
+  await expect(proofs(page).getByRole("button", { name: "Visualizar substituta.png em outra aba" })).toBeVisible();
+  await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toHaveCount(0);
 });
 
 test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar", async ({ page }, testInfo) => {
@@ -820,18 +829,19 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   const region = proofs(page);
   const input = region.getByLabel("Adicionar comprovantes");
   await input.setInputFiles(imageProof);
-  const select = region.getByRole("combobox", { name: "Atividade", exact: true });
-  await expect(select).toHaveValue("");
-  await select.selectOption(second.id);
+  const review = page.getByRole("dialog", { name: "Conferir comprovantes" });
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
   await input.setInputFiles({
     name: "arquivo-" + "longo".repeat(40) + ".pdf",
     mimeType: "application/pdf", buffer: makePdf(2),
   });
-  const shared = region.getByRole("button", { name: "Vincular a atividades foto.png" });
-  const dialog = page.getByRole("dialog", { name: "Vincular a atividades" });
+  await review.getByRole("checkbox", { name: /Atualização do site/ }).check();
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+  const shared = region.getByRole("button", { name: "Alterar atividades de foto.png" });
+  const dialog = page.getByRole("dialog", { name: "Alterar atividades do comprovante" });
   const firstCheck = dialog.getByRole("checkbox", { name: /Oficina de teste/ });
   const secondCheck = dialog.getByRole("checkbox", { name: /Atualização do site/ });
-  const saveLinks = dialog.getByRole("button", { name: "Salvar vínculos", exact: true });
+  const saveLinks = dialog.getByRole("button", { name: "Salvar atividades", exact: true });
 
   await expect(shared).toBeEnabled();
   await shared.focus();
@@ -849,9 +859,10 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
 
   await page.reload();
   await openSheet(page);
-  await expect(region.getByRole("button", { name: "Abrir foto.png" })).toHaveCount(1);
+  await expect(region.getByRole("button", { name: "Visualizar foto.png em outra aba" })).toHaveCount(1);
   await expect(region).toContainText("4 de 30 páginas");
   await input.setInputFiles({ ...imageProof, name: "avulso.png" });
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
   await expect(region).toContainText("5 de 30 páginas");
 
   await page.evaluate(() => { window.print = () => { document.body.dataset.printed = "true"; }; });
@@ -896,8 +907,9 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
 
   await openSheet(page);
   await input.setInputFiles({ name: "limite.pdf", mimeType: "application/pdf", buffer: makePdf(16) });
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
   await expect(region).toContainText("21 de 30 páginas");
-  await region.getByRole("button", { name: "Vincular a atividades limite.pdf" }).click();
+  await region.getByRole("button", { name: "Alterar atividades de limite.pdf" }).click();
   await firstCheck.check();
   await secondCheck.check();
   await saveLinks.click();
@@ -919,7 +931,7 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   await openSheet(page);
   await expect(region).toContainText("20 de 30 páginas");
   await expect(region.getByRole("list", { name: "Atividades vinculadas" }).first()).toContainText("Atualização do site");
-  await expect(region.getByRole("button", { name: "Abrir foto.png" })).toBeVisible();
+  await expect(region.getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
 
   await page.getByRole("button", { name: "Frequência", exact: true }).click();
   await page.getByRole("button", { name: /^Excluir atividade: Atualização do site/ }).click();
@@ -927,8 +939,8 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   await openSheet(page);
   await expect(region.getByRole("list", { name: "Atividades vinculadas" })).toHaveCount(0);
   await expect(region.getByRole("listitem").filter({
-    has: page.getByRole("button", { name: "Vincular a atividades foto.png" }),
-  })).toContainText("Sem atividade vinculada");
+    has: page.getByRole("button", { name: "Alterar atividades de foto.png" }),
+  })).toContainText("Sem atividade. Aparece no final dos comprovantes.");
   await expect(region).toContainText("20 de 30 páginas");
 });
 

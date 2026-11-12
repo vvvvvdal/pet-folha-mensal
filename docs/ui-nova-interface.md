@@ -24,8 +24,11 @@ rótulos alterados nele prevalecem sobre os exemplos desta proposta. O guia
   quatro, cinco ou seis, sem perder os dias finais. Barras sempre verdes.
 
 Os trechos abaixo preservam a referência original; decisões em aberto e exemplos
-conflitantes foram resolvidos pelos itens acima. Lembretes locais ficam em uma seção expansível própria, com prazo institucional,
-referência da semana e cópia pendente. O toast oferece Desfazer na última inclusão
+conflitantes foram resolvidos pelos itens acima. Em revisão posterior de 12/11, o mantenedor pediu a remoção de Lembretes da folha
+e das instruções redundantes de fechamento do sino. Modelo voltou ao seletor.
+O perfil não se repete no cabeçalho, o menu cabe na barra lateral ampliada e os
+rodapés compartilham a composição. Janelas seguem largura comum e textos foram
+simplificados. Esses ajustes prevalecem sobre as sugestões originais abaixo. O toast oferece Desfazer na última inclusão
 ou edição enquanto a transação estiver intacta na mesma tela, perfil e mês.
 Não há confirmação automática de envio, assinatura ou gravação de arquivo no aparelho.
 

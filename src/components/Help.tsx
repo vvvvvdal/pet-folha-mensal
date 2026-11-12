@@ -6,31 +6,31 @@ import { Modal } from "./Modal";
 const questions = [
   [
     "Como começo minha folha?",
-    "No primeiro acesso, informe nome, função e GAT. Nos próximos meses, use “Continuar” neste mesmo navegador e escolha o mês. Você não precisa do arquivo anterior para abrir um novo mês.",
+    "Informe seu nome, função e GAT. Nos próximos meses, abra seu perfil neste navegador e escolha o mês. Você não precisa de uma cópia para começar um novo mês aqui.",
   ],
   [
-    "O que é o JSON e como restauro uma folha?",
-    "O JSON é a cópia editável da sua folha: guarda sua identificação, atividades, comprovantes e o controle dos relatórios. Use “Restaurar cópia” e selecione o arquivo .json salvo anteriormente. O PDF não restaura os registros.",
+    "Como restauro minha folha?",
+    "Use “Restaurar cópia” e escolha o arquivo .json que você salvou. Ele guarda sua identificação, atividades, comprovantes e relatórios. O PDF serve para assinatura e não restaura os registros.",
   ],
   [
     "Onde ficam meus dados?",
-    "Neste navegador. Use “Salvar cópia” para baixar o arquivo .json; limpar os dados do navegador pode apagar seus registros. Guarde a cópia em local seguro.",
+    "Neste navegador. Limpar seus dados pode apagar os registros. Use “Salvar cópia” e guarde o arquivo .json em local seguro.",
   ],
   [
     "Perdi a cópia. Posso continuar?",
-    "Se usou este navegador, abra seu perfil em “Continuar”: os meses anteriores continuam locais. Em outro aparelho ou após limpar os dados, você pode criar uma folha para o novo mês; os registros antigos dependem da cópia ou do navegador original. Não há sincronização automática.",
+    "Se ainda usa o mesmo navegador, abra seu perfil em “Continuar”. Em outro aparelho ou após limpar os dados, você pode começar um novo mês. Para recuperar registros antigos, use a cópia ou o navegador original. Os aparelhos não são sincronizados.",
   ],
   [
     "Como as horas são calculadas?",
-    "A chegada é arredondada para a hora anterior; a saída, para a seguinte. Exemplo: 13h30 às 17h30 = 5h. A referência é de 8h semanais e aproximadamente 32h mensais.",
+    "Cada hora iniciada conta como uma hora inteira. Por exemplo, das 13h30 às 17h30 são 5 horas. A referência é de 8 horas por semana e cerca de 32 horas por mês.",
   ],
   [
     "Como preparo o formulário de cada atividade?",
-    "Em “Atividades do mês”, escolha “Preparar formulário”, confira sua identificação e selecione o tipo da atividade. Abra o Forms preenchido, complete as próximas etapas e envie pelo Google. Depois volte e marque “Marcar como enviado”. Se editar a atividade depois disso, ela aparecerá como “Revisar envio”.",
+    "Em “Atividades do mês”, escolha “Forms” e confira os dados. Abra o formulário e envie pelo Google. Depois volte e marque “Já enviei”. Se editar a atividade, confira o envio novamente.",
   ],
   [
     "Como imprimo e assino?",
-    "Na aba “Folha oficial”, escolha a atividade e anexe PDFs, JPEGs ou PNGs abaixo da prévia. Use “Vincular a atividades” para associar arquivos já enviados. No PDF, os comprovantes aparecem depois da folha, na ordem das atividades. Arquivos sem vínculo ficam no final. Use papel A4 em paisagem e confira o PDF completo antes de assinar.",
+    "Em “Comprovantes”, escolha os arquivos, confira as prévias e selecione as atividades de cada um. Um arquivo pode comprovar várias atividades. Depois, escolha “Salvar comprovantes”. Em “Folha”, confira e imprima em A4 horizontal. Os comprovantes aparecem depois da folha. Arquivos sem atividade ficam no final.",
   ],
 ];
 

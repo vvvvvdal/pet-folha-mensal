@@ -72,8 +72,7 @@ function Conclusion({
           <Download size={24} aria-hidden="true" />
           <div>
             <h3>Cópia de segurança</h3>
-            <p>Guarde uma cópia sempre que atualizar seus registros.</p>
-            {jsonTriggered && <p role="status">Ação de salvar acionada. Confira o arquivo na pasta escolhida.</p>}
+            {jsonTriggered && <p role="status">Confira se a cópia foi salva na pasta escolhida.</p>}
           </div>
           <button className="secondary-button" disabled={busy} onClick={() => void download("json")}>{jsonTriggered ? "Salvar outra cópia" : "Salvar cópia"}</button>
         </div>
@@ -89,7 +88,7 @@ function Conclusion({
         {exitWarning && (
           <div className="operation-notice" role="alert">
             <p>
-              Há alterações nesta sessão e você ainda não acionou a cópia.
+              Há alterações nesta sessão e você ainda não salvou uma cópia.
               Deseja sair mesmo assim?
             </p>
             <button className="secondary-button" onClick={onConfirmExit}>
@@ -109,7 +108,7 @@ function Conclusion({
             Continuar editando
           </button>
           <button className="primary-button" disabled={busy} onClick={leave}>
-            Sair / trocar participante <ArrowRight size={18} />
+            Sair <ArrowRight size={18} />
           </button>
         </footer>
       </section>

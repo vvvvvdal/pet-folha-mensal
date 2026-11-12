@@ -47,7 +47,6 @@ import {
 import { Navbar, AccountScreen, type WorkspaceTab } from "@/components/Navbar";
 import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
-import { LocalNotices } from "@/components/LocalNotices";
 import { ProfileModal } from "@/components/ProfileModal";
 import { AdminModal } from "@/components/AdminModal";
 import { StatsGrid } from "@/components/StatsGrid";
@@ -232,7 +231,7 @@ export default function Home() {
       return true;
     } catch {
       setStorageError(
-        "Não foi possível salvar. Verifique o espaço e as permissões do navegador. Seu preenchimento foi mantido; tente novamente.",
+        "Não foi possível salvar. Verifique o espaço e as permissões do navegador. Seu preenchimento foi mantido. Tente novamente.",
       );
       return false;
     }
@@ -526,7 +525,7 @@ export default function Home() {
       a.download = filename;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showToast("Download da cópia de segurança iniciado.");
+      showToast("Download da cópia iniciado.");
       return true;
     } catch {
       setStorageError(
@@ -745,7 +744,7 @@ export default function Home() {
               <h1>
                 {activeTab === "dashboard" ? "Frequência" : activeTab === "attachments" ? "Comprovantes" : "Folha"}
               </h1>
-              <p>
+              <p hidden={activeTab === "attachments"}>
                 {activeTab === "dashboard"
                   ? `GAT ${activeUser.gatNumber} · ${activeUser.gatName || gats[activeUser.gatNumber]?.name || "PET"}`
                   : activeTab === "attachments" ? "Fotos e PDFs que acompanham as atividades do mês." : "Confira os dados antes de imprimir e assinar."}
@@ -774,7 +773,6 @@ export default function Home() {
           {activeTab === "account" && <AccountScreen user={activeUser} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} />}
           {sheetsOpen && <Modal isOpen label="Minhas folhas" onClose={() => setSheetsOpen(false)}><div className="saved-sheets"><header><h2>Minhas folhas</h2><button className="secondary-button" onClick={() => setSheetsOpen(false)}>Voltar</button></header><p>Escolha um mês deste perfil. Você também pode começar uma folha vazia.</p>{Array.from(new Set([...PROJECT_MONTHS, monthKey])).sort().map((month) => <button className="secondary-button" key={month} onClick={async () => { if (await changeMonth(month)) { setUndoActivity(null); setActiveTab("official"); setSheetsOpen(false); } }}>{getMonthYearLabel(month)} · {getActivitiesForMonth(activeUser.id, month).length} atividades</button>)}</div></Modal>}
 
-          {activeTab === "dashboard" && <LocalNotices activities={activities} monthKey={monthKey} hasChanges={hasChanges} onSaveCopy={handleExportBackup} />}
 
           {/* ABA 1: PAINEL DE LANÇAMENTOS */}
           {activeTab === "dashboard" && (

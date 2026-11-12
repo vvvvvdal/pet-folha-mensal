@@ -76,7 +76,6 @@ export function NewsPopover({ id, variant = "app" }: { id?: string; variant?: "e
       }}>
       <header><h2>Novidades</h2><p>{unseenCount(sessionSeen) ? `${unseenCount(sessionSeen)} novas desde a sua última visita` : "Você está em dia com as atualizações."}</p></header>
       <div className="news-scroll"><ReleaseNotes variant="popover" unreadCount={unseenCount(sessionSeen)} /></div>
-      <footer>Toque no sino de novo para fechar.</footer>
     </div>
   </div>;
 }

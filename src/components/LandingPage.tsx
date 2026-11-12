@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   Download,
@@ -11,6 +11,7 @@ import {
   Clock,
   HelpCircle,
   Moon,
+  MoreHorizontal,
   Settings2,
   Sun,
 } from "lucide-react";
@@ -60,6 +61,28 @@ export function LandingPage({
   const [helpOpen, setHelpOpen] = useState(false);
   const [profileId, setProfileId] = useState(profiles[0]?.id || "");
   const fileRef = useRef<HTMLInputElement>(null);
+  const optionsTrigger = useRef<HTMLButtonElement>(null);
+  const optionsPanel = useRef<HTMLDivElement>(null);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  function positionOptions() {
+    const rect = optionsTrigger.current?.getBoundingClientRect();
+    if (!rect || !optionsPanel.current) return;
+    optionsPanel.current.style.setProperty("--options-top", `${rect.bottom + 8}px`);
+    optionsPanel.current.style.setProperty("--options-right", `${Math.max(12, window.innerWidth - rect.right)}px`);
+  }
+  useEffect(() => {
+    if (!optionsOpen) return;
+    window.addEventListener("scroll", positionOptions, true);
+    window.addEventListener("resize", positionOptions);
+    return () => {
+      window.removeEventListener("scroll", positionOptions, true);
+      window.removeEventListener("resize", positionOptions);
+    };
+  }, [optionsOpen]);
+  function optionsAction(action: () => void) {
+    optionsPanel.current?.hidePopover();
+    action();
+  }
 
   function finishOnboarding() {
     try { localStorage.setItem("pet_folha_onboarding_seen", "1"); } catch { /* Access remains available without storage. */ }
@@ -85,29 +108,19 @@ export function LandingPage({
             <a className="entry-nav-link" href="#perguntas">Dúvidas</a>
             <a className="entry-header-access" href="#acesso">Continuar minha folha</a>
             <NewsPopover id="entry-news" variant="entry" />
-            <button
-              className="icon-button"
-              onClick={() => setHelpOpen(true)}
-              aria-label="Abrir ajuda"
-            >
-              <HelpCircle size={20} />
+            <button ref={optionsTrigger} type="button" className="icon-button entry-options-trigger"
+              aria-label="Mais opções" aria-controls="entry-options" aria-expanded={optionsOpen}
+              popoverTarget="entry-options" onClick={positionOptions}>
+              <MoreHorizontal size={22} aria-hidden="true" />
             </button>
-            <button
-              className="icon-button"
-              onClick={toggleTheme}
-              aria-label={
-                theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"
-              }
-            >
-              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button
-              className="icon-button"
-              onClick={onOpenAdmin}
-              aria-label="Abrir configurações locais"
-            >
-              <Settings2 size={20} />
-            </button>
+            <div ref={optionsPanel} id="entry-options" popover="auto" className="entry-options-panel"
+              aria-label="Mais opções" role="region"
+              onBeforeToggle={(event) => { if (event.newState === "open") positionOptions(); }}
+              onToggle={(event) => setOptionsOpen(event.newState === "open")}>
+              <button type="button" onClick={() => optionsAction(() => setHelpOpen(true))}><HelpCircle size={20} aria-hidden="true" />Ajuda</button>
+              <button type="button" onClick={() => optionsAction(toggleTheme)}>{theme === "dark" ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}{theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}</button>
+              <button type="button" onClick={() => optionsAction(onOpenAdmin)}><Settings2 size={20} aria-hidden="true" />Configurações locais</button>
+            </div>
           </nav>
         </div>
       </header>
@@ -128,8 +141,8 @@ export function LandingPage({
               <div className="entry-preview-heading"><span>Novembro de 2026</span><span>GAT 2 · Buriti</span></div>
               <p><strong>21</strong> de 32 horas no mês</p>
               <div className="entry-preview-bar" aria-hidden="true"><span /></div>
-              <div className="entry-preview-row"><span>ter<br /><strong>17</strong></span><span><strong>Reunião do GAT 2</strong><br />14:00 – 18:00</span><strong>4 h</strong></div>
-              <div className="entry-preview-row"><span>qui<br /><strong>12</strong></span><span><strong>Estudo dirigido</strong><br />14:00 – 15:30</span><strong>2 h</strong></div>
+              <div className="entry-preview-row"><span>ter<br /><strong>17</strong></span><span><strong>Reunião do GAT 2</strong><br />14:00 às 18:00</span><strong>4 h</strong></div>
+              <div className="entry-preview-row"><span>qui<br /><strong>12</strong></span><span><strong>Estudo dirigido</strong><br />14:00 às 15:30</span><strong>2 h</strong></div>
             </div>
             <div className="entry-preview-note"><Clock size={20} aria-hidden="true" /><span><strong>14:00 às 15:30 = 2 horas</strong><br />hora iniciada conta como hora cheia</span></div>
           </div>
@@ -247,9 +260,9 @@ export function LandingPage({
                       }}
                     />
                     <p className="access-hint">
-                      Sem o arquivo? Se usou este navegador, procure em “Continuar”.
-                      Em outro aparelho, você pode criar a folha do novo mês; os
-                      registros antigos dependem da cópia ou do navegador original.
+                      Sem a cópia? Procure seu perfil neste navegador. Em outro aparelho,
+                      você pode começar um novo mês. Para recuperar registros antigos,
+                      use a cópia ou o navegador original.
                     </p>
                   </div>
                 )}

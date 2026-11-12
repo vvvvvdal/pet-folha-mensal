@@ -57,7 +57,7 @@ export function ProfileModal({
       )
     ) {
       await alert({
-        title: "Nome Duplicado",
+        title: "Nome já cadastrado",
         message: `Já existe outro participante cadastrado com o nome "${name.trim()}".`,
         variant: "warning",
       });

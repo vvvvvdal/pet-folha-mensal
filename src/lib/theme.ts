@@ -27,6 +27,8 @@ function subscribe(callback: () => void) {
   query.addEventListener("change", update);
   window.addEventListener(themeEvent, update);
   window.addEventListener("storage", storage);
+  // The system may change between the initial theme script and hydration.
+  update();
   return () => {
     query.removeEventListener("change", update);
     window.removeEventListener(themeEvent, update);
