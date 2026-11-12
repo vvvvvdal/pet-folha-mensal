@@ -12,9 +12,9 @@ export function Brand() {
       />
       <span>
         <strong>
-          PET-Saúde <span className="text-info">Clima</span>
+          PET Folha
         </strong>
-        <small>Folha de frequência mensal</small>
+        <small>PET-Saúde Clima · UFG</small>
       </span>
     </span>
   );

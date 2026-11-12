@@ -8,10 +8,12 @@ export function SiteFooter({
   compact = false,
   onHelp,
   onFeedback,
+  onNews,
 }: {
   compact?: boolean;
   onHelp: () => void;
   onFeedback: () => void;
+  onNews?: () => void;
 }) {
   return (
     <footer className="site-footer screen-only compact">
@@ -46,6 +48,7 @@ export function SiteFooter({
                 </a>
               </>
             )}
+            {onNews && <button onClick={onNews}>Novidades</button>}
             <button onClick={onHelp}>Ajuda</button>
             <button onClick={onFeedback}>Avaliar</button>
           </nav>

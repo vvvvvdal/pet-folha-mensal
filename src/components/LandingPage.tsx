@@ -4,8 +4,11 @@ import { useRef, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   Download,
-  FileJson,
   FileText,
+  Plus,
+  BarChart3,
+  LockKeyhole,
+  Clock,
   HelpCircle,
   Moon,
   Settings2,
@@ -15,7 +18,9 @@ import { UserProfile, UserRole, GATInfo } from "@/types";
 import { useTheme } from "@/lib/theme";
 import { Brand } from "./Brand";
 import { FAQ, HelpModal } from "./Help";
-import { ReleaseNotes } from "./ReleaseNotes";
+import { NewsPopover } from "./NewsPopover";
+import { Onboarding } from "./Onboarding";
+import "./entry-redesign.css";
 import { SiteFooter } from "./SiteFooter";
 import { Frame, FrameHeader, FramePanel, SegmentedControl, SegmentedControlItem } from "./ui/access-controls";
 
@@ -44,12 +49,22 @@ export function LandingPage({
   const [tab, setTab] = useState<"local" | "create" | "upload">(
     profiles.length ? "local" : "create",
   );
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (profiles.length || typeof window === "undefined") return false;
+    try { return localStorage.getItem("pet_folha_onboarding_seen") !== "1"; }
+    catch { return true; }
+  });
   const [name, setName] = useState("");
   const [gat, setGat] = useState(Object.keys(gats)[0] || "");
   const [role, setRole] = useState(roles[0] || "");
   const [helpOpen, setHelpOpen] = useState(false);
   const [profileId, setProfileId] = useState(profiles[0]?.id || "");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  function finishOnboarding() {
+    try { localStorage.setItem("pet_folha_onboarding_seen", "1"); } catch { /* Access remains available without storage. */ }
+    setShowOnboarding(false);
+  }
 
   function createProfile(event: FormEvent) {
     event.preventDefault();
@@ -64,7 +79,12 @@ export function LandingPage({
       <header className="entry-header">
         <div className="entry-header-inner">
           <Brand />
-          <nav aria-label="Ajuda e preferências">
+          <nav aria-label="Seções e preferências">
+            <a className="entry-nav-link" href="#como-funciona">Como funciona</a>
+            <a className="entry-nav-link" href="#arquivos">O que guardar</a>
+            <a className="entry-nav-link" href="#perguntas">Dúvidas</a>
+            <a className="entry-header-access" href="#acesso">Continuar minha folha</a>
+            <NewsPopover id="entry-news" variant="entry" />
             <button
               className="icon-button"
               onClick={() => setHelpOpen(true)}
@@ -92,16 +112,34 @@ export function LandingPage({
         </div>
       </header>
       <main className="start-main">
-        <div className="start-heading">
-          <p className="section-kicker">PET-Saúde Clima · UFG</p>
-          <h1>Folha de frequência</h1>
-          <p>Registre suas atividades e prepare a folha mensal para assinatura.</p>
-        </div>
+        <section className="entry-hero" aria-labelledby="entry-title">
+          <div className="entry-hero-copy">
+            <span className="entry-eyebrow">Folha de frequência mensal</span>
+            <h1 id="entry-title">Sua folha do mês, pronta para assinar.</h1>
+            <p>Anote cada atividade quando ela acontece. O PET Folha soma as horas pela regra do programa e monta a folha oficial em PDF.</p>
+            <div className="entry-hero-actions">
+              <a className="primary-button" href="#acesso" onClick={() => setTab("create")}>Começar agora <ArrowRight size={20} /></a>
+              <a className="entry-secondary-button" href="#acesso" onClick={() => setTab(profiles.length ? "local" : "create")}>Continuar minha folha</a>
+            </div>
+            <p className="entry-privacy"><LockKeyhole size={17} aria-hidden="true" /> Sem cadastro e sem senha. Os registros ficam neste aparelho.</p>
+          </div>
+          <div className="entry-preview" aria-label="Exemplo ilustrativo de uma folha">
+            <div className="entry-preview-card">
+              <div className="entry-preview-heading"><span>Novembro de 2026</span><span>GAT 2 · Buriti</span></div>
+              <p><strong>21</strong> de 32 horas no mês</p>
+              <div className="entry-preview-bar" aria-hidden="true"><span /></div>
+              <div className="entry-preview-row"><span>ter<br /><strong>17</strong></span><span><strong>Reunião do GAT 2</strong><br />14:00 – 18:00</span><strong>4 h</strong></div>
+              <div className="entry-preview-row"><span>qui<br /><strong>12</strong></span><span><strong>Estudo dirigido</strong><br />14:00 – 15:30</span><strong>2 h</strong></div>
+            </div>
+            <div className="entry-preview-note"><Clock size={20} aria-hidden="true" /><span><strong>14:00 às 15:30 = 2 horas</strong><br />hora iniciada conta como hora cheia</span></div>
+          </div>
+        </section>
         <div className="start-layout">
           <section id="acesso" aria-labelledby="access-title">
             <Frame>
               <FrameHeader><h2 id="access-title">Abrir minha folha</h2></FrameHeader>
               <FramePanel>
+                {showOnboarding ? <Onboarding onComplete={finishOnboarding} onRestore={() => { setTab("upload"); finishOnboarding(); }} /> : <>
                 <SegmentedControl aria-label="Como deseja começar">
                   {profiles.length > 0 && (
                     <SegmentedControlItem selected={tab === "local"} onClick={() => setTab("local")}>Continuar</SegmentedControlItem>
@@ -218,30 +256,26 @@ export function LandingPage({
                 <p className="local-note">
                   Os registros ficam neste navegador. Quem usa este navegador pode abrir os perfis salvos. Não há sincronização entre aparelhos.
                 </p>
+                </>}
               </FramePanel>
             </Frame>
           </section>
-          <aside className="file-guide" aria-labelledby="files-title">
-            <h2 id="files-title">JSON e PDF: o que guardar</h2>
-            <div className="file-guide-item">
-              <FileJson size={24} aria-hidden="true" />
-              <div>
-                <h3><span className="file-extension">.json</span> Cópia para continuar</h3>
-                <p>O JSON é um arquivo que guarda sua identificação, as atividades, os comprovantes e o controle dos relatórios da folha. Ele permite continuar editando ou levar os registros para outro aparelho.</p>
-                <p>Na sua folha, use <strong>Salvar cópia</strong>. Para abrir o arquivo aqui, escolha <strong>Restaurar cópia</strong>. Não precisa abrir nem editar o JSON por conta própria; guarde-o em local seguro.</p>
-              </div>
-            </div>
-            <div className="file-guide-item">
-              <FileText size={24} aria-hidden="true" />
-              <div>
-                <h3><span className="file-extension">.pdf</span> Folha para assinar</h3>
-                <p>Em <strong>Folha oficial</strong>, use <strong>Imprimir / salvar PDF</strong> para gerar o documento de assinatura. O PDF não permite restaurar as atividades no sistema.</p>
-              </div>
-            </div>
-            <p className="file-guide-tip">Ao terminar o mês, guarde os dois: o PDF para assinatura e o JSON para manter uma cópia editável.</p>
-          </aside>
         </div>
-        <ReleaseNotes />
+        <section id="como-funciona" className="entry-how" aria-labelledby="how-title">
+          <div className="entry-section-heading"><p className="section-kicker">Como funciona</p><h2 id="how-title">Três passos por mês.</h2></div>
+          <div className="entry-steps">
+            <article><span><Plus size={20} aria-hidden="true" /></span><h3>1. Registre as atividades</h3><p>Data, chegada, saída e o que foi feito. As horas aparecem antes de você salvar.</p></article>
+            <article><span><BarChart3 size={20} aria-hidden="true" /></span><h3>2. Acompanhe as 8 h da semana</h3><p>Veja quanto falta em cada semana e no mês, com a referência de cerca de 32 horas.</p></article>
+            <article><span><FileText size={20} aria-hidden="true" /></span><h3>3. Gere a folha e assine</h3><p>O PDF sai no modelo oficial. Envie assinado até o 1º dia útil do mês seguinte.</p></article>
+          </div>
+        </section>
+        <section id="arquivos" className="entry-files" aria-labelledby="files-title">
+          <div className="entry-section-heading"><p className="section-kicker">O que guardar</p><h2 id="files-title">Dois arquivos, cada um com sua função.</h2><p>Ao terminar o mês, guarde os dois. Não há sincronização entre aparelhos: a cópia é o que permite continuar em outro lugar.</p></div>
+          <div className="entry-file-cards">
+            <article><span>.pdf</span><h3>Folha para assinar</h3><p>É o documento que você imprime ou assina e envia. Ele não traz os registros de volta para edição.</p></article>
+            <article><span>.json</span><h3>Cópia para continuar</h3><p>Guarda sua identificação, atividades, comprovantes e relatórios. Use Restaurar cópia para abrir em outro aparelho.</p></article>
+          </div>
+        </section>
         <section
           className="faq-section"
           id="perguntas"
@@ -254,6 +288,12 @@ export function LandingPage({
       <SiteFooter
         onHelp={() => setHelpOpen(true)}
         onFeedback={onOpenFeedback}
+        onNews={() => {
+          const trigger = document.querySelector<HTMLButtonElement>('[aria-controls="entry-news"]');
+          trigger?.scrollIntoView({ block: "center" });
+          trigger?.focus({ preventScroll: true });
+          trigger?.click();
+        }}
       />
       <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>

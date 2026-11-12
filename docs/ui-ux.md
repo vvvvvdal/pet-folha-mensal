@@ -19,7 +19,7 @@ existente, sem recriar, alterar sua função/GAT ou apagar os meses anteriores.
 A restauração atende à troca de aparelho. A interface explica que os registros
 antigos dependem do navegador original ou da cópia .json; um PDF não os restaura.
 A entrada mostra, sem expansão, o que é o JSON, como salvar/restaurar e a
-finalidade distinta do PDF. A prévia demonstrativa foi removida. FAQ/ajuda
+finalidade distinta do PDF. A entrada inclui uma prévia ilustrativa identificada, com dados de exemplo. FAQ/ajuda
 continuam disponíveis. Frame e Segmented Control foram adaptados dos componentes
 nativos do Frequência Hub; [origem e licença](THIRD-PARTY-UI.md).
 
@@ -31,7 +31,7 @@ o cadastro repetido ainda pode oferecer a retomada do perfil armazenado.
 Isso é uma apresentação local, sem diretório remoto. Qualquer pessoa que use o
 mesmo navegador pode abrir seus perfis, como informa a entrada.
 
-### Minha frequência
+### Frequência
 
 Mês, participante e GAT definem o contexto. O mês inicial acompanha a data atual,
 limitado aos meses da vigência. A seleção cobre agosto/2026 a agosto/2028. Um mês
@@ -72,9 +72,9 @@ preservados. A folha oficial mantém sua escala em pontos e entrelinha própria.
 ### Cópia, restauração e conclusão
 
 “Salvar cópia” produz o JSON para continuar editando e leva os comprovantes originais. “Imprimir / salvar PDF”
-abre a impressão da folha para assinatura. A conclusão distingue as duas ações e
+abre a impressão da folha para assinatura. A janela “Antes de sair” distingue as duas ações e
 mantém confirmação de saída quando existem alterações sem cópia acionada.
-Na aba **Folha oficial**, a seção opcional **Comprovantes** fica abaixo da prévia.
+A aba **Comprovantes** reúne os arquivos opcionais do perfil e mês selecionados.
 Escolha **Atividade** para o lote ou use **Vincular a atividades** nos arquivos já
 salvos. O mesmo arquivo pode aparecer em várias atividades. O navegador guarda
 um original, com limites de 20 MB por arquivo, 40 MB por mês e 30 páginas de
@@ -174,22 +174,35 @@ confirmação mostram "Revisar envio". O preparo e a confirmação acompanham a
 cópia 1.2; respostas extras são opcionais e não invalidam confirmações antigas.
 Cópias 1.0 e 1.1 entram com os relatórios pendentes.
 
-## Layout em tela única
+## Navegação e uso diário — 12/11/2026
 
-No desktop, a tela mantém o formulário ao lado da lista. A partir de 900 px
-de largura e 760 px de altura, a área de trabalho cabe na janela e as listas
-rolam dentro da região. No celular, **Adicionar atividade** abre o formulário
-em janela de tela cheia. Voltar à lista preserva o rascunho e mostra
-**Continuar atividade**.
+Frequência, Folha e Comprovantes aparecem no menu lateral do computador e na
+barra inferior do celular. No desktop, lista e formulário ficam lado a lado;
+no celular, Adicionar atividade abre uma folha inferior e preserva o rascunho
+ao voltar. A página rola para acomodar os campos e listas extensas.
 
-Edição, identificação, preparo do Forms, vínculo de comprovantes e conclusão
-usam cabeçalho e rodapé visíveis, com rolagem no corpo quando necessário.
-O Forms agrupa dados da atividade e identificação em duas colunas no desktop.
+No computador, Restaurar cópia e Salvar cópia ficam juntos no cabeçalho.
+No celular, o botão Cópia abre um menu curto com Salvar cópia e Restaurar cópia,
+ícones e explicações. As duas ações ficam disponíveis durante o uso diário. Não há “Fechar o mês”. O menu de perfil (computador) e Conta (avatar
+no celular) reúnem identificação, Minhas folhas, tema, ajuda e Sair.
+A saída preserva os registros, oferece cópia/PDF e alerta sobre alterações
+sem cópia. Minhas folhas permite escolher um mês do perfil; o seletor de mês
+continua disponível. Trocas preservam a confirmação de descarte de rascunho.
 
-A revisão desta composição passou em 24 testes locais e 32 de navegador, em
-Chromium desktop e celular emulado, com temas claro e escuro. Foram conferidos
-rascunhos, edição, foco, impressão e compatibilidade das cópias. Build, tipagem e
-lint passaram, com os três avisos preexistentes do script legado.
+Tema inicial claro, com Claro/Escuro/Sistema persistidos no navegador. O resumo
+alterna Mensal/Semanal, lembrando a escolha. Semanas começam na segunda-feira,
+recortadas nas bordas do mês; todas as barras usam verde e a referência semanal
+é de 8 h. O total mensal aproximado de 32 h não substitui a conferência semanal.
+
+A entrada apresenta a prévia do produto, três passos, arquivos e dúvidas.
+Onboarding oferece duas telas introdutórias e identificação, com Pular e
+atalho para restaurar cópia; aparece apenas no primeiro acesso do navegador.
+As confirmações de operação aparecem por cinco segundos, pausando ao receber
+foco ou ponteiro. A última inclusão/edição pode ser desfeita enquanto não houver
+outra alteração ou troca de seção/mês; outras operações invalidam a ação.
+Lembretes locais ficam numa seção expansível: prazo institucional, referência
+da semana corrente (com aviso das semanas parciais) e cópia pendente.
+
 
 ## Peso dos comprovantes
 
@@ -198,12 +211,11 @@ JPEG a 80% com fundo branco, a ~150 dpi, em vez de PNG, para manter o PDF final
 abaixo dos 5 MB aceitos para assinatura. Fotos que já cabem na página não são
 recodificadas. O tamanho final não foi medido com comprovantes reais.
 
-Na entrada, Novidades apresenta a publicação mais recente e um histórico
-expansível antes das dúvidas frequentes. O sino no cabeçalho da folha abre o
-mesmo histórico em um diálogo nas duas abas da aplicação. O ponto no sino
-indica uma publicação ainda não aberta neste navegador. As datas vêm de
-publicações registradas em `src/lib/releases.ts`. A retomada de perfil é descrita como
-dados guardados no navegador.
+Na entrada e na aplicação, o sino abre um popover de Novidades ancorado ao
+botão, sem ×. Fecha pelo sino, clique fora ou Escape. O marcador de leitura é
+compartilhado e gravado ao abrir. Atualizações novas aparecem completas;
+anteriores ficam no histórico expansível. Os dados vêm de `src/lib/releases.ts`.
+O rodapé da entrada abre o mesmo painel. O sino não reúne pendências locais.
 
 Validação de 07/11/2026 para Forms assistido: 22 testes locais, build e tipagem
 aprovados. Lint sem erros, com três avisos dos scripts legados. Os 24 casos

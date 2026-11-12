@@ -56,3 +56,9 @@
 - [x] Mostrar novidades com data de publicação e histórico expansível na entrada.
 
 - [ ] Avaliar futura reformulação do Forms para reunir atividades em um envio, condicionada à definição do fluxo pela coordenação e ao acesso de edição.
+
+## Nova interface — 12/11/2026
+
+- [x] Implementar entrada/onboarding, navegação Frequência/Folha/Comprovantes, perfil/Conta, temas Claro/Escuro/Sistema, resumo mensal/semanal e novidades no sino conforme HTML e [decisões confirmadas](docs/ui-nova-interface.md).
+- [x] Manter Salvar cópia como ação diária nos dois tamanhos e Sair com preservação dos dados e aviso de cópia.
+- [x] Acrescentar lembretes locais expansíveis e Desfazer da última inclusão/edição, invalidado por alterações posteriores ou troca de seção/mês.

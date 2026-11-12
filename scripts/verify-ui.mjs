@@ -12,6 +12,8 @@ afterEach(() => {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const load = createRequire(path.join(root, "package.json"));
 const ts = load("typescript");
+// CSS is bundled by Next.js; static markup checks do not execute stylesheets.
+Module._extensions[".css"] = () => {};
 const originalResolve = Module._resolveFilename;
 Module._resolveFilename = function (name, ...args) {
   return originalResolve.call(
@@ -39,6 +41,7 @@ const React = load("react");
 const { renderToStaticMarkup } = load("react-dom/server");
 const {
   calcPetHours,
+  hoursByWeekOfMonth,
   getCurrentMonth,
   getDefaultActivityDate,
   PROJECT_MONTHS,
@@ -96,6 +99,22 @@ test("cálculo oficial: frações, horários iguais e intervalos inválidos", ()
   assert.equal(calcPetHours("14:00", "14:00"), 0);
   assert.equal(calcPetHours("15:00", "14:00"), 0);
   assert.equal(calcPetHours("", ""), 0);
+});
+
+test("resumo semanal inclui limites do mês e ignora datas de outros meses", () => {
+  const weeks = hoursByWeekOfMonth([
+    { date: "2026-11-01", hours: 2 },
+    { date: "2026-11-02", hours: 5 },
+    { date: "2026-11-30", hours: 4 },
+    { date: "2026-12-01", hours: 9 },
+    { date: "2026-11-31", hours: 10 },
+  ], "2026-11");
+  assert.deepEqual(weeks.map(({ start, end, hours }) => [start, end, hours]), [
+    [1, 1, 2], [2, 8, 5], [9, 15, 0], [16, 22, 0], [23, 29, 0], [30, 30, 4],
+  ]);
+  assert.equal(hoursByWeekOfMonth([], "2026-02").at(-1).end, 28);
+  assert.equal(hoursByWeekOfMonth([], "2028-02").at(-1).end, 29);
+  assert.deepEqual(hoursByWeekOfMonth([], "2026-13"), []);
 });
 
 test("perfil novo, inclusão, edição, exclusão e isolamento por mês e participante", () => {
@@ -225,10 +244,10 @@ test("entrada apresenta acesso e explicação visível do JSON e PDF antes do FA
   );
   assert.ok(html.indexOf('id="acesso"') < html.indexOf('id="files-title"'));
   assert.ok(html.indexOf('id="files-title"') < html.indexOf('id="perguntas"'));
-  assert.match(html, /O JSON é um arquivo que guarda sua identificação/);
-  assert.match(html, /O PDF não permite restaurar/);
+  assert.match(html, /Guarda sua identificação, atividades, comprovantes e relatórios/);
+  assert.match(html, /Ele não traz os registros de volta para edição/);
   assert.match(html, /Quem usa este navegador pode abrir/);
-  assert.doesNotMatch(html, /Veja como sua folha|preview-disclosure|Sua frequência,|Vamos começar/);
+  assert.match(html, /Sua folha do mês, pronta para assinar/);
   verifyLabelTargets(html);
   assert.match(html, /Felipe Vidal/);
   assert.match(html, /Robert Taveira/);
@@ -503,10 +522,11 @@ test("entrada oferece os perfis locais sem exigir cópia e resumo não promete a
   assert.match(html, /Participante de teste/);
   const { StatsGrid } = load("./src/components/StatsGrid.tsx");
   const summary = renderToStaticMarkup(
-    React.createElement(StatsGrid, { totalHours: 32, activitiesCount: 8 }),
+    React.createElement(StatsGrid, { totalHours: 32, activitiesCount: 8, monthKey: "2026-11" }),
   );
   assert.doesNotMatch(summary, /Apta|Média semanal/);
-  assert.match(summary, /distribuição semanal/);
+  assert.match(summary, /Mensal/);
+  assert.match(summary, /Semanal/);
 });
 
 test("tipo do Forms é sugerido pelo nome da atividade", () => {

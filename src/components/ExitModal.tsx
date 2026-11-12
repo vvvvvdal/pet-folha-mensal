@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, ClipboardList, X, ArrowRight } from "lucide-react";
-import { ACTIVITY_FORM_URL } from "@/lib/form-report";
+import { Download, FileText, X, ArrowRight } from "lucide-react";
 import { Modal } from "./Modal";
 
 interface ExitModalProps {
@@ -56,11 +55,11 @@ function Conclusion({
     onConfirmExit();
   }
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Salvar folha e concluir" variant="editor">
+    <Modal isOpen={isOpen} onClose={onClose} label="Antes de sair" variant="editor">
       <section className="editor-panel editor-narrow">
         <header className="editor-head">
           <div>
-            <h2>Guarde sua folha</h2>
+            <h2>Antes de sair</h2>
             <p className="access-hint">{userName}</p>
           </div>
           <button className="icon-button" onClick={onClose} aria-label="Fechar">
@@ -68,63 +67,25 @@ function Conclusion({
           </button>
         </header>
         <div className="editor-body editor-fields conclusion-body">
+        <p>Salve uma cópia atualizada para proteger seus registros e continuar em outro aparelho.</p>
         <div className="conclusion-option">
           <Download size={24} aria-hidden="true" />
           <div>
             <h3>Cópia de segurança</h3>
-            <p>
-              Guarde uma cópia para continuar editando em outro aparelho.
-            </p>
-            {jsonTriggered && (
-              <p role="status">
-                Ação de salvar acionada. Confira o arquivo na pasta escolhida.
-              </p>
-            )}
+            <p>Guarde uma cópia sempre que atualizar seus registros.</p>
+            {jsonTriggered && <p role="status">Ação de salvar acionada. Confira o arquivo na pasta escolhida.</p>}
           </div>
-          <button
-            className="secondary-button"
-            disabled={busy}
-            onClick={() => void download("json")}
-          >
-            {jsonTriggered ? "Salvar outra cópia" : "Salvar cópia"}
-          </button>
+          <button className="secondary-button" disabled={busy} onClick={() => void download("json")}>{jsonTriggered ? "Salvar outra cópia" : "Salvar cópia"}</button>
         </div>
         <div className="conclusion-option">
           <FileText size={24} aria-hidden="true" />
           <div>
-            <h3>Folha para assinatura</h3>
-            <p>
-              Salve o PDF completo em A4 na horizontal para assinar.
-            </p>
-            {pdfTriggered && (
-              <p role="status">
-                Impressão aberta. Salve o PDF ou imprima na janela do navegador.
-              </p>
-            )}
+            <h3>Folha para assinatura (opcional)</h3>
+            <p>Quando precisar, salve o PDF em A4 na horizontal para assinar.</p>
+            {pdfTriggered && <p role="status">Impressão aberta. Salve o PDF ou imprima na janela do navegador.</p>}
           </div>
-          <button
-            className="secondary-button"
-            disabled={busy}
-            onClick={() => void download("pdf")}
-          >
-            Imprimir / salvar PDF
-          </button>
+          <button className="secondary-button" disabled={busy} onClick={() => void download("pdf")}>Imprimir / salvar PDF</button>
         </div>
-        <div className="conclusion-option">
-          <ClipboardList size={24} aria-hidden="true" />
-          <div>
-            <h3>Formulário de atividades</h3>
-            <p>Preencha um formulário por atividade. Você pode preparar os dados na lista de atividades.</p>
-          </div>
-          <a className="secondary-button" href={ACTIVITY_FORM_URL}
-            target="_blank" rel="noopener noreferrer"
-            aria-label="Abrir formulário de atividades">
-            Abrir formulário
-          </a>
-        </div>
-        <p className="local-note">
-          Salve a cópia para proteger seus dados e continuar em outro aparelho.
-        </p>
         {exitWarning && (
           <div className="operation-notice" role="alert">
             <p>

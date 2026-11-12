@@ -6,7 +6,7 @@ Este guia adapta os padrões de estrutura, componentes e verificação do Frequ�
 
 O mantenedor escolheu o formulário ao lado da lista no desktop no
 [protótipo navegável](wireframe-ui.html). No celular, a lista abre a inclusão
-em janela de tela cheia. A ação de voltar preserva o preenchimento em andamento.
+em folha inferior com corpo rolável. A ação de voltar preserva o preenchimento em andamento.
 
 A prévia cobre lançamentos, folha e comprovantes, edição, identificação,
 Forms, vínculo de arquivos e conclusão. **Esqueleto** mostra a organização;
@@ -15,11 +15,11 @@ ações de salvar são simulados.
 
 As janelas propostas mantêm cabeçalho e ações visíveis, com rolagem no corpo.
 No desktop, Forms e edição usam duas colunas. No celular, a janela ocupa a
-tela. A composição da folha aproxima os comprovantes da prévia no desktop.
+folha inferior. A prévia de impressão e o gerenciamento dos comprovantes ficam em abas próprias.
 
 ## Identidade, temas e tipografia
 
-A interface usa os tokens definidos em `src/app/globals.css` e as marcas do [manual de identidade do PET-Saúde Clima](visual-identity/manual-de-idv.pdf). A aplicação abre em tema escuro e guarda a preferência no navegador. Inter é a família do corpo e Plus Jakarta Sans a dos títulos, com alternativas definidas no CSS. A escala de referência usa 16 px para texto principal e campos, pelo menos 14 px para metadados e ações compactas, 20–24 px para títulos de blocos e 28 px para o título da área de trabalho. A folha oficial usa papel branco e sua escala própria.
+A interface usa os tokens definidos em `src/app/globals.css` e as marcas do [manual de identidade do PET-Saúde Clima](visual-identity/manual-de-idv.pdf). A aplicação abre em tema claro e guarda a preferência Claro/Escuro/Sistema no navegador. Sistema acompanha as mudanças do aparelho. Inter é a família do corpo e Plus Jakarta Sans a dos títulos, com alternativas definidas no CSS. A escala de referência usa 16 px para texto principal e campos, pelo menos 14 px para metadados e ações compactas, 20–24 px para títulos de blocos e 28 px para o título da área de trabalho. A folha oficial usa papel branco e sua escala própria.
 
 | Token | Escuro | Claro | Papel |
 | --- | --- | --- | --- |
@@ -47,8 +47,8 @@ Botões têm texto ou nome acessível, estado de foco visível e alvo de pelo me
 
 - Em larguras pequenas, priorize a ordem de leitura e deixe conteúdo e ações quebrarem linha. A prévia da folha pode rolar dentro da própria região.
 - Em espaço amplo, agrupe campos relacionados e mantenha o formulário ao lado dos registros. Data, chegada e saída pedem larguras menores que a descrição. No celular, formulário e registros seguem em coluna.
-- Use a navegação existente para **Minha frequência** e **Folha oficial**. Mês, perfil e GAT dão contexto à tarefa. Use o rodapé para ajuda e links auxiliares.
-- Mantenha o sino de **Novidades** no cabeçalho das duas abas. Use o diálogo compartilhado e o mesmo histórico da entrada, com indicação de atualização ainda não aberta no navegador.
+- Use **Frequência**, **Folha** e **Comprovantes** no menu lateral (computador) e na barra inferior (celular). Mês, perfil e GAT dão contexto. Conta abre pelo avatar; o menu do perfil reúne identificação, meses, tema, ajuda e saída.
+- Mantenha o sino de **Novidades** na entrada e na aplicação. Use popover nativo ancorado ao sino, sem ×: sino alterna, clique fora e Escape fecham. Marcador de leitura compartilhado no navegador; novidades não vistas completas e histórico expansível.
 - Mantenha rótulos visíveis, erros próximos ao campo, ordem de teclado lógica e o preenchimento em caso de erro. Apresente o cálculo PET antes de incluir a atividade.
 - Em listas compactas, use a informação necessária para identificar cada item e deixe detalhes extensos quebrarem linha. A seleção múltipla oferece um resumo no item e a lista completa no diálogo.
 
@@ -58,9 +58,11 @@ Use transições discretas de foco, hover e abertura onde os componentes já as 
 
 ## Comprovantes e cópia
 
-Na aba **Folha oficial**, a seção **Comprovantes** fica abaixo da prévia. O seletor **Atividade** e o envio dividem uma linha quando há espaço. No celular, o seletor vem acima de **Escolher arquivos**. A escolha vale para o lote. Cada arquivo ocupa uma linha de lista com nome, tamanho, páginas e atividades vinculadas. Os botões quebram linha conforme a largura.
+Na aba **Comprovantes**, os arquivos pertencem ao perfil e mês selecionados; a impressão continua na aba **Folha**. O seletor **Atividade** e o envio dividem uma linha quando há espaço. No celular, o seletor vem acima de **Escolher arquivos**. A escolha vale para o lote. Cada arquivo ocupa uma linha de lista com nome, tamanho, páginas e atividades vinculadas. Os botões quebram linha conforme a largura.
 
 **Vincular a atividades** abre o diálogo de seleção múltipla. Data, horário e descrição ajudam a distinguir os registros. O original é único e pode ser reutilizado. A remoção do arquivo pede confirmação. A contagem de páginas mostra o efeito da repetição no PDF. Os limites, a ordenação na impressão e a compatibilidade de cópias estão no [fluxo de cópia, restauração e conclusão](ui-ux.md#cópia-restauração-e-conclusão).
+
+A referência atual de composição é o HTML fornecido pelo mantenedor em 12/11/2026, com os ajustes em [ui-nova-interface.md](ui-nova-interface.md). Tokens de escala e painéis ficam em `src/app/interface.css`; entrada e resumo possuem CSS local. As fontes são carregadas por `next/font`, preservando a folha impressa.
 
 ## Referências
 

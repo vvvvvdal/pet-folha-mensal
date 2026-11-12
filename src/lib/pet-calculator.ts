@@ -26,6 +26,27 @@ export function calcPetHours(startTimeStr: string, endTimeStr: string): number {
   return Math.max(0, ceilEnd - floorStart);
 }
 
+/** Weeks start on Monday; the first and last are limited to the selected month. */
+export function hoursByWeekOfMonth(activities: Activity[], monthKey: string) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)) return [];
+  const [year, month] = monthKey.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const weeks: { start: number; end: number; hours: number }[] = [];
+  for (let start = 1; start <= daysInMonth;) {
+    const day = new Date(Date.UTC(year, month - 1, start)).getUTCDay();
+    const end = Math.min(daysInMonth, start + ((7 - day) % 7));
+    weeks.push({ start, end, hours: 0 });
+    start = end + 1;
+  }
+  for (const activity of activities) {
+    if (!activity.date.startsWith(`${monthKey}-`) || !/^\d{4}-\d{2}-\d{2}$/.test(activity.date)) continue;
+    const day = Number(activity.date.slice(8));
+    const week = weeks.find((item) => day >= item.start && day <= item.end);
+    if (week && Number.isFinite(activity.hours)) week.hours += activity.hours;
+  }
+  return weeks;
+}
+
 export function formatDateBR(dateStr: string): string {
   if (!dateStr) return "";
   const parts = dateStr.split("-");

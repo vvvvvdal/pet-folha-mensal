@@ -44,7 +44,10 @@ import {
   getCurrentMonth,
   PROJECT_MONTHS,
 } from "@/lib/pet-calculator";
-import { Navbar } from "@/components/Navbar";
+import { Navbar, AccountScreen, type WorkspaceTab } from "@/components/Navbar";
+import { Modal } from "@/components/Modal";
+import { Toast } from "@/components/Toast";
+import { LocalNotices } from "@/components/LocalNotices";
 import { ProfileModal } from "@/components/ProfileModal";
 import { AdminModal } from "@/components/AdminModal";
 import { StatsGrid } from "@/components/StatsGrid";
@@ -64,7 +67,6 @@ import {
   Calendar,
   Download,
   Printer,
-  CheckCircle2,
   ArrowLeft,
 } from "lucide-react";
 import { useDialog } from "@/context/DialogContext";
@@ -90,9 +92,10 @@ export default function Home() {
   const importInProgress = useRef(false);
   const [formRevision, setFormRevision] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "official">(
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>(
     "dashboard",
   );
+  const [sheetsOpen, setSheetsOpen] = useState(false);
   const [showBlankTemplate, setShowBlankTemplate] = useState(false);
   const [reportingActivity, setReportingActivity] = useState<{
     profileId: string; monthKey: string; id: string;
@@ -106,6 +109,8 @@ export default function Home() {
   const printActivitiesRef = useRef(activities);
   const printAttachmentsRef = useRef<HTMLDivElement>(null);
   const clearPrintAttachments = useRef<(() => void) | null>(null);
+  const [undoActivity, setUndoActivity] = useState<{ before: Activity[]; after: string; profileId: string; month: string } | null>(null);
+  const [toastRevision, setToastRevision] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const activeProfileId = activeUser?.id;
@@ -159,8 +164,9 @@ export default function Home() {
   }, [monthKey]);
 
   const showToast = (msg: string) => {
+    setUndoActivity(null);
+    setToastRevision((revision) => revision + 1);
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
   };
 
   const handleSelectProfile = (user: UserProfile) => {
@@ -198,10 +204,13 @@ export default function Home() {
   };
 
   const changeMonth = async (value: string) => {
-    if (value === monthKey || !(await confirmDraft())) return;
+    if (value === monthKey) return await confirmDraft();
+    if (!(await confirmDraft())) return false;
     setDraftDirty(false);
     setEditingActivity(null);
+    setUndoActivity(null);
     setMonthKey(value);
+    return true;
   };
 
   const openConclusion = async () => {
@@ -320,7 +329,10 @@ export default function Home() {
       next,
       editingId ? "Atividade atualizada." : "Atividade adicionada.",
     );
-    if (saved) setEditingActivity(null);
+    if (saved) {
+      setEditingActivity(null);
+      setUndoActivity({ before: activities, after: JSON.stringify(sortActivitiesChronologically(next)), profileId: activeUser.id, month: monthKey });
+    }
     return saved;
   };
 
@@ -683,15 +695,7 @@ export default function Home() {
         />
 
         {/* Toast Notificação */}
-        {toastMessage && (
-          <div
-            role="status"
-            className="fixed bottom-4 right-4 left-4 sm:left-auto px-3.5 py-2 rounded-lg border border-accent/25 bg-surface shadow-[var(--page-shadow)] text-xs font-medium text-body z-50 flex items-center gap-2 animate-fade-in"
-          >
-            <CheckCircle2 className="size-3.5 text-accent shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
+        {toastMessage && <Toast key={toastRevision} message={toastMessage} onClose={() => setToastMessage(null)} />}
       </>
     );
   }
@@ -719,10 +723,12 @@ export default function Home() {
           onTabChange={async (tab) => {
             if (tab === activeTab || (await confirmDraft())) {
               setDraftDirty(false);
+              setUndoActivity(null);
               setActiveTab(tab);
             }
           }}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
+          onOpenSheets={() => setSheetsOpen(true)}
           hasChanges={hasChanges}
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
@@ -734,26 +740,17 @@ export default function Home() {
 
         <main id="conteudo" className="workspace-main" data-tab={activeTab}>
           {notices}
-          <div className="workspace-overview">
+          <div className="workspace-overview" hidden={activeTab === "account"}>
             <div>
               <h1>
-                {activeTab === "dashboard"
-                  ? "Minha frequência"
-                  : "Folha oficial"}
+                {activeTab === "dashboard" ? "Frequência" : activeTab === "attachments" ? "Comprovantes" : "Folha"}
               </h1>
               <p>
                 {activeTab === "dashboard"
                   ? `GAT ${activeUser.gatNumber} · ${activeUser.gatName || gats[activeUser.gatNumber]?.name || "PET"}`
-                  : "Confira os dados antes de imprimir e assinar."}
+                  : activeTab === "attachments" ? "Fotos e PDFs que acompanham as atividades do mês." : "Confira os dados antes de imprimir e assinar."}
               </p>
             </div>
-            {activeTab === "dashboard" && (
-              <StatsGrid
-                totalHours={totalHours}
-                activitiesCount={activities.length}
-                targetHours={32}
-              />
-            )}
             <label className="workspace-month">
               <Calendar className="size-4 text-accent" />
               <span>Mês</span>
@@ -772,6 +769,12 @@ export default function Home() {
               </select>
             </label>
           </div>
+
+          {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} />}
+          {activeTab === "account" && <AccountScreen user={activeUser} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} />}
+          {sheetsOpen && <Modal isOpen label="Minhas folhas" onClose={() => setSheetsOpen(false)}><div className="saved-sheets"><header><h2>Minhas folhas</h2><button className="secondary-button" onClick={() => setSheetsOpen(false)}>Voltar</button></header><p>Escolha um mês deste perfil. Você também pode começar uma folha vazia.</p>{Array.from(new Set([...PROJECT_MONTHS, monthKey])).sort().map((month) => <button className="secondary-button" key={month} onClick={async () => { if (await changeMonth(month)) { setUndoActivity(null); setActiveTab("official"); setSheetsOpen(false); } }}>{getMonthYearLabel(month)} · {getActivitiesForMonth(activeUser.id, month).length} atividades</button>)}</div></Modal>}
+
+          {activeTab === "dashboard" && <LocalNotices activities={activities} monthKey={monthKey} hasChanges={hasChanges} onSaveCopy={handleExportBackup} />}
 
           {/* ABA 1: PAINEL DE LANÇAMENTOS */}
           {activeTab === "dashboard" && (
@@ -898,7 +901,11 @@ export default function Home() {
                   />
                 </div>
               </div>
-              {!showBlankTemplate && (
+
+            </div>
+          )}
+
+              {activeTab === "attachments" && (
                 <MonthlyAttachments
                   key={JSON.stringify([activeUser.id, monthKey, formRevision])}
                   profileId={activeUser.id}
@@ -906,12 +913,9 @@ export default function Home() {
                   activities={activities}
                   busy={attachmentsBusy || preparingPrint || restoring}
                   onBusyChange={setAttachmentsBusy}
-                  onChange={() => setHasChanges(true)}
+                  onChange={() => { setHasChanges(true); setUndoActivity(null); }}
                 />
               )}
-            </div>
-          )}
-
           {reportActivity && (
             <ActivityReportModal
               key={JSON.stringify([activeUser.id, monthKey, reportActivity.id])}
@@ -996,15 +1000,9 @@ export default function Home() {
           />
 
           {/* Toast Notificação Minimalista */}
-          {toastMessage && (
-            <div
-              role="status"
-              className="fixed bottom-4 right-4 left-4 sm:left-auto px-3.5 py-2 rounded-lg border border-accent/25 bg-surface shadow-[var(--page-shadow)] text-xs font-medium text-body z-50 flex items-center gap-2 animate-fade-in"
-            >
-              <CheckCircle2 className="size-3.5 text-accent shrink-0" />
-              <span>{toastMessage}</span>
-            </div>
-          )}
+          {toastMessage && <Toast key={toastRevision} message={toastMessage} onClose={() => { setToastMessage(null); setUndoActivity(null); }} onUndo={undoActivity && undoActivity.profileId === activeUser.id && undoActivity.month === monthKey && JSON.stringify(activities) === undoActivity.after ? () => {
+            persistActivities(undoActivity.before, "Última alteração desfeita.");
+          } : undefined} />}
         </main>
 
         <SiteFooter

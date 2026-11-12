@@ -1,0 +1,28 @@
+.workspace-main .frequency-summary {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(150px, .5fr) minmax(220px, 1fr);
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.workspace-main .frequency-summary .summary-total > span:first-child { display: block; color: var(--muted); font-size: 14px; }
+.workspace-main .frequency-summary .summary-total strong { font-size: 32px; }
+.workspace-main .frequency-summary .summary-total p span { font-size: 15px; }
+.workspace-main .frequency-summary .summary-remaining { display: inline-block; margin-top: 8px; font-size: 14px; color: var(--body); }
+.workspace-main .frequency-summary .summary-progress { display: grid; max-width: none; gap: 12px; }
+.workspace-main .frequency-summary .summary-view-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; }
+.workspace-main .frequency-summary .summary-view-header .ui-segmented { width: auto; }
+.workspace-main .frequency-summary .summary-view-header button { min-height: 40px; padding: 4px 12px; }
+.summary-weeks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; }
+.summary-week > div:first-child { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 14px; }
+.frequency-summary .progress-track { height: 7px; }
+.frequency-summary .progress-track > span { background: var(--primary); }
+.workspace-main .frequency-summary .summary-note { color: var(--muted); font-size: 13px; line-height: 1.4; }
+@media (max-width: 700px) {
+  .workspace-main .frequency-summary { flex: none; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px; }
+  .workspace-main .frequency-summary .summary-progress { display: grid; }
+  .summary-weeks { grid-template-columns: 1fr; }
+}

@@ -1,10 +1,33 @@
 # Proposta de nova interface (novembro de 2026)
 
-Estado: **proposta para revisão do mantenedor**. Nada aqui foi implementado.
-O desenho está no canvas [PET Folha — nova interface](https://claude.ai/artifact/CXGXM1hxx3j9TKDYCKszRb)
-(privado; abra com a conta do mantenedor). Este arquivo diz ao Codex como levar
-o desenho ao código. O [guia de design](ui-design.md) continua valendo até a
-proposta ser aprovada.
+Estado: **implementação local em revisão visual — 12/11/2026**.
+Referência: HTML “PET Folha — nova interface” fornecido pelo mantenedor; os
+rótulos alterados nele prevalecem sobre os exemplos desta proposta. O guia
+[ui-design.md](ui-design.md) registra o padrão atual.
+
+## Decisões confirmadas na implementação (12/11/2026)
+
+- Tema inicial claro; Claro, Escuro e Sistema ficam disponíveis no perfil.
+- Navegação: **Frequência · Folha · Comprovantes**, lateral no computador e
+  inferior no celular. Conta abre pelo avatar no celular.
+- Onboarding de três passos só no primeiro acesso do navegador, com Pular;
+  o terceiro passo reutiliza a identificação.
+- Sino contém apenas novidades; abre e fecha pelo próprio sino, clique fora
+  ou Escape. Entrada e aplicação compartilham histórico e marcador de leitura.
+- **Salvar cópia** e **Restaurar cópia** ficam lado a lado no computador;
+  no celular, o botão **Cópia** reúne as duas ações num menu com explicações. Não há
+  ação “Fechar o mês”. Sair leva à entrada e preserva os dados; a janela
+  “Antes de sair” oferece cópia e PDF e avisa sobre alterações sem cópia.
+- Minhas folhas abre os meses do perfil; o seletor de mês também permanece.
+- E-mail aparece no perfil somente quando existe, sem endereço de exemplo.
+- Semanas são de segunda a domingo, recortadas nas bordas do mês: podem ser
+  quatro, cinco ou seis, sem perder os dias finais. Barras sempre verdes.
+
+Os trechos abaixo preservam a referência original; decisões em aberto e exemplos
+conflitantes foram resolvidos pelos itens acima. Lembretes locais ficam em uma seção expansível própria, com prazo institucional,
+referência da semana e cópia pendente. O toast oferece Desfazer na última inclusão
+ou edição enquanto a transação estiver intacta na mesma tela, perfil e mês.
+Não há confirmação automática de envio, assinatura ou gravação de arquivo no aparelho.
 
 ## O que o canvas contém
 
