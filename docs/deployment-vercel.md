@@ -6,7 +6,13 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
-Publicação atual de 12/11/2026, commit de origem `d838926`, deployment
+Publicação atual de 12/11/2026, origem `e8d0435`, deployment
+`dpl_DDS8Xqox85gQ5fhaa1u6Db5WPHhX`, produção READY. Removida somente a
+etiqueta Folha de frequência mensal do hero da entrada. Lint direcionado e
+build remoto aprovados. Domínio principal conferido com HTTP 200, título
+preservado e etiqueta ausente.
+
+Publicação de 12/11/2026, commit de origem `d838926`, deployment
 `dpl_2EbBmde1QPpctxRuwqGsG8s4GZ4y`, produção, estado READY. O conteúdo exato
 do commit foi enviado pela API conectada, com Next.js e Node 22. Build remoto
 concluído em cerca de 21 segundos. Domínio principal:
