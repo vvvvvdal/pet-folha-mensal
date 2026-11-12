@@ -314,8 +314,8 @@ test("opções da entrada são acessíveis por teclado", async ({ page }) => {
   await page.keyboard.press("Enter");
   const panel = page.getByRole("region", { name: "Mais opções" });
   await expect(panel.getByRole("button", { name: "Ajuda", exact: true })).toBeVisible();
-  await expect(panel.getByRole("button", { name: /Ativar tema/ })).toBeVisible();
-  await expect(panel.getByRole("button", { name: "Configurações locais" })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Tema", exact: true })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Configurações" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
   await expect(trigger).toBeFocused();

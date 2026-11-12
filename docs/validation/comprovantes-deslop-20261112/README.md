@@ -64,6 +64,13 @@ sincroniza o estado atual ao montar, além de acompanhar as próximas mudanças.
 - [Cabeçalho da entrada](entrada.png)
 - [Cabeçalho da entrada no celular](entrada-celular.png)
 
+## Rótulos finais
+
+Tema substitui Ativar tema claro/escuro no menu da entrada. Configurações
+substitui Configurações locais nos menus e no nome acessível da janela.
+Tipagem, build e lint direcionado passaram. Os dois testes de teclado do menu
+passaram novamente em desktop e celular. As capturas foram atualizadas.
+
 ## Limites
 
 Chromium desktop e celular emulado. Homologação em aparelho físico, leitor de tela

@@ -474,7 +474,7 @@ export function AdminModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} label="Configurações locais">
+    <Modal isOpen={isOpen} onClose={handleClose} label="Configurações">
       <div
         className="w-full max-w-4xl rounded-2xl sm:rounded-3xl border border-line bg-surface shadow-[var(--page-shadow)] flex flex-col max-h-[92dvh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}

@@ -118,8 +118,8 @@ export function LandingPage({
               onBeforeToggle={(event) => { if (event.newState === "open") positionOptions(); }}
               onToggle={(event) => setOptionsOpen(event.newState === "open")}>
               <button type="button" onClick={() => optionsAction(() => setHelpOpen(true))}><HelpCircle size={20} aria-hidden="true" />Ajuda</button>
-              <button type="button" onClick={() => optionsAction(toggleTheme)}>{theme === "dark" ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}{theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}</button>
-              <button type="button" onClick={() => optionsAction(onOpenAdmin)}><Settings2 size={20} aria-hidden="true" />Configurações locais</button>
+              <button type="button" aria-pressed={theme === "dark"} onClick={() => optionsAction(toggleTheme)}>{theme === "dark" ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}Tema</button>
+              <button type="button" onClick={() => optionsAction(onOpenAdmin)}><Settings2 size={20} aria-hidden="true" />Configurações</button>
             </div>
           </nav>
         </div>
