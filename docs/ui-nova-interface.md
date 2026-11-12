@@ -15,6 +15,7 @@ proposta ser aprovada.
 | Aplicação · celular | Resumo do mês por semana, lista, ação fixa, barra inferior (Frequência, Minha folha, Comprovantes); o avatar abre a Conta | `Navbar.tsx`, `StatsGrid.tsx`, `ActivityTable.tsx` |
 | Janela · nova atividade | Folha inferior com modelos, horários e cálculo PET | `ActivityForm.tsx`, `Modal.tsx` |
 | Avisos e novidades | Pendências locais, novidades e aviso de confirmação | `ReleaseNotes.tsx`, `FeedbackModal.tsx`, novo `Toast` |
+| Novidades · entrada, computador, celular | Painel de atualizações ancorado ao sino, sem ×, que abre e fecha pelo próprio sino | `Navbar.tsx`, `LandingPage.tsx`, `ReleaseNotes.tsx`, novo `NewsPopover.tsx` |
 | Menu de perfil | Menu que abre de um botão de perfil no computador: Meu perfil, Minhas folhas, Tema, Ajuda e suporte, Sair | `Navbar.tsx`, `ProfileModal.tsx`, novo `ProfileMenu.tsx` |
 | Perfil · celular | Tela Conta com os mesmos itens, aberta pelo avatar | novo `AccountScreen.tsx` |
 | Aplicação · computador | Menu lateral, resumo com alternância Mensal / Semanal, lista e formulário lado a lado | `page.tsx`, `Navbar.tsx`, `StatsGrid.tsx` |
@@ -52,6 +53,53 @@ deste documento quando houver conflito.
 | Tela Conta | Rota ou painel de tela cheia no celular, com voltar no topo; listas em cartões brancos de raio 20, linhas de 52 px com seta `ChevronRight`. Reaproveitar o seletor de tema acima. |
 | Avatar | Iniciais do `UserProfile.name` em círculo `--primary` com texto branco (40–56 px). Sem foto. |
 | Alternância Mensal / Semanal | `SegmentedControl` existente; padrão Mensal; guardar a escolha no `localStorage`. |
+
+## Novidades (atualizações do site)
+
+Quadros **Novidades · entrada**, **Novidades · aplicação no computador** e
+**Novidades · celular** (interativos: clique no sino no modo Play).
+
+**Problema atual**: o sino abre `Modal` em `Navbar.tsx` (linha ~131), uma janela
+centralizada que tapa a tela e só fecha pelo **×**, por Escape ou pelo fundo.
+O mantenedor quer que não haja **×** e que o próprio sino abra e feche.
+
+**Comportamento proposto**
+
+- O sino é um botão alternável: `aria-expanded` e `aria-controls`; o rótulo
+  muda de "Novidades" para "Fechar novidades". Aberto, o sino fica destacado
+  (fundo `--primary-soft`, borda e ícone `--primary`).
+- O painel abre **ancorado ao sino**, com uma setinha apontando para ele, sem
+  botão **×**. Fecha por: novo clique no sino, clique fora, Escape. O foco volta
+  ao sino. Uma linha no rodapé ensina: "Toque no sino de novo para fechar."
+- **Computador e entrada**: caixa de 400 px abaixo do sino, raio 20, sombra
+  `--shadow-dialog`, sem escurecer a página. Corpo com rolagem (máx. ~430 px).
+- **Celular**: caixa de largura total menos 12 px de cada lado, logo abaixo do
+  cabeçalho, com fundo escurecido abaixo do cabeçalho (tocar nele fecha). O
+  cabeçalho e o sino continuam visíveis e clicáveis por cima.
+- **Conteúdo**: título "Novidades" e "N novas desde a sua última visita".
+  Atualizações não vistas aparecem completas com a etiqueta **Nova**; as já
+  vistas ficam só com data e título (computador) ou dentro de "Ver
+  atualizações anteriores" (celular e entrada). Dados de `src/lib/releases.ts`.
+- **Ponto vermelho** no sino quando há atualização não vista; some ao abrir.
+  Guardar no `localStorage` a data da última atualização vista (já existe a
+  lógica `hasUnreadNews` em `Navbar.tsx`; reaproveitar e contar as novas).
+- **Entrada (LP)**: o sino entra no cabeçalho, ao lado de "Continuar minha
+  folha", com o mesmo painel. A seção `<ReleaseNotes />` no meio da página sai;
+  o link "Novidades" do rodapé abre o mesmo painel.
+
+**Como implementar**
+
+| Peça | Como fazer |
+| --- | --- |
+| Painel | Atributo HTML `popover="auto"` no painel e `popovertarget` no sino: o navegador já alterna no clique, fecha com Escape e clique fora, sem JavaScript de posição. Ancorar com CSS (`position-anchor`/`anchor()`) onde houver suporte e `position: absolute` dentro de um contêiner `relative` como alternativa. Sem biblioteca. |
+| Celular | Mesmo `popover`, com `::backdrop` escurecido e `inset` fixo abaixo do cabeçalho; manter o cabeçalho acima (`z-index`) para o sino continuar tocável. |
+| Componente | Novo `NewsPopover.tsx` com `ReleaseNotes` em modo compacto (prop `variant="popover"`); `Navbar.tsx` e `LandingPage.tsx` usam o mesmo. Remover o uso de `Modal` para novidades. |
+| Setinha | `span` de 12 × 12 girado 45°, com borda superior e esquerda `--line`. |
+| Movimento | Abrir com opacidade e `translateY(-4px)` em 150 ms; nada com `prefers-reduced-motion`. |
+
+Teste: abrir e fechar pelo sino com mouse, toque e teclado (Enter/Espaço),
+Escape devolve o foco ao sino, leitor de tela anuncia "expandido/recolhido",
+painel não sai da tela em 360 px.
 
 ### Pontos a decidir antes de implementar
 
@@ -175,6 +223,7 @@ Nenhuma dependência nova é obrigatória. O projeto já tem `lucide-react`,
 7. **Avisos**: regras locais (prazo, semana sem horas, cópia pendente) e toast.
 8. **Perfil e tema**: menu de perfil no computador, tela Conta no celular e o
    tema "Sistema" em `theme.ts`.
+9. **Novidades**: painel ancorado ao sino, sem ×, na entrada e na aplicação.
 
 Cada passo é uma entrega própria, com os gates do projeto (`typecheck`, `lint`,
 `test:ui`, `build`, `test:e2e`) e conferência em 360, 390, 768 e 1440 px, nos
