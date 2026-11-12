@@ -54,3 +54,22 @@ Validação em Chromium desktop e celular emulado. Ainda cabe homologação em
 smartphone físico, zoom real de 200% e impressão física. A abertura da impressão
 não comprova assinatura ou envio do documento. Nenhum Forms real foi enviado.
 Esta validação corresponde à implementação local.
+
+## Publicação em produção
+
+- Data: 12/11/2026; conteúdo de origem `4ea40af`, enviado pela API conectada.
+- Projeto `pet-folha-mensal`, deployment `dpl_35cfSEy4xJceigtxW2Nf1xrspGhz`.
+- Destino produção, estado READY, domínio [pet-folha-mensal.vercel.app](https://pet-folha-mensal.vercel.app).
+- Build remoto: aproximadamente 28 s; Next.js, Node 22.
+- HTTP 200; entrada e identificação; tema claro inicial; botões adjacentes no
+  computador; menu de cópias em 390 px; atividade sintética com 5 h; JSON baixado
+  e restaurado com quantidade e horas conferidas; sino/Escape/foco; zero erros
+  de página em contexto isolado de Chromium.
+- Download padrão exercitado com showSaveFilePicker desabilitado no contexto
+  automatizado. O seletor nativo de salvamento e os aparelhos físicos permanecem
+  fora desta conferência. A primeira tentativa automatizada aguardava esse
+  seletor nativo; o teste foi ajustado para exercitar explicitamente o download.
+- Consulta de erros/fatal deste deployment nos últimos dez minutos sem registros;
+  a janela inicial de uma hora foi recusada pela retenção do plano e substituída
+  pela consulta recente. Sem drains externos configurados.
+- [Captura em produção](producao-menu-copia.png), usando somente dados sintéticos.

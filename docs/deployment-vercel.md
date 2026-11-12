@@ -6,7 +6,24 @@ Este guia orienta o processo de deploy, configuração de ambiente e observabili
 
 ## 1. Deploy Automático via GitHub (Recomendado)
 
-Publicação atual de 10/11/2026, commit de origem `1e8e5fc`, deployment
+Publicação atual de 12/11/2026, commit de origem `4ea40af`, deployment
+`dpl_35cfSEy4xJceigtxW2Nf1xrspGhz`, produção, estado READY. O conteúdo do commit
+foi enviado pela API conectada, com Next.js e Node 22, sem push no GitHub.
+Build remoto concluído em cerca de 28 segundos. Domínio principal:
+https://pet-folha-mensal.vercel.app.
+
+No domínio publicado, Chromium em contexto isolado conferiu entrada/onboarding,
+tema claro inicial mesmo com preferência escura do aparelho, botões de cópia
+adjacentes no computador e menu Cópia em 390 px. Uma atividade sintética de
+13:30–17:30 produziu 5 h; a cópia 1.3 foi baixada e restaurada pelo menu móvel,
+com registros e horas conferidos. O sino abriu/fechou por Escape com retorno de
+foco. Sem erros de página nessa conferência. O download padrão foi exercitado
+com o seletor nativo de salvamento desabilitado no contexto de teste.
+A consulta de logs dos últimos dez minutos, filtrada por este deployment e
+níveis error/fatal, não retornou registros; o projeto não possui drains externos.
+[Captura e limites](validation/nova-interface-20261112/README.md#publicação-em-produção).
+
+Publicação de 10/11/2026, commit de origem `1e8e5fc`, deployment
 `dpl_531fHyMV7Hjy5MTiNgjUW8vJQuP2` em produção, estado READY.
 A composição escolhida mantém o formulário ao lado da lista no desktop e abre
 a inclusão em janela no celular. As janelas de edição e Forms usam ações fixas.
