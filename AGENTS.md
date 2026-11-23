@@ -9,7 +9,7 @@ Este repositório armazena a aplicação fullstack de gestão e emissão da **Fo
 * **Princípios Estruturantes**: SUS, Equidade em Saúde, Justiça Climática, Uma Só Saúde (*One Health*).
 * **Proponentes**: SMS Goiânia (coordenação), SES Goiás e UFG.
 * **Vigência**: 03/08/2026 a 02/08/2028.
-* **Comunicação Oficial**: Toda frequência e comunicação institucional deve ser enviada para `petsaudeufg.smsgoiania@gmail.com`.
+* **Comunicação Oficial**: Canal institucional geral do programa em `petsaudeufg.smsgoiania@gmail.com` (o fluxo e o destino de entrega da folha mensal assinada são definidos por cada GAT).
 
 ---
 
@@ -25,7 +25,7 @@ Este repositório armazena a aplicação fullstack de gestão e emissão da **Fo
      * 19:00 às 20:40 = 2 horas (19h-20h + 20h-21h iniciada)
 3. **Prazos e Validação**:
    * Preenchimento do relatório no Google Forms até o final do mês.
-   * Envio da Folha assinada até o **1º dia útil do mês subsequente**.
+   * Entrega da Folha assinada até o **1º dia útil do mês subsequente**, conforme o processo definido por cada GAT.
 
 ---
 

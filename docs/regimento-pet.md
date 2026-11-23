@@ -44,7 +44,6 @@ O projeto articula 5 GATs de 12 membros cada (1 Tutor Coordenador, 1 Tutor Bolsi
 ## 4. Validação Mensal e Recebimento de Bolsa
 
 1. **Google Forms**: Preenchimento do formulário eletrônico de atividades até o último dia do mês trabalhado.
-2. **Folha de Frequência Assinada**: Envio obrigatório da folha em PDF assinada até o **1º dia útil do mês subsequente** para o e-mail:
-   * `petsaudeufg.smsgoiania@gmail.com`
+2. **Folha de Frequência Assinada**: Entrega obrigatória da folha em PDF assinada até o **1º dia útil do mês subsequente**, pelo fluxo e destino definidos em cada GAT (canal institucional geral do projeto: `petsaudeufg.smsgoiania@gmail.com`).
 3. **Contas Bancárias**: Apenas conta corrente individual ativa no **Bradesco** ou **Santander** (vedados bancos virtuais, conta salário e conta conjunta).
 4. **Sem Férias**: As atividades do PET-Saúde continuam ativas durante recessos acadêmicos da graduação e férias funcionais de preceptores.

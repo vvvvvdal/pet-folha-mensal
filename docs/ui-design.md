@@ -4,18 +4,11 @@ Este guia adapta os padrões de estrutura, componentes e verificação do Frequ�
 
 ## Composição escolhida
 
-O mantenedor escolheu o formulário ao lado da lista no desktop no
-[protótipo navegável](wireframe-ui.html). No celular, a lista abre a inclusão
-em folha inferior com corpo rolável. A ação de voltar preserva o preenchimento em andamento.
+Na tela de **Frequência** no computador, o resumo do mês (com alternância **Mensal** / **Semanal**) fica acima da faixa **Nova atividade** em duas linhas e da lista em largura total (**Registros de \<mês\>**), com filtros **Todas**, **Pendentes no Forms** e **Sem comprovante**. No celular, a inclusão continua em folha inferior com corpo rolável e preservação do preenchimento ao voltar.
 
-A prévia cobre lançamentos, folha e comprovantes, edição, identificação,
-Forms, vínculo de arquivos e conclusão. **Esqueleto** mostra a organização;
-**Aplicação visual** aplica tipografia, marca e tokens do PET. Os dados e as
-ações de salvar são simulados.
+Na aba **Folha**, o painel **Antes de imprimir** substitui a barra antiga de botões, reunindo horas do mês, pendências do Forms, páginas de comprovantes e o prazo do 1º dia útil (orientando o envio conforme cada GAT, sem fixar e-mail único), com ação principal **Imprimir ou salvar PDF** (ou **Baixar modelo em PDF** no modo em branco). Em contêineres com 1300 px ou mais, o painel fica ao lado da prévia A4; abaixo disso, fica acima dela sem rolagem horizontal da página.
 
-As janelas propostas mantêm cabeçalho e ações visíveis, com rolagem no corpo.
-No desktop, Forms e edição usam duas colunas. No celular, a janela ocupa a
-folha inferior. A prévia de impressão e o gerenciamento dos comprovantes ficam em abas próprias.
+As janelas operacionais (**Editar atividade**, **Enviar ao Forms**, **Conferir comprovantes** e **Minhas folhas**) usam `editor-panel` com superfície opaca (`--surface`), cabeçalho fixo e rolagem no corpo. No celular, ocupam a folha inferior. A prévia de impressão e o gerenciamento dos comprovantes ficam em abas próprias.
 
 ## Identidade, temas e tipografia
 
@@ -46,7 +39,7 @@ Botões têm texto ou nome acessível, estado de foco visível e alvo de pelo me
 ## Layout e interação
 
 - Em larguras pequenas, priorize a ordem de leitura e deixe conteúdo e ações quebrarem linha. A prévia da folha pode rolar dentro da própria região.
-- Em espaço amplo, agrupe campos relacionados e mantenha o formulário ao lado dos registros. Data, chegada e saída pedem larguras menores que a descrição. No celular, formulário e registros seguem em coluna.
+- Em espaço amplo, agrupe campos relacionados na faixa **Nova atividade** acima da lista completa do mês. Data, chegada e saída pedem larguras menores que a descrição. No celular, o botão fixo abre a folha inferior e os registros seguem em cartões.
 - Use **Frequência**, **Folha** e **Comprovantes** no menu lateral (computador) e na barra inferior (celular). Mês, perfil e GAT dão contexto. Conta abre pelo avatar; o menu do perfil reúne identificação, meses, tema, ajuda e saída.
 - Mantenha o sino de **Novidades** na entrada e na aplicação. Use popover nativo ancorado ao sino, sem ×: sino alterna, clique fora e Escape fecham. Marcador de leitura compartilhado no navegador; novidades não vistas completas e histórico expansível.
 - Mantenha rótulos visíveis, erros próximos ao campo, ordem de teclado lógica e o preenchimento em caso de erro. Apresente o cálculo PET antes de incluir a atividade.
@@ -60,8 +53,7 @@ Use transições discretas de foco, hover e abertura onde os componentes já as 
 
 A aba **Comprovantes** mostra uma miniatura ao lado de cada arquivo. Fotos mantêm
 as proporções. PDFs mostram a primeira página e o total de páginas. A miniatura
-abre o arquivo original em outra aba. Nome, tipo, páginas e atividades ficam
-juntos. **Alterar atividades** é a ação secundária. Remover usa ícone com nome
+abre o arquivo original em outra aba. As atividades vinculadas aparecem como cartões com data abreviada e permitem filtrar os comprovantes daquela atividade (também acessível pelo botão de comprovante em cada linha de **Frequência**). Arquivos sem vínculo exibem aviso explícito, e atividades ainda sem comprovante ficam reunidas em lista expansível com atalho **Anexar**. **Alterar atividades** (ou **Escolher atividades**) é a ação secundária. Remover usa ícone com nome
 acessível e confirmação.
 
 A inclusão segue **escolher arquivos → conferir prévias e atividades → salvar**.

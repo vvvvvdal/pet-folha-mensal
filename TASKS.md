@@ -69,3 +69,11 @@
 - [x] Revisar textos e consistência visual: rodapés, janelas, acesso, sidebar e cabeçalho da entrada. Retirar nome duplicado, Lembretes da folha e instrução de fechar sino. Usar seletor Modelo e botão Sair.
 
 - [x] Corrigir a sincronização do tema Sistema quando a preferência do aparelho muda antes da hidratação após recarregar.
+
+## Lista larga, comprovantes por atividade, conferência da folha e Minhas folhas — 23/11/2026
+
+- [x] Reorganizar **Frequência** no desktop com resumo **Mensal/Semanal**, faixa **Nova atividade** em duas linhas acima da lista em largura total, agrupamento semanal contra 8 h, filtros (**Todas**, **Pendentes no Forms**, **Sem comprovante**) e chip de comprovantes por atividade.
+- [x] Evoluir **Comprovantes** com cartões clicáveis de atividades vinculadas, filtro por atividade, alerta para arquivos sem vínculo, truncamento seguro de nomes longos e lista expansível de atividades sem comprovante.
+- [x] Substituir a barra da aba **Folha** pelo painel **Antes de imprimir** com checklist de horas, Forms, comprovantes/páginas e prazo do 1º dia útil (envio orientado por cada GAT, sem e-mail fixo), com layout adaptativo por container query.
+- [x] Reestruturar **Minhas folhas** sobre `editor-panel` com superfície opaca nos dois temas, barra integrada de destino (**Frequência** / **Folha**), hierarquia visual entre meses preenchidos, abertos, atuais e vazios, e anos futuros expansíveis.
+- [x] Alinhar `AGENTS.md` e `docs/regimento-pet.md` à regra operacional em que cada GAT define seu fluxo de entrega da folha assinada até o 1º dia útil.
