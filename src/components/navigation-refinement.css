@@ -1,4 +1,7 @@
 /* Shared navigation and floating panels */
+.profile-chevron { flex-shrink: 0; color: var(--muted); transition: transform 200ms ease; }
+.profile-trigger[aria-expanded="true"] .profile-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .profile-chevron { transition: none; } }
 html :is(.news-popover, .profile-popover, .backup-popover, .entry-options-panel) {
   box-shadow: 0 12px 36px rgb(0 0 0 / 18%);
 }
@@ -7,7 +10,9 @@ html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .e
 }
 @media (min-width: 900px) {
   .dashboard-shell { --sidebar-width: 280px; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
-  .dashboard-shell .app-sidebar { grid-row: 1 / 3; position: relative; height: 100%; max-height: none; }
+  /* The sidebar box reaches the footer; its contents stay in view while the workspace scrolls. */
+  .dashboard-shell .app-sidebar { grid-row: 1 / 3; position: relative; height: auto; max-height: none; padding: 0; }
+  .dashboard-shell .sidebar-inner { position: sticky; top: 0; height: 100dvh; max-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px; padding: 32px 20px 20px; overflow-y: auto; overscroll-behavior: contain; }
   .dashboard-shell .sidebar-profile { position: sticky; bottom: 20px; background: var(--surface); }
   .dashboard-shell > .site-footer { grid-column: 1 / -1; }
   .dashboard-shell > .site-footer .footer-inner { max-width: none; padding-inline: 20px; }
@@ -19,6 +24,9 @@ html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .e
     width: calc(var(--sidebar-width) - 32px);
     max-height: var(--profile-max-height, calc(100dvh - 120px));
   }
+}
+@media (min-width: 900px) and (max-width: 1199px) {
+  .dashboard-shell .sidebar-inner { padding-inline: 16px; }
 }
 @media (min-width: 1200px) {
   .dashboard-shell { --sidebar-width: 304px; }

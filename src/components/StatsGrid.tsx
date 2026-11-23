@@ -2,16 +2,35 @@
 
 import { useState } from "react";
 import type { Activity } from "@/types";
-import { hoursByWeekOfMonth, getMonthYearLabel } from "@/lib/pet-calculator";
+import {
+  describeWeek,
+  formatShortDate,
+  getMonthName,
+  getSubmissionDeadline,
+  hoursByWeekOfMonth,
+  todayKey,
+  weekRangeLabel,
+} from "@/lib/pet-calculator";
 import { SegmentedControl, SegmentedControlItem } from "./ui/access-controls";
 import "./summary-redesign.css";
+import "./frequency-redesign.css";
 
 const viewKey = "pet_folha_summary_view";
-type SummaryView = "monthly" | "weekly";
+export type SummaryView = "monthly" | "weekly";
 function readView(): SummaryView {
   if (typeof window === "undefined") return "monthly";
   try { return localStorage.getItem(viewKey) === "weekly" ? "weekly" : "monthly"; }
   catch { return "monthly"; }
+}
+
+/** Monthly/weekly choice shared by the summary and the activity list, kept in the browser. */
+export function useSummaryView() {
+  const [view, setView] = useState<SummaryView>(readView);
+  function select(next: SummaryView) {
+    setView(next);
+    try { localStorage.setItem(viewKey, next); } catch { /* storage is optional */ }
+  }
+  return [view, select] as const;
 }
 
 interface StatsGridProps {
@@ -20,44 +39,94 @@ interface StatsGridProps {
   targetHours?: number;
   activities?: Activity[];
   monthKey?: string;
+  formsPending?: number;
+  view?: SummaryView;
+  onViewChange?: (view: SummaryView) => void;
 }
 
-export function StatsGrid({ totalHours, activitiesCount, targetHours = 32, activities = [], monthKey }: StatsGridProps) {
-  const [view, setView] = useState<SummaryView>(readView);
-  function selectView(next: SummaryView) {
-    setView(next);
-    try { localStorage.setItem(viewKey, next); } catch { /* storage is optional */ }
-  }
-  const progress = Math.min(100, Math.max(0, (totalHours / targetHours) * 100));
-  const weeks = monthKey ? hoursByWeekOfMonth(activities, monthKey) : [];
+function Progress({ label, value, max, tone }: { label: string; value: number; max: number; tone: string }) {
   return (
-    <section className="frequency-summary" aria-label="Resumo da frequência"
-      title="Referência: 8 h por semana, aproximadamente 32 h por mês. Confira a distribuição semanal antes do envio.">
-      <div className="summary-total">
-        <span>Horas no mês</span>
-        <p><strong>{totalHours}</strong><span>de {targetHours} horas</span></p>
-        <span className="summary-remaining">{totalHours >= targetHours ? "Referência mensal alcançada" : `faltam ${targetHours - totalHours} h`}</span>
-      </div>
-      <div className="summary-progress">
-        <div className="summary-view-header">
-          <span>{activitiesCount} {activitiesCount === 1 ? "atividade" : "atividades"}</span>
-          {weeks.length > 0 && <SegmentedControl aria-label="Período do resumo">
+    <div className="progress-track" role="progressbar" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={Math.max(max, value)} data-tone={tone}>
+      <span style={{ width: `${Math.min(100, Math.max(0, (value / max) * 100))}%` }} />
+    </div>
+  );
+}
+
+export function StatsGrid({ totalHours, activitiesCount, targetHours = 32, activities = [], monthKey, formsPending, view: controlledView, onViewChange }: StatsGridProps) {
+  const [ownView, setOwnView] = useSummaryView();
+  const view = controlledView ?? ownView;
+  const selectView = onViewChange ?? setOwnView;
+  const weeks = monthKey ? hoursByWeekOfMonth(activities, monthKey) : [];
+  const today = todayKey();
+  const currentWeek = monthKey && today.startsWith(monthKey)
+    ? weeks.find((week) => Number(today.slice(8)) >= week.start && Number(today.slice(8)) <= week.end)
+    : undefined;
+  const fullWeeks = monthKey ? weeks.filter((week) => week.end - week.start === 6) : [];
+  const deadline = monthKey ? getSubmissionDeadline(monthKey) : "";
+  const remaining = Math.max(0, targetHours - totalHours);
+  return (
+    <section className="frequency-summary summary-v2" aria-label="Resumo da frequência">
+      <div className="summary-v2-head">
+        <h2>{monthKey ? `Resumo de ${getMonthName(monthKey)}` : "Resumo do mês"}</h2>
+        {weeks.length > 0 && (
+          <SegmentedControl aria-label="Período do resumo e da lista">
             <SegmentedControlItem selected={view === "monthly"} onClick={() => selectView("monthly")}>Mensal</SegmentedControlItem>
             <SegmentedControlItem title="Semanas de segunda a domingo, com as atividades deste mês" selected={view === "weekly"} onClick={() => selectView("weekly")}>Semanal</SegmentedControlItem>
-          </SegmentedControl>}
-        </div>
-        {view === "weekly" && weeks.length > 0 ? <>
-          <div className="summary-weeks">{weeks.map((week) => (
-            <div className="summary-week" key={week.start}>
-              <div><span>{week.start === week.end ? `Dia ${week.start}` : `${week.start} a ${week.end}`}</span><span>{week.hours} de 8 h</span></div>
-              <div className="progress-track" role="progressbar" aria-label={`Dias ${week.start} a ${week.end}: horas no mês`} aria-valuenow={week.hours} aria-valuemin={0} aria-valuemax={Math.max(8, week.hours)}><span style={{ width: `${Math.min(100, Math.max(0, week.hours / 8 * 100))}%` }} /></div>
-            </div>
-          ))}</div>
-        </> : <div className="summary-week">
-          <div><span>{monthKey ? getMonthYearLabel(monthKey) : "No mês"}</span><span>{totalHours} de {targetHours} h</span></div>
-          <div className="progress-track" role="progressbar" aria-label="Referência mensal de horas" aria-valuenow={totalHours} aria-valuemin={0} aria-valuemax={Math.max(targetHours, totalHours)}><span style={{ width: `${progress}%` }} /></div>
-        </div>}
+          </SegmentedControl>
+        )}
       </div>
+      {view === "weekly" && weeks.length > 0 ? (
+        <div className="summary-v2-tiles" data-view="weekly">
+          {weeks.map((week) => {
+            const status = monthKey ? describeWeek(week, monthKey, today) : { tone: "neutral", text: "" };
+            return (
+              <div className="summary-tile" key={week.start}>
+                <span className="summary-tile-label">{weekRangeLabel(week)}</span>
+                <p className="summary-figure"><strong>{week.hours}</strong> <span>de 8 h</span></p>
+                <Progress label={`Dias ${week.start} a ${week.end}: horas no mês`} value={week.hours} max={8} tone={status.tone} />
+                <span className="summary-status" data-tone={status.tone}>{status.text}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="summary-v2-tiles" data-view="monthly">
+          <div className="summary-tile">
+            <span className="summary-tile-label">Horas no mês</span>
+            <p className="summary-figure"><strong>{totalHours}</strong> <span>de {targetHours} h</span></p>
+            <Progress label="Referência mensal de horas" value={totalHours} max={targetHours} tone="done" />
+            <span className="summary-status">
+              {remaining ? `faltam ${remaining} h` : "Referência mensal alcançada"} · {activitiesCount} {activitiesCount === 1 ? "atividade" : "atividades"}
+            </span>
+          </div>
+          {currentWeek ? (
+            <div className="summary-tile">
+              <span className="summary-tile-label">Esta semana · {weekRangeLabel(currentWeek)}</span>
+              <p className="summary-figure"><strong>{currentWeek.hours}</strong> <span>de 8 h</span></p>
+              <Progress label="Horas desta semana" value={currentWeek.hours} max={8} tone={currentWeek.hours >= 8 ? "done" : "current"} />
+              <span className="summary-status">{currentWeek.hours >= 8 ? "Meta da semana alcançada" : `faltam ${8 - currentWeek.hours} h até domingo`}</span>
+            </div>
+          ) : fullWeeks.length > 0 && (
+            <div className="summary-tile">
+              <span className="summary-tile-label">Semanas com 8 h</span>
+              <p className="summary-figure"><strong>{fullWeeks.filter((week) => week.hours >= 8).length}</strong> <span>de {fullWeeks.length} semanas completas</span></p>
+              <span className="summary-status">Use Semanal para ver cada semana.</span>
+            </div>
+          )}
+          {deadline && (
+            <div className="summary-tile">
+              <span className="summary-tile-label">Entrega da folha assinada</span>
+              <p className="summary-figure summary-deadline"><strong>{formatShortDate(deadline)}</strong></p>
+              <span className="summary-status">1º dia útil de {getMonthName(deadline.slice(0, 7))}</span>
+              {formsPending !== undefined && (
+                <span className="summary-status" data-tone={formsPending ? "warning" : "done"}>
+                  {formsPending ? `${formsPending} ${formsPending === 1 ? "atividade pendente" : "atividades pendentes"} no Forms` : "Forms em dia"}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

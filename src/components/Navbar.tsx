@@ -53,7 +53,7 @@ export function Navbar(props: NavbarProps) {
   const tabs = [{value: "dashboard", label: "Frequência", Icon: ListChecks}, {value: "official", label: "Folha", Icon: FileText}, {value: "attachments", label: "Comprovantes", Icon: Paperclip}] as const;
   return <>
     <a href="#conteudo" className="skip-link">Pular para o conteúdo</a>
-    <aside className="app-sidebar" aria-label="Navegação principal">
+    <aside className="app-sidebar" aria-label="Navegação principal"><div className="sidebar-inner">
       <Brand />
       <p className="sidebar-group">GAT {user.gatNumber} · {user.gatName}</p>
       <nav className="app-tabs" aria-label="Seções da folha">{tabs.map(({value, label, Icon}) =>
@@ -64,7 +64,7 @@ export function Navbar(props: NavbarProps) {
             event.preventDefault(); menuRef.current?.showPopover();
             requestAnimationFrame(() => menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus());
           }
-        }}><span className="avatar">{initials(user.name)}</span><span><strong>{user.name}</strong><small>{user.role} · GAT {user.gatNumber}</small></span><ChevronUp size={18} /></button>
+        }}><span className="avatar">{initials(user.name)}</span><span><strong>{user.name}</strong><small>{user.role} · GAT {user.gatNumber}</small></span><ChevronUp size={18} className="profile-chevron" aria-hidden="true" /></button>
         <div ref={menuRef} id="profile-menu" popover="auto" className="profile-popover" onBeforeToggle={(event) => { if (event.newState === "open") positionProfileMenu(); }} onToggle={(event) => setProfileOpen(event.newState === "open")} onKeyDown={(event) => {
           const items = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('button') || []);
           const index = items.indexOf(document.activeElement as HTMLButtonElement);
@@ -78,7 +78,7 @@ export function Navbar(props: NavbarProps) {
           <div role="menu" aria-label="Suporte e saída"><button role="menuitem" onClick={() => menuAction(onOpenHelp)}><CircleHelp size={18} />Ajuda e suporte</button><button role="menuitem" onClick={() => menuAction(onOpenAdmin)}><Settings2 size={18} />Configurações</button><button role="menuitem" onClick={() => menuAction(onOpenExitModal)}><LogOut size={18} />Sair</button></div>
         </div>
       </div>
-    </aside>
+    </div></aside>
     <header className="app-topbar"><div className="mobile-brand"><Brand /></div><div className="app-top-actions"><button className="secondary-button top-restore" onClick={() => fileRef.current?.click()}><Upload size={18} aria-hidden="true" />Restaurar cópia</button><button className="secondary-button top-save" onClick={onExportBackup}><Download size={18} aria-hidden="true" /><span>Salvar cópia</span>{hasChanges && <span className="change-indicator" aria-label="Alterações sem cópia" />}</button><button type="button" className="secondary-button mobile-copy" popoverTarget="mobile-backup-menu" aria-expanded={backupOpen} aria-controls="mobile-backup-menu"><Download size={18} aria-hidden="true" />Cópia<ChevronDown size={16} aria-hidden="true" />{hasChanges && <span className="change-indicator" aria-label="Alterações sem cópia" />}</button>
       <div ref={backupRef} id="mobile-backup-menu" popover="auto" className="backup-popover" role="region" aria-label="Cópia de segurança" onToggle={(event) => setBackupOpen(event.newState === "open")}>
         <h2>Cópia de segurança</h2>

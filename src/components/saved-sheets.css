@@ -1,0 +1,290 @@
+/* Minhas folhas: meses do perfil agrupados por ano dentro de editor-panel. */
+.pet-dialog .editor-panel.saved-sheets {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  padding: 0;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-dialog);
+}
+.pet-dialog .saved-sheets .saved-sheets-body {
+  display: grid;
+  gap: 20px;
+  padding: 20px 24px 24px;
+}
+.saved-sheets-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--background);
+}
+.pet-dialog .saved-sheets-bar .saved-sheets-intro {
+  margin: 0;
+  font-size: 14px;
+  color: var(--body);
+}
+.saved-sheets-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--muted);
+}
+.pet-dialog .saved-sheets-target .ui-segmented {
+  display: inline-flex;
+  width: auto;
+  margin: 0;
+  padding: 3px;
+  gap: 4px;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.pet-dialog .saved-sheets-target .ui-segmented button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.pet-dialog .saved-sheets-target .ui-segmented button[aria-pressed="true"] {
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--accent);
+}
+
+.sheet-year {
+  display: grid;
+  gap: 12px;
+}
+.sheet-year-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sheet-year-head h3,
+.sheet-year-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--foreground);
+}
+.sheet-year-head span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+details.sheet-year-collapsible {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+details.sheet-year-collapsible summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 10px;
+  margin-inline: -10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--body);
+}
+details.sheet-year-collapsible summary::-webkit-details-marker {
+  display: none;
+}
+details.sheet-year-collapsible summary:hover {
+  background: var(--surface-raised);
+}
+.sheet-year-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.sheet-year-meta svg {
+  flex-shrink: 0;
+  transition: transform 160ms ease;
+}
+details.sheet-year-collapsible[open] .sheet-year-meta svg {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+details.sheet-year-collapsible[open] .sheet-month-grid {
+  margin-top: 10px;
+}
+
+.sheet-month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: 12px;
+}
+.pet-dialog .sheet-month {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 14px;
+  min-height: 118px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--control-border) 38%, var(--border));
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--foreground);
+  text-align: left;
+  box-shadow: 0 1px 2px rgb(23 59 36 / 5%);
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+html[data-theme="dark"] .pet-dialog .sheet-month {
+  background: var(--surface-raised);
+  box-shadow: none;
+}
+.pet-dialog .sheet-month[data-empty="true"] {
+  border: 1px dashed color-mix(in srgb, var(--control-border) 42%, var(--border));
+  background: var(--background);
+  box-shadow: none;
+}
+html[data-theme="dark"] .pet-dialog .sheet-month[data-empty="true"] {
+  background: color-mix(in srgb, var(--background) 70%, var(--surface));
+}
+.pet-dialog .sheet-month:hover {
+  border-color: var(--accent);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+.pet-dialog .sheet-month[data-selected="true"] {
+  border: 1.5px solid var(--accent);
+  border-style: solid;
+  background: var(--primary-soft);
+  box-shadow: none;
+}
+
+.sheet-month-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sheet-month-top strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+.sheet-month[data-empty="true"]:not([data-selected="true"]) .sheet-month-top strong {
+  font-weight: 600;
+  color: var(--body);
+}
+
+.sheet-month-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.sheet-month-badge[data-variant="selected"] {
+  background: var(--primary);
+  color: #ffffff;
+}
+html[data-theme="dark"] .sheet-month-badge[data-variant="selected"] {
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface-raised));
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.sheet-month-badge[data-variant="current"] {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.sheet-month-stats {
+  display: grid;
+  gap: 6px;
+}
+.sheet-month-figure {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.2;
+}
+.sheet-month-figure strong {
+  margin-right: 4px;
+  font-family: var(--font-jakarta), "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+.sheet-month-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--control-border) 22%, var(--surface-raised));
+  overflow: hidden;
+}
+.sheet-month-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+.sheet-month-bar[data-tone="current"] > span { background: var(--info); }
+.sheet-month-bar[data-tone="warning"] > span { background: var(--warning); }
+.sheet-month-bar[data-tone="neutral"] > span { background: var(--muted); }
+.sheet-month-detail {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.sheet-month-empty {
+  display: grid;
+  gap: 2px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.sheet-month-start {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-dialog .sheet-month,
+  .sheet-year-meta svg {
+    transition: none;
+  }
+  .pet-dialog .sheet-month:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .pet-dialog .saved-sheets .saved-sheets-body {
+    padding: 16px 20px 24px;
+  }
+  .saved-sheets-bar {
+    padding: 12px;
+  }
+  .saved-sheets-target {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+  .sheet-month-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .pet-dialog .sheet-month {
+    min-height: 112px;
+    padding: 12px 14px;
+  }
+}

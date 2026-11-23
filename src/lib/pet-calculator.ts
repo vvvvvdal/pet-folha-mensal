@@ -76,6 +76,69 @@ export function getMonthYearLabel(monthKey: string): string {
   return `${monthNames[month] || month}/${year}`;
 }
 
+/** Month name in lower case for running text, e.g. "novembro". */
+export function getMonthName(monthKey: string): string {
+  return getMonthYearLabel(monthKey).split("/")[0].toLowerCase();
+}
+
+const WEEKDAYS_SHORT = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+const pad2 = (value: number) => String(value).padStart(2, "0");
+
+export function weekdayShort(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  if (!year || !month || !day) return "";
+  return WEEKDAYS_SHORT[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
+}
+
+// Fixed national holidays (MM-DD). Movable and local holidays are not considered.
+const FIXED_HOLIDAYS = new Set(["01-01", "04-21", "05-01", "09-07", "10-12", "11-02", "11-15", "11-20", "12-25"]);
+
+/** First business day of the following month: deadline for the signed sheet. */
+export function getSubmissionDeadline(monthKey: string): string {
+  const [year, month] = monthKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month, 1));
+  const isOff = () => {
+    const day = date.getUTCDay();
+    return day === 0 || day === 6 || FIXED_HOLIDAYS.has(`${pad2(date.getUTCMonth() + 1)}-${pad2(date.getUTCDate())}`);
+  };
+  while (isOff()) date.setUTCDate(date.getUTCDate() + 1);
+  return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}-${pad2(date.getUTCDate())}`;
+}
+
+/** "ter, 01/12" */
+export function formatShortDate(dateStr: string): string {
+  const [, month, day] = dateStr.split("-");
+  return `${weekdayShort(dateStr)}, ${day}/${month}`;
+}
+
+export function todayKey(now = new Date()): string {
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+}
+
+export type WeekTone = "done" | "warning" | "current" | "neutral";
+
+/** Status of a week against the 8 h weekly reference, for summaries and list headers. */
+export function describeWeek(
+  week: { start: number; end: number; hours: number },
+  monthKey: string,
+  today = todayKey(),
+): { tone: WeekTone; text: string } {
+  const startKey = `${monthKey}-${pad2(week.start)}`;
+  const endKey = `${monthKey}-${pad2(week.end)}`;
+  const partial = week.end - week.start + 1 < 7;
+  if (week.hours >= 8) return { tone: "done", text: "Meta da semana" };
+  if (today > endKey)
+    return partial
+      ? { tone: "neutral", text: "Semana parcial" }
+      : { tone: "warning", text: `faltou ${8 - week.hours} h` };
+  if (today >= startKey) return { tone: "current", text: "em andamento" };
+  return { tone: "neutral", text: "a seguir" };
+}
+
+export function weekRangeLabel(week: { start: number; end: number }): string {
+  return week.start === week.end ? `Dia ${week.start}` : `${week.start} a ${week.end}`;
+}
+
 /**
  * Normaliza e limpa a descrição da atividade removendo sufixo redundante de modalidade
  * Ex: "Reunião de Alinhamento (Síncrona virtual)" -> "Reunião de Alinhamento"

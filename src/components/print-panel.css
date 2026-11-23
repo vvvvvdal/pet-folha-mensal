@@ -1,0 +1,39 @@
+/* Folha: conferência de impressão e prévia. O painel fica ao lado da prévia
+   quando há espaço para a folha A4 inteira; senão, vem antes dela, em faixa. */
+.sheet-view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; container-type: inline-size; }
+.sheet-view .sheet-mode-tabs { justify-self: start; border-color: var(--border); background: var(--surface); }
+.dashboard-shell .sheet-view .sheet-mode-option { padding-inline: 16px; font-weight: 600; }
+.dashboard-shell .sheet-view .sheet-mode-option[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--primary-soft); color: var(--accent); }
+.sheet-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 16px; }
+.sheet-preview { min-width: 0; }
+.print-panel { display: grid; gap: 18px; min-width: 0; padding: 24px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+.print-panel h2 { font-size: 18px; font-weight: 700; }
+.dashboard-shell .print-panel-intro p { margin-top: 6px; color: var(--body); }
+.print-checks { display: grid; gap: 14px; margin: 14px 0 0; padding: 0; list-style: none; }
+.print-checks li { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.print-checks li > svg { flex-shrink: 0; margin-top: 2px; color: var(--muted); }
+.print-checks li[data-tone="done"] > svg { color: var(--accent); }
+.print-checks li[data-tone="warning"] > svg { color: var(--warning); }
+.print-checks strong { display: block; font-weight: 600; }
+.dashboard-shell .print-checks small { display: block; font-size: 14px; color: var(--muted); }
+.dashboard-shell .print-checks .text-button { min-height: 32px; padding: 0; color: var(--accent); font-size: 14px; }
+.dashboard-shell .print-paper { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--surface-raised); font-size: 14px; color: var(--body); }
+.print-paper strong { color: var(--foreground); }
+.print-paper svg { flex-shrink: 0; }
+.print-actions { display: grid; gap: 10px; }
+.dashboard-shell .print-actions :is(.primary-button, .secondary-button) { width: 100%; min-height: 52px; justify-content: center; gap: 10px; }
+.dashboard-shell .print-actions p { font-size: 14px; color: var(--muted); }
+
+@container (min-width: 1300px) {
+  .sheet-layout { grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
+  .sheet-preview { grid-column: 1; grid-row: 1; }
+  .print-panel { position: sticky; top: 24px; grid-column: 2; grid-row: 1; }
+}
+@container (min-width: 720px) and (max-width: 1299px) {
+  .print-panel { grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); column-gap: 32px; }
+  .print-panel-intro { grid-row: span 2; }
+  .print-checks { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+}
+@container (max-width: 719px) {
+  .print-panel { padding: 20px; }
+}

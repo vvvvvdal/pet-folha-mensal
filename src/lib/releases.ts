@@ -1,6 +1,16 @@
 // Dates are publication dates in São Paulo, not the build or the visitor's date.
 export const RELEASES = [
   {
+    date: "2026-11-23",
+    title: "Frequência em lista larga e conferência da folha",
+    changes: [
+      "No computador, Nova atividade fica acima da lista completa do mês, com visão Mensal ou Semanal e filtros por Forms e comprovante.",
+      "Cada atividade mostra seus comprovantes na própria linha e permite filtrar ou anexar arquivos direto em Comprovantes.",
+      "Na aba Folha, o painel Antes de imprimir reúne horas, pendências do Forms, páginas de comprovantes e o prazo do 1º dia útil, respeitando o envio definido por cada GAT.",
+      "Minhas folhas agora organiza os meses por ano em cartões claros nos dois temas, com escolha entre abrir em Frequência ou na Folha.",
+    ],
+  },
+  {
     date: "2026-11-10",
     title: "Lançamentos e janelas reorganizados",
     changes: [

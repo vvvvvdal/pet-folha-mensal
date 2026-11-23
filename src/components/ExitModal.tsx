@@ -83,7 +83,7 @@ function Conclusion({
             <p>Quando precisar, salve o PDF em A4 na horizontal para assinar.</p>
             {pdfTriggered && <p role="status">Impressão aberta. Salve o PDF ou imprima na janela do navegador.</p>}
           </div>
-          <button className="secondary-button" disabled={busy} onClick={() => void download("pdf")}>Imprimir / salvar PDF</button>
+          <button className="secondary-button" disabled={busy} onClick={() => void download("pdf")}>Imprimir ou salvar PDF</button>
         </div>
         {exitWarning && (
           <div className="operation-notice" role="alert">

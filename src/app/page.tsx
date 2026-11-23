@@ -28,10 +28,13 @@ import {
   registerProfile,
 } from "@/lib/storage";
 import {
+  countAttachmentPages,
   decodeAttachments,
   encodeAttachments,
+  linkedActivityIds,
   listAttachments,
   prepareAttachmentPages,
+  type Attachment,
 } from "@/lib/attachments";
 import { restoreWithAttachments } from "@/lib/attachment-backup";
 import { buildAttachmentPrintPages } from "@/lib/attachment-print";
@@ -43,13 +46,18 @@ import {
   sortActivitiesChronologically,
   getCurrentMonth,
   PROJECT_MONTHS,
+  formatShortDate,
+  getMonthName,
+  getSubmissionDeadline,
 } from "@/lib/pet-calculator";
+import { formReportStatus } from "@/lib/form-report";
+import { SavedSheets } from "@/components/SavedSheets";
+import "@/components/print-panel.css";
 import { Navbar, AccountScreen, type WorkspaceTab } from "@/components/Navbar";
-import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
 import { ProfileModal } from "@/components/ProfileModal";
 import { AdminModal } from "@/components/AdminModal";
-import { StatsGrid } from "@/components/StatsGrid";
+import { StatsGrid, useSummaryView } from "@/components/StatsGrid";
 import { ActivityForm } from "@/components/ActivityForm";
 import { ACTIVITY_FORM_URL } from "@/lib/form-report";
 import { ActivityReportModal } from "@/components/ActivityReportModal";
@@ -64,7 +72,11 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { HelpModal } from "@/components/Help";
 import {
   Calendar,
+  CalendarDays,
+  CircleAlert,
+  CircleCheck,
   Download,
+  Paperclip,
   Printer,
   ArrowLeft,
 } from "lucide-react";
@@ -112,8 +124,23 @@ export default function Home() {
   const [toastRevision, setToastRevision] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const [summaryView, setSummaryView] = useSummaryView();
+  const [attachmentState, setAttachmentState] = useState<{ key: string; items: Attachment[] } | null>(null);
+  const [attachmentsRevision, setAttachmentsRevision] = useState(0);
+  const [attachmentsFocus, setAttachmentsFocus] = useState<string | null>(null);
+
   const activeProfileId = activeUser?.id;
   useEffect(() => () => clearPrintAttachments.current?.(), [activeProfileId, monthKey, showBlankTemplate]);
+  // Proof counts for the activity list and the print review; the Comprovantes tab keeps its own copy.
+  useEffect(() => {
+    if (!activeProfileId) return;
+    const key = `${activeProfileId}:${monthKey}`;
+    let current = true;
+    listAttachments({ profileId: activeProfileId, monthKey })
+      .then((items) => { if (current) setAttachmentState({ key, items }); })
+      .catch(() => { if (current) setAttachmentState(null); });
+    return () => { current = false; };
+  }, [activeProfileId, monthKey, attachmentsRevision, formRevision]);
   useEffect(() => { printActivitiesRef.current = activities; }, [activities]);
 
   // Estados Dinâmicos de Configuração (GATs, Funções e Templates)
@@ -208,6 +235,7 @@ export default function Home() {
     setDraftDirty(false);
     setEditingActivity(null);
     setUndoActivity(null);
+    setAttachmentsFocus(null);
     setMonthKey(value);
     return true;
   };
@@ -701,6 +729,30 @@ export default function Home() {
 
   const totalHours = activities.reduce((sum, act) => sum + act.hours, 0);
   const monthLabel = getMonthYearLabel(monthKey);
+  const activityIdSet = new Set(activities.map(({ id }) => id));
+  const attachmentItems = attachmentState?.key === `${activeUser.id}:${monthKey}` ? attachmentState.items : undefined;
+  const proofCounts = attachmentItems?.reduce<Record<string, number>>((counts, item) => {
+    for (const id of linkedActivityIds(item, activityIdSet)) counts[id] = (counts[id] ?? 0) + 1;
+    return counts;
+  }, {});
+  const proofPages = attachmentItems ? countAttachmentPages(attachmentItems, activityIdSet) : 0;
+  const formsPending = activities.filter((activity) => formReportStatus(activeUser, activity) !== "Enviado").length;
+  const deadline = getSubmissionDeadline(monthKey);
+  const changeTab = async (tab: WorkspaceTab) => {
+    if (tab === activeTab || (await confirmDraft())) {
+      setDraftDirty(false);
+      setUndoActivity(null);
+      setAttachmentsFocus(null);
+      setActiveTab(tab);
+    }
+  };
+  const openProofs = async (activity: Activity) => {
+    if (!(await confirmDraft())) return;
+    setDraftDirty(false);
+    setUndoActivity(null);
+    setAttachmentsFocus(activity.id);
+    setActiveTab("attachments");
+  };
   const reportActivity = reportingActivity?.profileId === activeUser.id &&
     reportingActivity.monthKey === monthKey
     ? activities.find((activity) => activity.id === reportingActivity.id)
@@ -719,13 +771,7 @@ export default function Home() {
         <Navbar
           user={activeUser}
           activeTab={activeTab}
-          onTabChange={async (tab) => {
-            if (tab === activeTab || (await confirmDraft())) {
-              setDraftDirty(false);
-              setUndoActivity(null);
-              setActiveTab(tab);
-            }
-          }}
+          onTabChange={(tab) => void changeTab(tab)}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
           onOpenSheets={() => setSheetsOpen(true)}
           hasChanges={hasChanges}
@@ -769,9 +815,23 @@ export default function Home() {
             </label>
           </div>
 
-          {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} />}
+          {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} formsPending={formsPending} view={summaryView} onViewChange={setSummaryView} />}
           {activeTab === "account" && <AccountScreen user={activeUser} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} />}
-          {sheetsOpen && <Modal isOpen label="Minhas folhas" onClose={() => setSheetsOpen(false)}><div className="saved-sheets"><header><h2>Minhas folhas</h2><button className="secondary-button" onClick={() => setSheetsOpen(false)}>Voltar</button></header><p>Escolha um mês deste perfil. Você também pode começar uma folha vazia.</p>{Array.from(new Set([...PROJECT_MONTHS, monthKey])).sort().map((month) => <button className="secondary-button" key={month} onClick={async () => { if (await changeMonth(month)) { setUndoActivity(null); setActiveTab("official"); setSheetsOpen(false); } }}>{getMonthYearLabel(month)} · {getActivitiesForMonth(activeUser.id, month).length} atividades</button>)}</div></Modal>}
+          {sheetsOpen && (
+            <SavedSheets
+              profileId={activeUser.id}
+              profileLabel={`${activeUser.name} · GAT ${activeUser.gatNumber}`}
+              selectedMonth={monthKey}
+              onClose={() => setSheetsOpen(false)}
+              onOpen={async (month, target) => {
+                if (await changeMonth(month)) {
+                  setUndoActivity(null);
+                  setActiveTab(target);
+                  setSheetsOpen(false);
+                }
+              }}
+            />
+          )}
 
 
           {/* ABA 1: PAINEL DE LANÇAMENTOS */}
@@ -802,6 +862,10 @@ export default function Home() {
                   onDelete={handleDeleteActivity}
                   user={activeUser}
                   monthLabel={monthLabel}
+                  monthKey={monthKey}
+                  view={summaryView}
+                  proofCounts={proofCounts}
+                  onOpenProofs={(activity) => void openProofs(activity)}
                   onLoadSamples={handleLoadSamples}
                   onClearMonth={handleClearMonth}
                 />
@@ -831,9 +895,7 @@ export default function Home() {
 
           {/* ABA 2: FOLHA OFICIAL (PREVIEW A4 PAISAGEM) */}
           {activeTab === "official" && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="sheet-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 rounded-2xl border border-line bg-surface text-xs shadow-[var(--page-shadow)]">
-                {/* Seletor entre Minha Folha e Template Vazio */}
+            <div className="sheet-view animate-fade-in">
                 <div className="sheet-mode-tabs" role="group" aria-label="Tipo de folha">
                   <button
                     type="button"
@@ -853,53 +915,101 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {showBlankTemplate && (
-                    <a
-                      href="/templates/PET%20-%20Folha%20de%20Frequ%C3%AAncia%20-%20Modelo%20Vazio.pdf"
-                      download="PET - Folha de Frequência - Modelo Vazio.pdf"
-                      className="px-3 py-1.5 rounded-xl border border-line hover:bg-raised text-body cursor-pointer flex items-center gap-1.5 text-xs font-medium transition-all"
-                      title="Baixar arquivo PDF original em branco"
-                    >
-                      <Download className="size-3.5" />
-                      <span>Baixar PDF</span>
-                    </a>
+              <div className="sheet-layout">
+                <aside className="print-panel" aria-labelledby="print-panel-title">
+                  {showBlankTemplate ? (
+                    <div className="print-panel-intro">
+                      <h2 id="print-panel-title">Modelo em branco</h2>
+                      <p>Para preencher à mão. Mesmo formato oficial, sem os seus registros.</p>
+                    </div>
+                  ) : (
+                    <div className="print-panel-intro">
+                      <h2 id="print-panel-title">Antes de imprimir</h2>
+                      <ul className="print-checks">
+                        <li data-tone={totalHours >= 32 ? "done" : "warning"}>
+                          {totalHours >= 32 ? <CircleCheck size={20} aria-hidden="true" /> : <CircleAlert size={20} aria-hidden="true" />}
+                          <span>
+                            <strong>{totalHours} de 32 h no mês</strong>
+                            <small>{totalHours >= 32 ? "Referência mensal alcançada." : `Faltam ${32 - totalHours} h para a referência mensal.`}</small>
+                          </span>
+                        </li>
+                        <li data-tone={formsPending ? "warning" : "done"}>
+                          {formsPending ? <CircleAlert size={20} aria-hidden="true" /> : <CircleCheck size={20} aria-hidden="true" />}
+                          <span>
+                            <strong>{formsPending ? `${formsPending} ${formsPending === 1 ? "atividade pendente" : "atividades pendentes"} no Forms` : "Forms em dia"}</strong>
+                            {formsPending ? (
+                              <button type="button" className="text-button" onClick={() => void changeTab("dashboard")}>Ver pendências</button>
+                            ) : (
+                              <small>Envios marcados em todas as atividades.</small>
+                            )}
+                          </span>
+                        </li>
+                        <li data-tone={attachmentItems?.length ? "done" : "neutral"}>
+                          <Paperclip size={20} aria-hidden="true" />
+                          <span>
+                            <strong>
+                              {attachmentItems === undefined
+                                ? "Conferindo comprovantes…"
+                                : attachmentItems.length
+                                  ? `${attachmentItems.length} ${attachmentItems.length === 1 ? "comprovante" : "comprovantes"} · ${proofPages} ${proofPages === 1 ? "página" : "páginas"}`
+                                  : "Sem comprovantes"}
+                            </strong>
+                            <small>{attachmentItems?.length ? "Entram depois das assinaturas." : "Opcional. Adicione em Comprovantes se o seu GAT pedir."}</small>
+                          </span>
+                        </li>
+                        <li data-tone="neutral">
+                          <CalendarDays size={20} aria-hidden="true" />
+                          <span>
+                            <strong>Entrega até {formatShortDate(deadline)}</strong>
+                            <small>1º dia útil de {getMonthName(deadline.slice(0, 7))}. Envie como o seu GAT orientar.</small>
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
                   )}
-                  <button
-                    onClick={() => void handlePrint()}
-                    disabled={preparingPrint || attachmentsBusy}
-                    aria-busy={preparingPrint}
-                    className="px-3.5 py-1.5 rounded-xl font-semibold bg-primary text-white hover:bg-[var(--primary-hover)] cursor-pointer flex items-center gap-1.5 transition-all text-xs shadow-[var(--page-shadow)]"
-                  >
-                    <Printer className="size-3.5" />
-                    <span>{preparingPrint ? "Preparando PDF…" : "Imprimir / salvar PDF"}</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("dashboard")}
-                    className="px-3 py-1.5 rounded-xl border border-line hover:bg-raised text-body cursor-pointer flex items-center gap-1 text-xs transition-colors"
-                  >
-                    <ArrowLeft className="size-3.5" />
-                    Voltar
-                  </button>
-                </div>
-                <p className="text-sm text-muted w-full">
-                  Na janela de impressão, escolha papel A4 e orientação{" "}
-                  <strong>Horizontal</strong> na janela de impressão do sistema.
-                </p>
-              </div>
+                  <p className="print-paper">
+                    <Printer size={18} aria-hidden="true" />
+                    <span>Papel <strong>A4</strong> · orientação <strong>Horizontal</strong></span>
+                  </p>
+                  <div className="print-actions">
+                    {showBlankTemplate && (
+                      <a
+                        href="/templates/PET%20-%20Folha%20de%20Frequ%C3%AAncia%20-%20Modelo%20Vazio.pdf"
+                        download="PET - Folha de Frequência - Modelo Vazio.pdf"
+                        className="primary-button"
+                      >
+                        <Download size={18} aria-hidden="true" />
+                        Baixar modelo em PDF
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => void handlePrint()}
+                      disabled={preparingPrint || attachmentsBusy}
+                      aria-busy={preparingPrint}
+                      className={showBlankTemplate ? "secondary-button" : "primary-button"}
+                    >
+                      <Printer size={18} aria-hidden="true" />
+                      {preparingPrint ? "Preparando PDF…" : showBlankTemplate ? "Imprimir modelo" : "Imprimir ou salvar PDF"}
+                    </button>
+                    <p>Para gerar o arquivo, escolha “Salvar como PDF” no destino da impressão.</p>
+                  </div>
+                </aside>
 
-              <div className="sheet-stage overflow-x-auto max-w-full p-2.5 sm:p-8 md:p-10 bg-canvas rounded-2xl border border-line flex justify-start sm:justify-center shadow-inner">
-                <div className="shadow-[var(--page-shadow)] rounded-xs ring-1 ring-line overflow-hidden">
-                  <OfficialSheet
-                    user={activeUser}
-                    monthLabel={monthLabel}
-                    activities={activities}
-                    totalHours={totalHours}
-                    isBlankTemplate={showBlankTemplate}
-                  />
-                </div>
+                <section className="sheet-preview" aria-label="Prévia da folha">
+                  <div className="sheet-stage overflow-x-auto max-w-full p-2.5 sm:p-8 md:p-10 bg-canvas rounded-2xl border border-line flex justify-start sm:justify-center shadow-inner">
+                    <div className="shadow-[var(--page-shadow)] rounded-xs ring-1 ring-line overflow-hidden">
+                      <OfficialSheet
+                        user={activeUser}
+                        monthLabel={monthLabel}
+                        activities={activities}
+                        totalHours={totalHours}
+                        isBlankTemplate={showBlankTemplate}
+                      />
+                    </div>
+                  </div>
+                </section>
               </div>
-
             </div>
           )}
 
@@ -910,8 +1020,10 @@ export default function Home() {
                   monthKey={monthKey}
                   activities={activities}
                   busy={attachmentsBusy || preparingPrint || restoring}
+                  focusActivityId={attachmentsFocus}
+                  onFocusChange={setAttachmentsFocus}
                   onBusyChange={setAttachmentsBusy}
-                  onChange={() => { setHasChanges(true); setUndoActivity(null); }}
+                  onChange={() => { setHasChanges(true); setUndoActivity(null); setAttachmentsRevision((revision) => revision + 1); }}
                 />
               )}
           {reportActivity && (

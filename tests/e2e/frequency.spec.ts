@@ -115,7 +115,7 @@ async function add(page: Page, description = "Atividade sintética") {
   await page
     .getByRole("button", { name: "Adicionar atividade", exact: true })
     .click();
-  await expect(page.locator(".summary-total strong")).toHaveText("5");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("5");
 }
 
 test("cópia fica acessível no cabeçalho e menu móvel devolve o foco", async ({ page }) => {
@@ -173,9 +173,9 @@ test("perfil repetido retoma sem arquivo e preserva meses anteriores", async ({
     .getByRole("button", { name: "Continuar com este perfil", exact: true })
     .click();
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-11");
-  await expect(page.locator(".summary-total strong")).toHaveText("0");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("0");
   await page.getByLabel("Mês da folha").selectOption("2026-10");
-  await expect(page.locator(".summary-total strong")).toHaveText("2");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("2");
   await openExit(page);
   await page.getByRole("dialog", { name: "Antes de sair" })
     .getByRole("button", { name: "Sair", exact: true })
@@ -208,9 +208,9 @@ test("lançar, editar, exportar, restaurar, imprimir e excluir", async ({
     .first();
   await edit.getByLabel("Saída", { exact: true }).fill("18:30");
   await edit.getByRole("button", { name: /Salvar/ }).click();
-  await expect(page.locator(".summary-total strong")).toHaveText("6");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("6");
   await page.reload();
-  await expect(page.locator(".summary-total strong")).toHaveText("6");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("6");
   await page.evaluate(() =>
     Object.defineProperty(window, "showSaveFilePicker", {
       configurable: true,
@@ -247,7 +247,7 @@ test("lançar, editar, exportar, restaurar, imprimir e excluir", async ({
     };
   });
   await page
-    .getByRole("button", { name: "Imprimir / salvar PDF", exact: true })
+    .getByRole("button", { name: "Imprimir ou salvar PDF", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute(
     "data-print-opened",
@@ -267,7 +267,7 @@ test("lançar, editar, exportar, restaurar, imprimir e excluir", async ({
     .click();
   await page.getByRole("button", { name: /^Excluir atividade:/ }).click();
   await page.getByRole("button", { name: "Sim, excluir", exact: true }).click();
-  await expect(page.locator(".summary-total strong")).toHaveText("0");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("0");
   expect(errors).toEqual([]);
 });
 
@@ -292,7 +292,7 @@ test("erro de cópia e cancelamento preservam dados; formulário não some ao tr
   await expect(page.locator(".operation-notice pre")).not.toContainText(
     "SEGREDO_TESTE",
   );
-  await expect(page.locator(".summary-total strong")).toHaveText("5");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("5");
   await page.getByRole("button", { name: "Fechar aviso", exact: true }).click();
   await openActivityForm(page);
   await page
@@ -416,7 +416,7 @@ test("falha de gravação mantém formulário e permite tentar novamente", async
   await expect(
     page.getByLabel("Atividade realizada", { exact: true }),
   ).toHaveValue("Preenchimento preservado");
-  await expect(page.locator(".summary-total strong")).toHaveText("0");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("0");
   await page.evaluate(() => {
     const restore = Reflect.get(window, "restoreStorageForTest");
     if (typeof restore !== "function")
@@ -426,7 +426,7 @@ test("falha de gravação mantém formulário e permite tentar novamente", async
   await page
     .getByRole("button", { name: "Adicionar atividade", exact: true })
     .click();
-  await expect(page.locator(".summary-total strong")).toHaveText("5");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("5");
 });
 
 test("folha extensa pagina e mantém assinaturas somente no final", async ({
@@ -462,7 +462,7 @@ test("folha extensa pagina e mantém assinaturas somente no final", async ({
     };
   });
   await page
-    .getByRole("button", { name: "Imprimir / salvar PDF", exact: true })
+    .getByRole("button", { name: "Imprimir ou salvar PDF", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-print-opened", "true");
   const bytes = await page.pdf({ preferCSSPageSize: true });
@@ -677,7 +677,7 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
     };
   });
   await page.getByRole("button", { name: "Folha", exact: true }).click();
-  const print = () => page.getByRole("button", { name: "Imprimir / salvar PDF", exact: true }).click();
+  const print = () => page.getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
   await print();
   await expect(page.locator("html")).toHaveAttribute("data-print-pages", "quadrada,paisagem,retrato");
   if (testInfo.project.name === "desktop") {
@@ -687,11 +687,11 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
 
   await page.getByRole("button", { name: "Modelo em branco", exact: true }).click();
   await expect(proofs(page)).toHaveCount(0);
-  await print();
+  await page.getByRole("button", { name: "Imprimir modelo", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-print-pages", "sem-comprovantes");
   await openExit(page);
   await page.getByRole("dialog", { name: "Antes de sair" })
-    .getByRole("button", { name: "Imprimir / salvar PDF", exact: true }).click();
+    .getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-print-pages", "quadrada,paisagem,retrato");
   await page.getByRole("button", { name: "Continuar editando", exact: true }).click();
 
@@ -749,7 +749,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
     await fresh.goto(page.url());
     await fresh.getByRole("button", { name: "Já tenho uma cópia", exact: true }).click();
     await restoreCopy(fresh, data, "Cópia de segurança da folha");
-    await expect(fresh.locator(".summary-total strong")).toHaveText("5");
+    await expect(fresh.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("5");
     await openSheet(fresh);
     await expect(proofs(fresh).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
     await expect(proofs(fresh).getByRole("list", { name: "Atividades vinculadas" })).toContainText("Atividade sintética");
@@ -792,7 +792,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
   await expect(page.getByText("Não foi possível restaurar", { exact: true })).toBeVisible();
   await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
   await page.getByRole("button", { name: "Frequência", exact: true }).click();
-  await expect(page.locator(".summary-total strong")).toHaveText("5");
+  await expect(page.locator(".summary-tile:first-child .summary-figure strong")).toHaveText("5");
 
   await page.reload();
   await openSheet(page);
@@ -867,7 +867,7 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
 
   await page.evaluate(() => { window.print = () => { document.body.dataset.printed = "true"; }; });
   await page.getByRole("button", { name: "Folha", exact: true }).click();
-  await page.getByRole("button", { name: "Imprimir / salvar PDF", exact: true }).click();
+  await page.getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
   await expect(page.locator("body")).toHaveAttribute("data-printed", "true");
   const pages = page.locator(".print-attachment-page");
   await expect(pages.locator("h2")).toHaveText([
@@ -940,7 +940,7 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   await expect(region.getByRole("list", { name: "Atividades vinculadas" })).toHaveCount(0);
   await expect(region.getByRole("listitem").filter({
     has: page.getByRole("button", { name: "Alterar atividades de foto.png" }),
-  })).toContainText("Sem atividade. Aparece no final dos comprovantes.");
+  })).toContainText("Sem atividade · entra no final dos comprovantes");
   await expect(region).toContainText("20 de 30 páginas");
 });
 
@@ -1010,9 +1010,11 @@ test("preparar Forms, confirmar envio, revisar edição e restaurar relatório",
   await panel.getByLabel("Já enviei").check();
   await expect(panel.getByRole("status")).toHaveText("Marcado como enviado.");
   await panel.getByRole("button", { name: "Fechar", exact: true }).click();
-  await page.getByLabel("Mostrar só pendências do Forms").check();
+  const filters = page.getByRole("group", { name: "Filtrar registros" });
+  await filters.getByRole("button", { name: /^Pendentes no Forms/ }).click();
+  await expect(filters.getByRole("button", { name: /^Pendentes no Forms/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("Nenhuma pendência do Forms neste mês.", { exact: true })).toBeVisible();
-  await page.getByLabel("Mostrar só pendências do Forms").uncheck();
+  await filters.getByRole("button", { name: /^Todas/ }).click();
   await page.reload();
   await expect(page.locator(".report-state:visible")).toHaveText("Enviado");
   await page.getByRole("button", { name: /^Editar atividade:/ }).click();
@@ -1046,8 +1048,8 @@ test("novidades na entrada mostram publicação e histórico nos dois temas", as
   const bell = page.locator('.entry-header button[aria-controls="entry-news"]');
   const panel = page.getByRole("region", { name: "Novidades", exact: true });
   await bell.click();
-  await expect(panel.getByRole("heading", { name: "Lançamentos e janelas reorganizados" })).toBeVisible();
-  await expect(panel.getByText("10 de novembro de 2026").first()).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Frequência em lista larga e conferência da folha" })).toBeVisible();
+  await expect(panel.getByText("23 de novembro de 2026").first()).toBeVisible();
   for (const theme of ["light", "dark"]) {
     await page.evaluate((theme) => { document.documentElement.dataset.theme = theme; }, theme);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -1094,7 +1096,7 @@ test("sino de novidades preserva rascunho e guarda leitura", async ({ page }, te
   await closeActivityForm(page);
   await expect(bell.locator(".news-dot")).toBeVisible();
   await bell.press("Enter");
-  await expect(panel.getByRole("heading", { name: "Lançamentos e janelas reorganizados" })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Frequência em lista larga e conferência da folha" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(bell).toBeFocused();
   await expect(page.getByLabel("Atividade realizada", { exact: true })).toHaveValue("Rascunho preservado");
@@ -1105,7 +1107,7 @@ test("sino de novidades preserva rascunho e guarda leitura", async ({ page }, te
   for (const theme of ["light", "dark"]) {
     await page.locator("html").evaluate((element, value) => { element.dataset.theme = value; }, theme);
     await bell.click();
-    const heading = panel.getByRole("heading", { name: "Lançamentos e janelas reorganizados" });
+    const heading = panel.getByRole("heading", { name: "Frequência em lista larga e conferência da folha" });
     if (!(await heading.isVisible())) await panel.getByText("Ver atualizações anteriores", { exact: true }).click();
     await expect(heading).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));

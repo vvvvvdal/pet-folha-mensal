@@ -85,6 +85,15 @@ test("Minhas folhas muda mês e o resumo semanal permanece após recarregar", as
   await openAccount(page);
   await page.locator("#profile-menu, .account-screen").getByText("Minhas folhas", { exact: true }).filter({ visible: true }).click();
   const sheets = page.getByRole("dialog", { name: "Minhas folhas" });
+  const surface = sheets.locator(".saved-sheets");
+  await expect(surface).toBeVisible();
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+    const bg = await surface.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(bg).not.toBe("rgba(0, 0, 0, 0)");
+    expect(bg).not.toBe("transparent");
+  }
+  await page.evaluate(() => { document.documentElement.dataset.theme = "light"; });
   await sheets.getByRole("button", { name: /Outubro\/2026/ }).click();
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-10");
   await expect(page.getByRole("heading", { name: "Folha", exact: true })).toBeVisible();
@@ -270,7 +279,7 @@ test("Minhas folhas preserva rascunho ao cancelar descarte do mês atual", async
   await expect(confirmation).toBeVisible();
   await confirmation.getByRole("button", { name: "Continuar editando" }).click();
   await expect(sheets).toBeVisible();
-  await sheets.getByRole("button", { name: "Voltar", exact: true }).click();
+  await sheets.getByRole("button", { name: "Fechar", exact: true }).click();
   await expect(description).toHaveValue("Rascunho que deve continuar disponível");
   await expect(page.getByLabel("Entrada", { exact: true })).toHaveValue("14:00");
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-11");

@@ -1,0 +1,36 @@
+/* Comprovantes: atividades vinculadas como cartões e filtro por atividade. */
+.attachments-v2 .attachment-details { display: grid; align-content: start; justify-items: start; gap: 10px; }
+.dashboard-shell .attachments-v2 .attachment-count { font-size: 14px; color: var(--muted); }
+.dashboard-shell .attachments-v2 .attachment-unlinked { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px; border-radius: 999px; background: var(--warning-soft); color: var(--warning); font-size: 14px; font-weight: 600; }
+.attachments-v2 .attachment-linked { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.attachments-v2 .attachment-linked li + li { margin-top: 0; }
+.dashboard-shell .attachments-v2 .activity-chip { display: flex; align-items: stretch; min-height: 56px; max-width: 100%; padding: 0; overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 12px; background: color-mix(in srgb, var(--primary-soft) 55%, var(--surface)); color: var(--foreground); text-align: left; transition: border-color 150ms ease, background 150ms ease; }
+.dashboard-shell .attachments-v2 .activity-chip:hover,
+.dashboard-shell .attachments-v2 .activity-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--primary-soft); }
+.activity-chip-date { display: grid; place-content: center; flex-shrink: 0; width: 52px; background: var(--primary-soft); color: var(--accent); line-height: 1.05; text-align: center; }
+.activity-chip-date strong { font-family: var(--font-jakarta), "Plus Jakarta Sans", Inter, sans-serif; font-size: 19px; font-weight: 800; }
+.activity-chip-date span { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+.activity-chip-text { display: grid; align-content: center; gap: 1px; min-width: 0; padding: 8px 14px; }
+.activity-chip-text strong { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.activity-chip-text small { font-size: 14px; color: var(--muted); }
+.dashboard-shell .attachments-v2 .attachment-file-line { display: flex; flex-wrap: wrap; gap: 4px 6px; min-width: 0; max-width: 100%; font-size: 14px; color: var(--muted); }
+.attachment-file-name { max-width: min(360px, 100%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--body); }
+.dashboard-shell .attachments-v2 .attachment-change { min-height: 44px; padding: 8px 14px; font-size: 14px; }
+.attachments-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 8px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); border-radius: 14px; background: var(--primary-soft); }
+.attachments-focus > svg { flex-shrink: 0; color: var(--accent); }
+.dashboard-shell .attachments-focus p { flex: 1 1 280px; font-size: 15px; color: var(--foreground); }
+.attachments-focus > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.dashboard-shell .attachments-focus .secondary-button { min-height: 44px; font-size: 14px; }
+.dashboard-shell .attachments-focus-empty { padding: 24px 0; border-top: 1px solid var(--border); color: var(--muted); font-size: 15px; }
+.attachments-missing { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.attachments-missing summary { display: flex; align-items: center; min-height: 48px; cursor: pointer; font-weight: 600; color: var(--body); }
+.attachments-missing ul { display: grid; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.attachments-missing li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; color: var(--body); font-size: 15px; }
+.dashboard-shell .attachments-missing .secondary-button { min-height: 44px; padding: 6px 16px; border-style: dashed; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell .attachments-v2 .activity-chip { transition: none; }
+}
+@media (max-width: 767px) {
+  .attachments-v2 .attachment-linked { grid-column: auto; }
+  .dashboard-shell .attachments-v2 .activity-chip { width: 100%; }
+}
