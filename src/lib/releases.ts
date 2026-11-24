@@ -1,6 +1,16 @@
 // Dates are publication dates in São Paulo, not the build or the visitor's date.
 export const RELEASES = [
   {
+    date: "2026-11-24",
+    title: "Fotos direto da galeria nos comprovantes",
+    changes: [
+      "Em Comprovantes, o botão Fotos da galeria abre diretamente a galeria do celular ou tablet, sem passar por Meus Arquivos ou Drive.",
+      "O botão PDF ou arquivos continua disponível para anexar documentos em PDF ou escolher pastas no computador e no Drive.",
+      "Nos atalhos Anexar, Adicionar para esta atividade e Adicionar mais arquivos, um menu curto permite escolher entre galeria e arquivos.",
+      "Passamos a aceitar imagens WebP e a converter fotos HEIC em navegadores compatíveis para manter o PDF e a cópia funcionando em qualquer aparelho.",
+    ],
+  },
+  {
     date: "2026-11-23",
     title: "Frequência em lista larga e conferência da folha",
     changes: [

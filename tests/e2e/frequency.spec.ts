@@ -1048,8 +1048,8 @@ test("novidades na entrada mostram publicação e histórico nos dois temas", as
   const bell = page.locator('.entry-header button[aria-controls="entry-news"]');
   const panel = page.getByRole("region", { name: "Novidades", exact: true });
   await bell.click();
-  await expect(panel.getByRole("heading", { name: "Frequência em lista larga e conferência da folha" })).toBeVisible();
-  await expect(panel.getByText("23 de novembro de 2026").first()).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Fotos direto da galeria nos comprovantes" })).toBeVisible();
+  await expect(panel.getByText("24 de novembro de 2026").first()).toBeVisible();
   for (const theme of ["light", "dark"]) {
     await page.evaluate((theme) => { document.documentElement.dataset.theme = theme; }, theme);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -1096,7 +1096,7 @@ test("sino de novidades preserva rascunho e guarda leitura", async ({ page }, te
   await closeActivityForm(page);
   await expect(bell.locator(".news-dot")).toBeVisible();
   await bell.press("Enter");
-  await expect(panel.getByRole("heading", { name: "Frequência em lista larga e conferência da folha" })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Fotos direto da galeria nos comprovantes" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(bell).toBeFocused();
   await expect(page.getByLabel("Atividade realizada", { exact: true })).toHaveValue("Rascunho preservado");
@@ -1107,7 +1107,7 @@ test("sino de novidades preserva rascunho e guarda leitura", async ({ page }, te
   for (const theme of ["light", "dark"]) {
     await page.locator("html").evaluate((element, value) => { element.dataset.theme = value; }, theme);
     await bell.click();
-    const heading = panel.getByRole("heading", { name: "Frequência em lista larga e conferência da folha" });
+    const heading = panel.getByRole("heading", { name: "Fotos direto da galeria nos comprovantes" });
     if (!(await heading.isVisible())) await panel.getByText("Ver atualizações anteriores", { exact: true }).click();
     await expect(heading).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
