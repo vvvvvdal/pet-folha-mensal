@@ -2,10 +2,10 @@
 .profile-chevron { flex-shrink: 0; color: var(--muted); transition: transform 200ms ease; }
 .profile-trigger[aria-expanded="true"] .profile-chevron { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .profile-chevron { transition: none; } }
-html :is(.news-popover, .profile-popover, .backup-popover, .entry-options-panel) {
+html :is(.news-popover, .profile-popover, .backup-popover, .entry-options-panel, .attachment-source-popover) {
   box-shadow: 0 12px 36px rgb(0 0 0 / 18%);
 }
-html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .entry-options-panel) {
+html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .entry-options-panel, .attachment-source-popover) {
   box-shadow: 0 12px 36px rgb(0 0 0 / 42%);
 }
 @media (min-width: 900px) {

@@ -8,7 +8,8 @@ const MIB = 1024 * 1024;
 const PRINT_WIDTH = 1745;
 const PRINT_HEIGHT = 1222;
 
-type AttachmentType = "application/pdf" | "image/jpeg" | "image/png";
+type AttachmentType = "application/pdf" | "image/jpeg" | "image/png" | "image/webp";
+type RawAttachmentType = AttachmentType | "image/heic";
 
 export interface Attachment {
   id: string;
@@ -136,14 +137,29 @@ export function updateAttachmentLinks(scope: AttachmentScope, attachmentId: stri
   });
 }
 
-async function detectType(file: Blob): Promise<AttachmentType> {
+function isHeicHeader(header: Uint8Array): boolean {
+  if (header.length < 12) return false;
+  if (header[4] !== 102 || header[5] !== 116 || header[6] !== 121 || header[7] !== 112) return false;
+  const brands = new TextDecoder("latin1").decode(header.subarray(8, 32)).toLowerCase();
+  return ["heic", "heix", "hevc", "hevx", "mif1", "msf1"].some((brand) => brands.includes(brand));
+}
+
+async function detectRawFormat(file: Blob): Promise<RawAttachmentType> {
   const header = new Uint8Array(await file.slice(0, 1024).arrayBuffer());
   if ([137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => header[i] === byte))
     return "image/png";
   if (header[0] === 255 && header[1] === 216 && header[2] === 255)
     return "image/jpeg";
+  if (
+    header.length >= 12 &&
+    header[0] === 82 && header[1] === 73 && header[2] === 70 && header[3] === 70 &&
+    header[8] === 87 && header[9] === 69 && header[10] === 66 && header[11] === 80
+  )
+    return "image/webp";
+  if (isHeicHeader(header))
+    return "image/heic";
   if (new TextDecoder().decode(header).includes("%PDF-")) return "application/pdf";
-  throw new Error("formato inválido. Selecione um PDF, JPEG ou PNG.");
+  throw new Error("formato inválido. Selecione um PDF, JPEG, PNG ou WebP.");
 }
 
 export async function loadImage(url: string): Promise<HTMLImageElement> {
@@ -178,14 +194,46 @@ export function canvasToBlob(canvas: HTMLCanvasElement, type = "image/jpeg"): Pr
   });
 }
 
+async function convertHeicToJpeg(blob: Blob): Promise<Blob> {
+  const url = URL.createObjectURL(blob.slice(0, blob.size, "image/heic"));
+  const canvas = document.createElement("canvas");
+  try {
+    let image: HTMLImageElement;
+    try {
+      image = await loadImage(url);
+    } catch {
+      throw new Error("formato HEIC não suportado neste navegador. Compartilhe ou salve a foto como JPEG ou PNG.");
+    }
+    const scale = Math.min(1, printScale(image.naturalWidth, image.naturalHeight));
+    canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("não foi possível preparar a imagem para impressão.");
+    paintWhite(canvas);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return await canvasToBlob(canvas, "image/jpeg");
+  } finally {
+    URL.revokeObjectURL(url);
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+}
+
 async function validateAttachment(id: string, name: string, blob: Blob): Promise<Attachment> {
   if (blob.size > ATTACHMENT_LIMIT_MB * MIB)
     throw new Error("o arquivo excede o limite de 20 MB.");
-  const type = await detectType(blob);
-  const file = blob.slice(0, blob.size, type);
+  const rawType = await detectRawFormat(blob);
+  if (rawType === "image/heic") {
+    const converted = await convertHeicToJpeg(blob);
+    if (converted.size > ATTACHMENT_LIMIT_MB * MIB)
+      throw new Error("o arquivo excede o limite de 20 MB.");
+    const normalizedName = /\.(heic|heif)$/i.test(name) ? name.replace(/\.(heic|heif)$/i, ".jpg") : `${name}.jpg`;
+    return { id, name: normalizedName, file: converted, pages: 1 };
+  }
+  const file = blob.slice(0, blob.size, rawType);
 
   let pages = 1;
-  if (type === "application/pdf") {
+  if (rawType === "application/pdf") {
     const { countPdfPages } = await import("./attachment-pdf");
     pages = await countPdfPages(file);
   } else {

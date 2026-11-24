@@ -136,3 +136,93 @@ test("falha de gravação preserva revisão e permite salvar após recuperar", a
   await expect(review).toHaveCount(0);
   expect((await persisted(page)).map(({ name }) => name)).toEqual(["foto.png", "outra.png"]);
 });
+
+test("galeria dedicada, WebP, popover nos atalhos secundários e larguras sem estouro", async ({ page }) => {
+  await openProofs(page);
+  const region = page.getByRole("region", { name: "Arquivos deste mês" });
+  const galleryInput = region.getByLabel("Adicionar fotos da galeria");
+  const filesInput = region.getByLabel("Adicionar comprovantes");
+  await expect(galleryInput).toHaveAttribute("accept", "image/*");
+  await expect(filesInput).toHaveAttribute(
+    "accept",
+    ".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp",
+  );
+
+  const webpBase64 = await page.evaluate(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 24;
+    canvas.height = 16;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#007c46";
+    ctx.fillRect(0, 0, 24, 16);
+    return canvas.toDataURL("image/webp").split(",")[1];
+  });
+
+  const [galleryChooser] = await Promise.all([
+    page.waitForEvent("filechooser"),
+    region.getByRole("button", { name: "Fotos da galeria", exact: true }).click(),
+  ]);
+  expect(galleryChooser.isMultiple()).toBe(true);
+  await galleryChooser.setFiles({
+    name: "captura-galeria.webp",
+    mimeType: "image/webp",
+    buffer: Buffer.from(webpBase64, "base64"),
+  });
+
+  const review = page.getByRole("dialog", { name: "Conferir comprovantes" });
+  await expect(review).toBeVisible();
+  await expect(review.getByRole("img", { name: "Prévia de captura-galeria.webp" })).toBeVisible();
+
+  const addMore = review.getByRole("button", { name: "Adicionar mais arquivos" });
+  await addMore.focus();
+  await page.keyboard.press("Enter");
+  const reviewMenu = review.getByRole("menu", { name: "Origem do comprovante" });
+  await expect(reviewMenu).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(reviewMenu).toBeHidden();
+  await expect(review).toBeVisible();
+  await expect(addMore).toBeFocused();
+
+  await review.locator(".review-file").getByRole("checkbox", { name: /Atividade A/ }).check();
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+  await expect(review).toHaveCount(0);
+
+  const missing = region.locator(".attachments-missing");
+  await missing.locator("summary").click();
+  const attachB = missing.getByRole("button", { name: /Anexar comprovante a .*Atividade B/ });
+  await attachB.focus();
+  await page.keyboard.press("Enter");
+  const missingMenu = missing.getByRole("menu", { name: "Origem do comprovante" });
+  await expect(missingMenu).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(missingMenu).toBeHidden();
+  await expect(attachB).toBeFocused();
+
+  await attachB.click();
+  await expect(missingMenu).toBeVisible();
+  const [missingGalleryChooser] = await Promise.all([
+    page.waitForEvent("filechooser"),
+    missingMenu.getByRole("menuitem", { name: /Fotos da galeria/ }).click(),
+  ]);
+  await missingGalleryChooser.setFiles([
+    image,
+    {
+      name: "camera-iphone.heic",
+      mimeType: "image/heic",
+      buffer: Buffer.from("\x00\x00\x00\x18ftypheic\x00\x00\x00\x00heicmif1", "latin1"),
+    },
+  ]);
+  await expect(review).toBeVisible();
+  await expect(review.locator(".review-file").getByRole("checkbox", { name: /Atividade B/ })).toBeChecked();
+  await expect(review.getByRole("alert")).toContainText("camera-iphone.heic:");
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+  await expect(review).toHaveCount(0);
+
+  for (const width of [320, 360, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ["light", "dark"]) {
+      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+  }
+});

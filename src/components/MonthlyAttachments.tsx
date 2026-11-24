@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
-import { Plus, Trash2, X, Paperclip, CircleAlert, ListFilter } from "lucide-react";
+import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
+import { Trash2, X, Paperclip, CircleAlert, ListFilter, Image as ImageIcon, FileText, ChevronDown } from "lucide-react";
 import {
   prepareAttachmentFiles, savePreparedAttachments, ATTACHMENT_LIMIT_MB,
   countAttachmentPages, linkedActivityIds, listAttachments, MONTH_LIMIT_MB,
@@ -47,10 +47,149 @@ function ActivityChoices({ item, activities, disabled, onChange }: { item: Attac
   </fieldset>;
 }
 
+type AttachmentSource = "gallery" | "files";
+
+function AttachmentSourceMenu({
+  label,
+  ariaLabel,
+  disabled,
+  onChoose,
+}: {
+  label: string;
+  ariaLabel?: string;
+  disabled: boolean;
+  onChoose: (source: AttachmentSource) => void;
+}) {
+  const menuId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+
+  const position = () => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    const panel = panelRef.current;
+    if (!rect || !panel) return;
+    const menuWidth = Math.min(320, window.innerWidth - 24);
+    const preferRight = rect.left + menuWidth > window.innerWidth - 12 || rect.left > window.innerWidth / 2;
+    const rawLeft = preferRight ? rect.right - menuWidth : rect.left;
+    const left = Math.max(12, Math.min(rawLeft, window.innerWidth - menuWidth - 12));
+    const estimatedHeight = 168;
+    const openAbove = rect.bottom + estimatedHeight + 16 > window.innerHeight && rect.top > estimatedHeight + 16;
+    panel.style.width = `${menuWidth}px`;
+    panel.style.left = `${left}px`;
+    panel.style.right = "auto";
+    if (openAbove) {
+      panel.style.top = "auto";
+      panel.style.bottom = `${Math.max(12, window.innerHeight - rect.top + 8)}px`;
+    } else {
+      panel.style.bottom = "auto";
+      panel.style.top = `${Math.max(12, rect.bottom + 8)}px`;
+    }
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener("resize", position);
+    window.addEventListener("scroll", position, true);
+    return () => {
+      window.removeEventListener("resize", position);
+      window.removeEventListener("scroll", position, true);
+    };
+  }, [open]);
+
+  function selectSource(source: AttachmentSource) {
+    panelRef.current?.hidePopover();
+    onChoose(source);
+  }
+
+  return (
+    <div className="attachment-source-anchor">
+      <button
+        ref={triggerRef}
+        type="button"
+        className="secondary-button attachment-source-trigger"
+        popoverTarget={menuId}
+        aria-expanded={open}
+        aria-controls={menuId}
+        aria-haspopup="menu"
+        aria-label={ariaLabel}
+        disabled={disabled}
+        onClick={position}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            position();
+            panelRef.current?.showPopover();
+            requestAnimationFrame(() => {
+              const items = panelRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]');
+              if (!items?.length) return;
+              items[event.key === "ArrowUp" ? items.length - 1 : 0]?.focus();
+            });
+          }
+        }}
+      >
+        <span>{label}</span>
+        <ChevronDown size={16} className="attachment-source-chevron" aria-hidden="true" />
+      </button>
+      <div
+        ref={panelRef}
+        id={menuId}
+        popover="auto"
+        role="menu"
+        aria-label="Origem do comprovante"
+        className="attachment-source-popover"
+        onBeforeToggle={(event) => {
+          if (event.newState === "open") position();
+        }}
+        onToggle={(event) => {
+          const next = event.newState === "open";
+          setOpen(next);
+          if (!next && (document.activeElement === document.body || panelRef.current?.contains(document.activeElement))) {
+            triggerRef.current?.focus();
+          }
+        }}
+        onKeyDown={(event) => {
+          const items = Array.from(panelRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []);
+          const index = items.indexOf(document.activeElement as HTMLButtonElement);
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus();
+          }
+          if (event.key === "Home" || event.key === "End") {
+            event.preventDefault();
+            items[event.key === "Home" ? 0 : items.length - 1]?.focus();
+          }
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            panelRef.current?.hidePopover();
+            triggerRef.current?.focus();
+          }
+        }}
+      >
+        <button type="button" role="menuitem" onClick={() => selectSource("gallery")}>
+          <ImageIcon size={20} aria-hidden="true" />
+          <span>
+            <strong>Fotos da galeria</strong>
+            <small>Imagens e capturas do aparelho.</small>
+          </span>
+        </button>
+        <button type="button" role="menuitem" onClick={() => selectSource("files")}>
+          <FileText size={20} aria-hidden="true" />
+          <span>
+            <strong>PDF ou arquivos</strong>
+            <small>Documentos PDF, pastas ou Drive.</small>
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function MonthlyAttachments({ profileId, monthKey, activities, busy, onBusyChange, onChange, focusActivityId = null, onFocusChange }: Props) {
   const { confirm } = useDialog();
   const headingId = useId();
-  const input = useRef<HTMLInputElement>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
+  const filesInput = useRef<HTMLInputElement>(null);
   const preselect = useRef<string | null>(null);
   const activeOp = useRef<Promise<void>>(Promise.resolve());
   const localBusy = useRef(false);
@@ -86,9 +225,10 @@ export function MonthlyAttachments({ profileId, monthKey, activities, busy, onBu
     return () => window.removeEventListener("beforeunload", warn);
   }, [drafts]);
 
-  function choose(activityId: string | null) {
+  function choose(activityId: string | null, source: AttachmentSource = "files") {
     preselect.current = activityId;
-    input.current?.click();
+    if (source === "gallery") galleryInput.current?.click();
+    else filesInput.current?.click();
   }
   function runExclusive(task: () => Promise<void>) {
     const next = activeOp.current.then(task, task);
@@ -170,17 +310,58 @@ export function MonthlyAttachments({ profileId, monthKey, activities, busy, onBu
     } catch { setErrors(["Não foi possível remover o comprovante. Tente novamente."]); }
     finally { onBusyChange(false); }
   }
-  const chooser = <input ref={input} className="sr-only" type="file" multiple aria-label="Adicionar comprovantes" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" disabled={busy || !items} onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; void prepare(files); }} />;
+  function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    void prepare(files);
+  }
+  const choosers = (
+    <>
+      <input
+        ref={galleryInput}
+        className="sr-only"
+        type="file"
+        multiple
+        aria-label="Adicionar fotos da galeria"
+        accept="image/*"
+        disabled={busy || !items}
+        onChange={handleInputChange}
+      />
+      <input
+        ref={filesInput}
+        className="sr-only"
+        type="file"
+        multiple
+        aria-label="Adicionar comprovantes"
+        accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+        disabled={busy || !items}
+        onChange={handleInputChange}
+      />
+    </>
+  );
 
   return <section className="attachments-panel attachments-v2" aria-labelledby={headingId}>
-    <header className="attachments-heading"><div><h2 id={headingId}>Arquivos deste mês</h2><p>Adicione fotos ou PDFs e escolha as atividades que eles comprovam.</p></div><button type="button" className="primary-button" disabled={busy || !items} onClick={() => choose(null)}><Plus size={18} aria-hidden="true" />Adicionar comprovantes</button></header>
-    {chooser}
-    <div className="attachments-meta"><p>{items ? `${items.length} ${items.length === 1 ? "arquivo" : "arquivos"} · ${pages} de ${MONTH_PAGE_LIMIT} páginas no PDF${activities.length ? ` · ${activities.length - withoutProof.length} de ${activities.length} atividades com comprovante` : ""}` : "Carregando comprovantes…"}</p><details><summary>Formatos e limites</summary><p>PDF, JPEG e PNG. Até {ATTACHMENT_LIMIT_MB} MB por arquivo e {MONTH_LIMIT_MB} MB por mês. O PDF pode ter até {MONTH_PAGE_LIMIT} páginas de comprovantes. Um arquivo usado em duas atividades aparece duas vezes no PDF.</p></details></div>
+    <header className="attachments-heading">
+      <div>
+        <h2 id={headingId}>Arquivos deste mês</h2>
+        <p>Adicione fotos da galeria ou PDFs e escolha as atividades que eles comprovam.</p>
+      </div>
+      <div className="attachments-actions">
+        <button type="button" className="primary-button" disabled={busy || !items} onClick={() => choose(null, "gallery")}>
+          <ImageIcon size={18} aria-hidden="true" />Fotos da galeria
+        </button>
+        <button type="button" className="secondary-button" disabled={busy || !items} onClick={() => choose(null, "files")}>
+          <FileText size={18} aria-hidden="true" />PDF ou arquivos
+        </button>
+      </div>
+    </header>
+    {choosers}
+    <div className="attachments-meta"><p>{items ? `${items.length} ${items.length === 1 ? "arquivo" : "arquivos"} · ${pages} de ${MONTH_PAGE_LIMIT} páginas no PDF${activities.length ? ` · ${activities.length - withoutProof.length} de ${activities.length} atividades com comprovante` : ""}` : "Carregando comprovantes…"}</p><details><summary>Formatos e limites</summary><p>PDF, JPEG, PNG e WebP. Até {ATTACHMENT_LIMIT_MB} MB por arquivo e {MONTH_LIMIT_MB} MB por mês. O PDF pode ter até {MONTH_PAGE_LIMIT} páginas de comprovantes. Um arquivo usado em duas atividades aparece duas vezes no PDF.</p></details></div>
     {focusActivity && <div className="attachments-focus" role="status">
       <ListFilter size={18} aria-hidden="true" />
       <p>Mostrando os comprovantes de <strong>{activityLabel(focusActivity)}</strong></p>
       <div>
-        <button type="button" className="secondary-button" disabled={busy || !items} onClick={() => choose(focusActivity.id)}>Adicionar para esta atividade</button>
+        <AttachmentSourceMenu label="Adicionar para esta atividade" disabled={busy || !items} onChoose={(source) => choose(focusActivity.id, source)} />
         <button type="button" className="secondary-button" onClick={() => onFocusChange?.(null)}>Ver todos</button>
       </div>
     </div>}
@@ -206,12 +387,12 @@ export function MonthlyAttachments({ profileId, monthKey, activities, busy, onBu
       <summary>Atividades sem comprovante ({withoutProof.length})</summary>
       <ul>{withoutProof.map((activity) => <li key={activity.id}>
         <span>{activityLabel(activity)}</span>
-        <button type="button" className="secondary-button" disabled={busy} aria-label={`Anexar comprovante a ${activityLabel(activity)}`} onClick={() => choose(activity.id)}>Anexar</button>
+        <AttachmentSourceMenu label="Anexar" ariaLabel={`Anexar comprovante a ${activityLabel(activity)}`} disabled={busy} onChoose={(source) => choose(activity.id, source)} />
       </li>)}</ul>
     </details>}
     {status && <p role="status" className="attachment-status">{status}</p>}
     {errors.length > 0 && <div className="operation-notice" role="alert">{errors.map((error) => <p key={error}>{error}</p>)}{!items && <button type="button" className="secondary-button" onClick={() => { setErrors([]); setAttempt(attempt + 1); }}>Tentar novamente</button>}</div>}
-    {drafts !== null && <Modal isOpen label="Conferir comprovantes" variant="editor" onClose={() => { void closeReview(); }}><section className="editor-panel attachment-review"><header className="editor-head"><div><h2>Conferir comprovantes</h2><p>{drafts.length} {drafts.length === 1 ? "arquivo selecionado" : "arquivos selecionados"}</p></div><button type="button" className="icon-button" aria-label="Fechar conferência" disabled={busy} onClick={() => { void closeReview(); }}><X size={20} aria-hidden="true" /></button></header><div className="editor-body"><ol className="review-files">{drafts.map((item) => <li key={item.id} className="review-file"><div className="review-file-heading"><AttachmentPreview item={item} /><FileInfo item={item} /><button type="button" className="icon-button" aria-label={`Retirar ${item.name} da seleção`} title="Retirar da seleção" disabled={busy} onClick={() => setDrafts((current) => current?.filter(({ id }) => id !== item.id) ?? [])}><X size={20} aria-hidden="true" /></button></div><ActivityChoices item={item} activities={activities} disabled={busy} onChange={(ids) => setDrafts((current) => current?.map((draft) => draft.id === item.id ? { ...draft, activityIds: ids } : draft) ?? [])} /></li>)}</ol>{drafts.length === 0 && <p>Nenhum arquivo selecionado. Adicione um arquivo para continuar.</p>}<button type="button" className="secondary-button" disabled={busy} onClick={() => choose(null)}><Plus size={18} aria-hidden="true" />Adicionar mais arquivos</button><p className="attachment-page-budget">Com esta seleção: {pages + stagedPages} de {MONTH_PAGE_LIMIT} páginas de comprovantes no PDF.</p>{reviewErrors.length > 0 && <div className="operation-notice" role="alert">{reviewErrors.map((error, index) => <p key={index}>{error}</p>)}</div>}</div><footer className="editor-foot"><button type="button" className="secondary-button" disabled={busy} onClick={() => { void closeReview(); }}>Cancelar</button><button type="button" className="primary-button" disabled={busy || !drafts.length} onClick={() => { void saveDrafts(); }}>{busy ? "Salvando…" : "Salvar comprovantes"}</button></footer></section></Modal>}
+    {drafts !== null && <Modal isOpen label="Conferir comprovantes" variant="editor" onClose={() => { void closeReview(); }}><section className="editor-panel attachment-review"><header className="editor-head"><div><h2>Conferir comprovantes</h2><p>{drafts.length} {drafts.length === 1 ? "arquivo selecionado" : "arquivos selecionados"}</p></div><button type="button" className="icon-button" aria-label="Fechar conferência" disabled={busy} onClick={() => { void closeReview(); }}><X size={20} aria-hidden="true" /></button></header><div className="editor-body"><ol className="review-files">{drafts.map((item) => <li key={item.id} className="review-file"><div className="review-file-heading"><AttachmentPreview item={item} /><FileInfo item={item} /><button type="button" className="icon-button" aria-label={`Retirar ${item.name} da seleção`} title="Retirar da seleção" disabled={busy} onClick={() => setDrafts((current) => current?.filter(({ id }) => id !== item.id) ?? [])}><X size={20} aria-hidden="true" /></button></div><ActivityChoices item={item} activities={activities} disabled={busy} onChange={(ids) => setDrafts((current) => current?.map((draft) => draft.id === item.id ? { ...draft, activityIds: ids } : draft) ?? [])} /></li>)}</ol>{drafts.length === 0 && <p>Nenhum arquivo selecionado. Adicione um arquivo para continuar.</p>}<AttachmentSourceMenu label="Adicionar mais arquivos" disabled={busy} onChoose={(source) => choose(null, source)} /><p className="attachment-page-budget">Com esta seleção: {pages + stagedPages} de {MONTH_PAGE_LIMIT} páginas de comprovantes no PDF.</p>{reviewErrors.length > 0 && <div className="operation-notice" role="alert">{reviewErrors.map((error, index) => <p key={index}>{error}</p>)}</div>}</div><footer className="editor-foot"><button type="button" className="secondary-button" disabled={busy} onClick={() => { void closeReview(); }}>Cancelar</button><button type="button" className="primary-button" disabled={busy || !drafts.length} onClick={() => { void saveDrafts(); }}>{busy ? "Salvando…" : "Salvar comprovantes"}</button></footer></section></Modal>}
     {editing && <Modal isOpen label="Alterar atividades do comprovante" variant="editor" onClose={() => { if (!busy) setEditing(null); }}><section className="editor-panel"><header className="editor-head"><h2>Alterar atividades</h2><button type="button" className="icon-button" aria-label="Fechar atividades" disabled={busy} onClick={() => setEditing(null)}><X size={20} aria-hidden="true" /></button></header><div className="editor-body"><div className="review-file-heading"><AttachmentPreview item={editing} /><FileInfo item={editing} /></div><ActivityChoices item={editing} activities={activities} disabled={busy} onChange={(ids) => setEditing((current) => current && ({ ...current, activityIds: ids }))} />{linkError && <p className="operation-notice" role="alert">{linkError}</p>}</div><footer className="editor-foot"><button type="button" className="secondary-button" disabled={busy} onClick={() => setEditing(null)}>Cancelar</button><button type="button" className="primary-button" disabled={busy} onClick={() => { void saveLinks(); }}>{busy ? "Salvando…" : "Salvar atividades"}</button></footer></section></Modal>}
   </section>;
 }
