@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
-import { Trash2, X, Paperclip, CircleAlert, ListFilter, Image as ImageIcon, FileText } from "lucide-react";
+import { ChevronDown, Trash2, X, Paperclip, CircleAlert, ListFilter, Image as ImageIcon, FileText } from "lucide-react";
 import {
   prepareAttachmentFiles,
   savePreparedAttachments,
@@ -330,7 +330,7 @@ export function MonthlyAttachments({
             : "Carregando comprovantes…"}
         </p>
         <details>
-          <summary>Formatos e limites</summary>
+          <summary>Formatos e limites<ChevronDown size={16} aria-hidden="true" /></summary>
           <p>
             PDF, JPEG, PNG e WebP. Até {ATTACHMENT_LIMIT_MB} MB por arquivo e {MONTH_LIMIT_MB} MB
             por mês. O PDF pode ter até {MONTH_PAGE_LIMIT} páginas de comprovantes (em PDFs longos,
