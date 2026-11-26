@@ -88,11 +88,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useDialog } from "@/context/DialogContext";
-import { GoogleLanding } from "@/components/GoogleLanding";
 import { FirstEntry } from "@/components/FirstEntry";
 import { SyncStatus } from "@/components/SyncStatus";
 import { SyncConflictModal } from "@/components/SyncConflictModal";
-import { fetchGoogleSession, logoutGoogle, type GoogleSession } from "@/lib/google-session";
+import { fetchGoogleSession, logoutGoogle, type GoogleLoginError, type GoogleSession } from "@/lib/google-session";
 import { driveFolderUrl, forgetAccountState, markMonthDirty } from "@/lib/drive-sync";
 import { useDriveSync } from "@/lib/use-drive-sync";
 import { createMonthBackup, removeMonthAttachments } from "@/lib/month-backup";
@@ -160,17 +159,24 @@ export default function Home() {
 
   // Google login and Drive copy. Without server credentials the app keeps the local-only mode.
   const [google, setGoogle] = useState<GoogleSession | null>(null);
-  const [loginError, setLoginError] = useState(false);
+  const [loginError, setLoginError] = useState<GoogleLoginError>();
   useEffect(() => {
     let current = true;
-    const params = new URLSearchParams(window.location.search);
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
     if (params.get("login") === "erro") {
+      const reason = params.get("motivo");
       // eslint-disable-next-line react-hooks/set-state-in-effect -- The OAuth callback reports failures through the URL once.
-      setLoginError(true);
+      setLoginError(reason === "permissao" ? "permission" : reason === "negado" ? "denied" : "failed");
       params.delete("login");
-      window.history.replaceState(null, "", `${window.location.pathname}${params.size ? `?${params}` : ""}`);
+      params.delete("motivo");
+      window.history.replaceState(window.history.state, "", url);
     }
-    fetchGoogleSession().then((session) => { if (current) setGoogle(session); });
+    fetchGoogleSession().then((session) => {
+      if (!current) return;
+      if (session.authenticated) setLoginError(undefined);
+      setGoogle(session);
+    });
     return () => { current = false; };
   }, []);
   const cloudMode = google?.configured === true;
@@ -651,7 +657,7 @@ export default function Home() {
   };
 
   // Importar Backup Local em JSON
-  const handleImportBackup = async (file: File) => {
+  const handleImportBackup = async (file: File, firstGoogleAccount?: { sub: string; email?: string }) => {
     if (importInProgress.current) return;
     if (attachmentsBusy || printInProgress.current) {
       await alert({
@@ -677,6 +683,15 @@ export default function Home() {
       }
       // Signed in with Google: the copy becomes a month of the linked profile.
       if (syncUser) preview.user = syncUser;
+      else if (firstGoogleAccount) {
+        const backupUser = preview.user!;
+        preview.user = {
+          ...backupUser,
+          id: crypto.randomUUID(),
+          googleSub: firstGoogleAccount.sub,
+          email: backupUser.email || firstGoogleAccount.email,
+        };
+      }
       let attachments;
       try {
         if (preview.attachmentData) {
@@ -707,12 +722,16 @@ export default function Home() {
         : "Comprovantes na cópia: " + attachments.length + ".";
       const accepted = await confirm({
         title: "Restaurar esta cópia?",
-        message: `${preview.user!.name} · ${getMonthYearLabel(preview.monthKey!)} · ${preview.activities!.length} atividades. ${contents} ${existing ? "Os dados deste perfil e deste mês serão substituídos pela cópia. Os outros meses serão preservados." : "O perfil e os registros desta cópia serão adicionados neste navegador."}`,
+        message: `${preview.user!.name} · ${getMonthYearLabel(preview.monthKey!)} · ${preview.activities!.length} atividades. ${contents} ${existing ? "Os dados deste perfil e deste mês serão substituídos pela cópia. Os outros meses serão preservados." : "O perfil e os registros desta cópia serão adicionados neste navegador."}${syncUser || firstGoogleAccount ? " O mês será enviado à pasta PET Folha do seu Drive." : ""}`,
         confirmText: "Restaurar cópia",
         cancelText: "Cancelar",
         variant: "warning",
       });
       if (!accepted) return;
+      if (firstGoogleAccount && getStoredProfiles().some((profile) => profile.googleSub === firstGoogleAccount.sub)) {
+        setRestoreIssue({ code: "PROFILE_CONFLICT", message: "Já existe uma folha vinculada a esta conta neste navegador. Recarregue a página, abra a folha e importe a cópia na Conta." });
+        return;
+      }
       setRestoreProgress({ phase: "writing" });
       const result = await restoreWithAttachments(preview, preview.user!.id, preview.monthKey!, attachments);
       if (!result.success) {
@@ -727,8 +746,9 @@ export default function Home() {
       setDraftDirty(false);
       setHasChanges(false);
       setStorageError("");
-      sync.schedule(result.monthKey!);
-      showToast("Cópia restaurada. Confira o mês e os registros.");
+      if (firstGoogleAccount) markMonthDirty(firstGoogleAccount.sub, result.monthKey!);
+      else sync.schedule(result.monthKey!);
+      showToast(syncUser || firstGoogleAccount ? "Cópia restaurada. Confira o envio ao Drive no topo da página." : "Cópia restaurada. Confira o mês e os registros.");
     } catch {
       setRestoreIssue({
         code: "STORAGE_FAILED",
@@ -839,6 +859,8 @@ export default function Home() {
             gats={gats}
             roles={roles}
             onSignOut={() => void signOut()}
+            onImport={(file) => void handleImportBackup(file, { sub: google.sub!, email: google.email })}
+            importing={restoring}
             onDone={(user, pushMonths) => {
               for (const month of pushMonths) markMonthDirty(google.sub!, month);
               setProfiles(getStoredProfiles());
@@ -847,7 +869,11 @@ export default function Home() {
             }}
           />
         ) : (
-          <GoogleLanding loginError={loginError || google.unreachable} onOpenFeedback={() => setIsFeedbackModalOpen(true)} />
+          <LandingPage
+            google
+            loginError={loginError ?? (google.unreachable ? "unavailable" : undefined)}
+            onOpenFeedback={() => setIsFeedbackModalOpen(true)}
+          />
         )}
         <FeedbackModal isOpen={isFeedbackModalOpen} onClose={() => setIsFeedbackModalOpen(false)} />
         {toastMessage && <Toast key={toastRevision} message={toastMessage} onClose={() => setToastMessage(null)} />}
@@ -1042,7 +1068,7 @@ export default function Home() {
           onOpenExitModal={openConclusion}
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
           onOpenHelp={() => setIsHelpOpen(true)}
-          cloud={syncUser && syncSub ? { status: <SyncStatus sync={sync} />, folderUrl: driveFolderUrl(syncSub) } : undefined}
+          cloud={syncUser && syncSub ? { status: <SyncStatus sync={sync} />, folderUrl: driveFolderUrl(syncSub), email: google?.email } : undefined}
         />
 
         <main id="conteudo" className="workspace-main" data-tab={activeTab}>
@@ -1078,7 +1104,7 @@ export default function Home() {
           </div>
 
           {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} formsPending={formsPending} view={summaryView} onViewChange={setSummaryView} />}
-          {activeTab === "account" && <AccountScreen user={activeUser} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} />}
+          {activeTab === "account" && <AccountScreen user={activeUser} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} />}
           {sheetsOpen && (
             <SavedSheets
               profileId={activeUser.id}
@@ -1338,6 +1364,7 @@ export default function Home() {
               key={JSON.stringify([activeUser.id, monthKey, reportActivity.id])}
               activity={reportActivity}
               user={activeUser}
+              googleEmail={syncUser ? google?.email : undefined}
               onClose={() => setReportingActivity(null)}
               onEditProfile={() => setIsProfileModalOpen(true)}
               onSaveProfile={handleSaveProfile}
@@ -1350,6 +1377,7 @@ export default function Home() {
             isOpen={isProfileModalOpen}
             onClose={() => setIsProfileModalOpen(false)}
             currentUser={activeUser}
+            googleEmail={syncUser ? google?.email : undefined}
             allProfiles={profiles}
             gats={gats}
             roles={roles}
@@ -1409,8 +1437,9 @@ export default function Home() {
             userName={activeUser.name}
             hasChanges={hasChanges}
             cloud={syncUser && syncSub ? {
-              email: google?.email ?? activeUser.email,
+              email: google?.email,
               pending: sync.pending,
+              hasSynced: Boolean(sync.lastSynced),
               offline: sync.status === "offline",
               onLogout: async (eraseDevice) => {
                 if (sync.pending) await sync.flush();
@@ -1462,7 +1491,7 @@ export default function Home() {
           onHelp={() => setIsHelpOpen(true)}
           onFeedback={() => setIsFeedbackModalOpen(true)}
         />
-        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+        <HelpModal google={Boolean(syncUser)} isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       </div>
 
       {/* ============================================================

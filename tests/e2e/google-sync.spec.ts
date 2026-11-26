@@ -113,16 +113,66 @@ async function seedLocal(page: Page, profile?: object, monthKey?: string, activi
 }
 
 const reuniao = { id: "a1", date: "2026-11-10", start: "14:00", end: "15:30", modality: "Síncrona virtual", description: "Reunião do GAT 04 (Mangaba)", hours: 2 };
+const localProfile = { id: "perfil-local", name: "Ana Souza", role: "Estudante", gatNumber: "04", gatName: "Mangaba", createdAt: "2026-08-03T00:00:00.000Z" };
 
-test("sem sessão Google, a entrada pede login", async ({ page }) => {
+test("landing do PET pede login e explica a permissão do Drive", async ({ page }) => {
   const drive = new FakeDrive();
   await seedLocal(page);
   await mockGoogle(page, drive, { authenticated: false });
   await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Sua folha do mês, pronta para assinar." })).toBeVisible();
+  await expect(page.getByLabel("Exemplo ilustrativo de uma folha")).toBeVisible();
   const login = page.getByRole("link", { name: "Fazer login com o Google" });
   await expect(login).toBeVisible();
   await expect(login).toHaveAttribute("href", "/api/google/login");
   await expect(page.getByRole("link", { name: "Política de privacidade" })).toHaveAttribute("href", "/privacidade");
+  await expect(page.getByText(/Se o Google mostrar a caixa do Drive/)).toBeVisible();
+  const screenshot = page.getByRole("img", { name: /a caixa fica à direita/ });
+  await expect(screenshot).toBeHidden();
+  const helpToggle = page.getByText("Ver onde marcar", { exact: true });
+  await helpToggle.focus();
+  await helpToggle.press("Enter");
+  await expect(screenshot).toBeVisible();
+  await expect.poll(() => screenshot.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+  await expect(page.getByRole("heading", { name: "Abrir minha folha" })).toHaveCount(0);
+});
+
+test("permissão recusada mostra como tentar de novo e mantém a folha local", async ({ page }) => {
+  await seedLocal(page, localProfile, "2026-11", [reuniao]);
+  const session = await mockGoogle(page, new FakeDrive(), { authenticated: false });
+  await page.route("**/api/google/login?prompt=consent", (route) => {
+    session.authenticated = true;
+    return route.fulfill({ status: 303, headers: { location: "/" } });
+  });
+  await page.goto("/?origem=teste&login=erro&motivo=permissao#misc");
+  await expect(page.getByText(/Ao tentar de novo, marque a caixa do Drive/)).toBeFocused();
+  await expect(page.getByRole("img", { name: /a caixa fica à direita/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/\?origem=teste#misc$/);
+  const retry = page.getByRole("link", { name: "Tentar novamente com o Google" });
+  await expect(retry).toHaveAttribute("href", "/api/google/login?prompt=consent");
+  await page.keyboard.press("Tab");
+  await expect(retry).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Encontramos uma folha aqui" })).toBeVisible();
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("pet_folha_activities_v2_perfil-local_2026-11") ?? "[]"));
+  expect(stored).toEqual([reuniao]);
+});
+
+test("cancelar o Google exibe uma mensagem sem abrir a instrução de permissão", async ({ page }) => {
+  await seedLocal(page);
+  await mockGoogle(page, new FakeDrive(), { authenticated: false });
+  await page.goto("/?login=erro&motivo=negado");
+  await expect(page.getByText("A entrada com Google não foi autorizada")).toBeFocused();
+  await expect(page.getByRole("link", { name: "Tentar novamente com o Google" })).toHaveAttribute("href", "/api/google/login");
+  await expect(page.getByRole("img", { name: /a caixa fica à direita/ })).toBeHidden();
+});
+
+test("sem Google configurado, a entrada oferece acesso local", async ({ page }) => {
+  await seedLocal(page, localProfile);
+  await page.route("**/api/google/session", (route) => route.fulfill({ json: { configured: false, authenticated: false } }));
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Continuar com este perfil" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Fazer login com o Google" })).toHaveCount(0);
 });
 
 test("conta nova cria a folha e envia o mês ao Drive", async ({ page }) => {
@@ -131,9 +181,12 @@ test("conta nova cria a folha e envia o mês ao Drive", async ({ page }) => {
   await mockGoogle(page, drive, { authenticated: true });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Complete seu cadastro" })).toBeVisible();
+  await expect(page.getByText(/quando você salvar a primeira atividade/i)).toBeVisible();
   await expect(page.getByLabel("Nome completo")).toHaveValue("Ana Souza");
   await page.getByRole("button", { name: "Começar minha folha" }).click();
   await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+  await expect(page.getByText("Google Drive conectado", { exact: true }).filter({ visible: true })).toBeVisible();
+  expect(drive.byProp("petFolha", "month")).toHaveLength(0);
 
   // No celular, o formulário abre numa janela.
   const trigger = page.locator("#add-activity-trigger");
@@ -154,6 +207,40 @@ test("conta nova cria a folha e envia o mês ao Drive", async ({ page }) => {
   await expect(page.getByRole("status").filter({ hasText: "Salvo no Drive" }).first()).toBeVisible();
 });
 
+test("primeiro acesso importa o JSON, envia ao Drive e distingue o e-mail dos relatórios", async ({ page }) => {
+  const drive = new FakeDrive();
+  const backupUser = { ...localProfile, email: "relatorios@exemplo.com" };
+  await seedLocal(page);
+  await mockGoogle(page, drive, { authenticated: true });
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Importar uma cópia .json" })).toBeVisible();
+  await page.getByLabel("Cópia .json para importar").setInputFiles({
+    name: "novembro.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(monthCopy("2026-11", [reuniao], backupUser)),
+  });
+  const confirm = page.getByRole("dialog", { name: "Restaurar esta cópia?" });
+  await expect(confirm.getByText(/O mês será enviado à pasta PET Folha/)).toBeVisible();
+  await confirm.getByRole("button", { name: "Restaurar cópia" }).click();
+  await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+  await expect.poll(() => drive.byProp("petFolha", "month").length).toBe(1);
+  const copy = JSON.parse(drive.byProp("petFolha", "month")[0].content!);
+  expect(copy.user).toMatchObject({ googleSub: SUB, email: backupUser.email });
+  expect(copy.activities[0].id).toBe(reuniao.id);
+
+  const avatar = page.getByRole("button", { name: "Abrir Conta" });
+  if (await avatar.isVisible()) {
+    await avatar.click();
+    await page.getByRole("button", { name: "Meu perfil", exact: true }).click();
+  } else {
+    await page.locator(".profile-trigger").click();
+    await page.getByRole("menuitem", { name: "Meu perfil", exact: true }).click();
+  }
+  const profile = page.getByRole("dialog", { name: "Identificação do participante" });
+  await expect(profile.getByText(sessionUser.email)).toBeVisible();
+  await expect(profile.getByLabel("E-mail dos relatórios")).toHaveValue(backupUser.email);
+});
+
 test("outro aparelho traz os meses do Drive", async ({ page }) => {
   const drive = new FakeDrive();
   const folder = drive.create({ name: "PET Folha", mimeType: "application/vnd.google-apps.folder", appProperties: { petFolha: "root" } });
@@ -171,8 +258,7 @@ test("outro aparelho traz os meses do Drive", async ({ page }) => {
 
 test("folha que já estava no navegador é vinculada e enviada", async ({ page }) => {
   const drive = new FakeDrive();
-  const local = { id: "perfil-local", name: "Ana Souza", role: "Estudante", gatNumber: "04", gatName: "Mangaba", createdAt: "2026-08-03T00:00:00.000Z" };
-  await seedLocal(page, local, "2026-11", [reuniao]);
+  await seedLocal(page, localProfile, "2026-11", [reuniao]);
   await mockGoogle(page, drive, { authenticated: true });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Encontramos uma folha aqui" })).toBeVisible();

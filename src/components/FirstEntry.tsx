@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { GATInfo, UserProfile } from "@/types";
 import { getMonthYearLabel } from "@/lib/pet-calculator";
 import { getProfileMonths, getStoredProfiles, registerProfile, saveProfiles } from "@/lib/storage";
@@ -20,6 +20,8 @@ interface FirstEntryProps {
   /** `pushMonths`: months already in this browser that must be sent to Drive. */
   onDone: (user: UserProfile, pushMonths: string[]) => void;
   onSignOut: () => void;
+  onImport: (file: File) => void;
+  importing: boolean;
 }
 
 function formatSize(bytes?: number) {
@@ -28,7 +30,7 @@ function formatSize(bytes?: number) {
   return ` · ${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(bytes / (mb ? 1024 * 1024 : 1024))} ${mb ? "MB" : "KB"}`;
 }
 
-export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSignOut }: FirstEntryProps) {
+export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSignOut, onImport, importing }: FirstEntryProps) {
   const [step, setStep] = useState<Step>("checking");
   const [remote, setRemote] = useState<RemoteMonth[]>([]);
   const [attempt, setAttempt] = useState(0);
@@ -38,6 +40,7 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
   const [name, setName] = useState(session.name ?? "");
   const [role, setRole] = useState(roles[0] ?? "");
   const [gat, setGat] = useState(Object.keys(gats)[0] ?? "");
+  const fileInput = useRef<HTMLInputElement>(null);
   const firstName = (session.name ?? "").split(" ")[0];
 
   useEffect(() => {
@@ -83,6 +86,10 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
   }
 
   function link(profile: UserProfile) {
+    if (profile.googleSub) {
+      setError("Essa folha já está vinculada. Entre com a conta Google usada nela.");
+      return;
+    }
     const linked: UserProfile = { ...profile, googleSub: session.sub, email: profile.email || session.email };
     try {
       saveProfiles(getStoredProfiles().map((item) => (item.id === profile.id ? linked : item)));
@@ -97,6 +104,10 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
     setError("");
     const result = registerProfile({ name, role, gatNumber: gat });
     if (result.existingUser) {
+      if (result.existingUser.googleSub) {
+        setError("Já existe uma folha com esse nome vinculada a outra conta neste navegador. Entre com a conta dessa folha ou use outro navegador.");
+        return;
+      }
       setChosen(result.existingUser.id);
       setStep("local");
       setError("Já existe uma folha com esse nome neste navegador. Se for sua, vincule-a.");
@@ -160,6 +171,7 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
                   </span>
                 </div>
               )}
+              <p className="first-entry-note">Se tiver meses guardados em arquivos .json, abra sua folha e importe as cópias na Conta.</p>
             </>
           )}
 
@@ -182,13 +194,13 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
                   );
                 })}
               </fieldset>
-              <p className="first-entry-note">Ao vincular, a folha passa a ser da sua conta e é copiada para a pasta PET Folha do seu Drive.</p>
+              <p className="first-entry-note">Ao vincular, os meses deste navegador vão para a pasta PET Folha do seu Drive. Se tiver outros meses em arquivos .json, importe-os na Conta depois de entrar.</p>
             </>
           )}
 
           {step === "new" && (
             <form id="first-entry-form" className="first-entry-form" onSubmit={create}>
-              <p>Falta pouco. Esses dados aparecem na folha oficial.</p>
+              <p>Confira os dados da folha. Quando você salvar a primeira atividade, ela vai para a pasta PET Folha no Drive.</p>
               <div className="field">
                 <label htmlFor="first-entry-name">Nome completo</label>
                 <input id="first-entry-name" required value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" />
@@ -207,6 +219,25 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
                   </select>
                 </div>
               </div>
+              <div>
+                <p className="first-entry-note">Já tem uma cópia de segurança? Importe o arquivo para recuperar o mês e enviá-lo ao Drive.</p>
+                <button type="button" className="text-button" disabled={importing} onClick={() => fileInput.current?.click()}>Importar uma cópia .json</button>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept=".json,application/json"
+                  hidden
+                  aria-label="Cópia .json para importar"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) {
+                      setError("");
+                      onImport(file);
+                    }
+                  }}
+                />
+              </div>
             </form>
           )}
 
@@ -215,7 +246,7 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
         </div>
 
         <footer className="first-entry-foot">
-          <button type="button" className="text-button" onClick={onSignOut}>Entrou com a conta errada? Sair</button>
+          <button type="button" className="text-button" disabled={importing || Boolean(progress)} onClick={onSignOut}>Entrou com a conta errada? Sair</button>
           <div>
             {step === "drive" && (
               <button type="button" className="primary-button" disabled={Boolean(progress)} aria-busy={Boolean(progress)} onClick={() => void restoreFromDrive()}>
@@ -231,7 +262,7 @@ export function FirstEntry({ session, localProfiles, gats, roles, onDone, onSign
                 }}>Vincular à minha conta</button>
               </>
             )}
-            {step === "new" && <button type="submit" form="first-entry-form" className="primary-button">Começar minha folha</button>}
+            {step === "new" && <button type="submit" form="first-entry-form" className="primary-button" disabled={importing}>Começar minha folha</button>}
             {step === "error" && <button type="button" className="primary-button" onClick={() => { setStep("checking"); setError(""); setAttempt(attempt + 1); }}>Tentar de novo</button>}
           </div>
         </footer>

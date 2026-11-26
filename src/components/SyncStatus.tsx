@@ -39,7 +39,7 @@ export function SyncStatus({ sync }: { sync: Pick<DriveSync, "status" | "pending
     pending: { icon: <InlineSpinner size={18} />, text: pending ? "Alterações aguardando envio" : "Enviando para o Drive…" },
     offline: { icon: <CloudOff size={18} aria-hidden="true" />, text: pending ? `Sem conexão · ${pending} ${pending === 1 ? "mês vai" : "meses vão"} quando voltar` : "Sem conexão" },
     error: { icon: <CloudAlert size={18} aria-hidden="true" />, text: "Falha ao enviar" },
-    saved: { icon: <CloudCheck size={18} aria-hidden="true" />, text: `Salvo no Drive${lastSynced ? ` · ${relative(lastSynced, now)}` : ""}` },
+    saved: { icon: <CloudCheck size={18} aria-hidden="true" />, text: lastSynced ? `Salvo no Drive · ${relative(lastSynced, now)}` : "Google Drive conectado" },
     idle: { icon: <CloudCheck size={18} aria-hidden="true" />, text: lastSynced ? `Salvo no Drive · ${relative(lastSynced, now)}` : "Google Drive conectado" },
   };
   const { icon, text } = labels[status] ?? labels.idle;

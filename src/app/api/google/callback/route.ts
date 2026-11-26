@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
   const state = params.get('state') ?? '';
 
   if (!flow || !state || !safeEqual(state, flow.state)) return fail(request, 'estado');
-  if (params.get('error')) return fail(request, 'negado');
+  const oauthError = params.get('error');
+  if (oauthError) return fail(request, oauthError === 'access_denied' ? 'negado' : 'troca');
 
   const code = params.get('code');
   if (!code) return fail(request, 'troca');

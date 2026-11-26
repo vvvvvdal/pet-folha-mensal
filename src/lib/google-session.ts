@@ -13,6 +13,8 @@ export interface GoogleSession {
   unreachable?: boolean;
 }
 
+export type GoogleLoginError = "permission" | "denied" | "unavailable" | "failed";
+
 export class GoogleAuthError extends Error {
   constructor(message = "Reconecte sua conta Google para continuar a cópia no Drive.") {
     super(message);

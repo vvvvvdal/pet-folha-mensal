@@ -19,13 +19,17 @@ import { UserProfile, UserRole, GATInfo } from "@/types";
 import { useTheme } from "@/lib/theme";
 import { Brand } from "./Brand";
 import { FAQ, HelpModal } from "./Help";
+import { GoogleAccess } from "./GoogleAccess";
+import type { GoogleLoginError } from "@/lib/google-session";
 import { NewsPopover } from "./NewsPopover";
 import { Onboarding } from "./Onboarding";
 import "./entry-redesign.css";
 import { SiteFooter } from "./SiteFooter";
 import { Frame, FrameHeader, FramePanel, SegmentedControl, SegmentedControlItem } from "./ui/access-controls";
 
-interface LandingPageProps {
+interface LocalAccessProps {
+  google?: never;
+  loginError?: never;
   onLoginWithJson: (file: File) => void;
   onCreateProfile: (name: string, gatNumber: string, role: UserRole) => void;
   profiles?: UserProfile[];
@@ -33,25 +37,22 @@ interface LandingPageProps {
   gats: Record<string, GATInfo>;
   roles: string[];
   onOpenAdmin: () => void;
-  onOpenFeedback: () => void;
 }
 
-export function LandingPage({
-  onLoginWithJson,
-  onCreateProfile,
-  profiles = [],
-  onSelectProfile,
-  gats,
-  roles,
-  onOpenAdmin,
-  onOpenFeedback,
-}: LandingPageProps) {
+type LandingPageProps = {
+  onOpenFeedback: () => void;
+} & (LocalAccessProps | { google: true; loginError?: GoogleLoginError });
+
+export function LandingPage(props: LandingPageProps) {
+  const { google, loginError, onOpenFeedback } = props;
+  const local = props.google ? undefined : props;
+  const { profiles = [], gats = {}, roles = [] } = local ?? {};
   const { theme, toggleTheme } = useTheme();
   const [tab, setTab] = useState<"local" | "create" | "upload">(
     profiles.length ? "local" : "create",
   );
   const [showOnboarding, setShowOnboarding] = useState(() => {
-    if (profiles.length || typeof window === "undefined") return false;
+    if (google || profiles.length || typeof window === "undefined") return false;
     try { return localStorage.getItem("pet_folha_onboarding_seen") !== "1"; }
     catch { return true; }
   });
@@ -91,7 +92,7 @@ export function LandingPage({
 
   function createProfile(event: FormEvent) {
     event.preventDefault();
-    if (name.trim() && gat && role) onCreateProfile(name.trim(), gat, role);
+    if (name.trim() && gat && role) local?.onCreateProfile(name.trim(), gat, role);
   }
 
   return (
@@ -106,7 +107,7 @@ export function LandingPage({
             <a className="entry-nav-link" href="#como-funciona">Como funciona</a>
             <a className="entry-nav-link" href="#arquivos">O que guardar</a>
             <a className="entry-nav-link" href="#perguntas">Dúvidas</a>
-            <a className="entry-header-access" href="#acesso">Continuar minha folha</a>
+            <a className="entry-header-access" href="#acesso">{google ? "Entrar" : "Continuar minha folha"}</a>
             <NewsPopover id="entry-news" variant="entry" />
             <button ref={optionsTrigger} type="button" className="icon-button entry-options-trigger"
               aria-label="Mais opções" aria-controls="entry-options" aria-expanded={optionsOpen}
@@ -119,7 +120,7 @@ export function LandingPage({
               onToggle={(event) => setOptionsOpen(event.newState === "open")}>
               <button type="button" onClick={() => optionsAction(() => setHelpOpen(true))}><HelpCircle size={20} aria-hidden="true" />Ajuda</button>
               <button type="button" aria-pressed={theme === "dark"} onClick={() => optionsAction(toggleTheme)}>{theme === "dark" ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}Tema</button>
-              <button type="button" onClick={() => optionsAction(onOpenAdmin)}><Settings2 size={20} aria-hidden="true" />Configurações</button>
+              {local && <button type="button" onClick={() => optionsAction(local.onOpenAdmin)}><Settings2 size={20} aria-hidden="true" />Configurações</button>}
             </div>
           </nav>
         </div>
@@ -129,11 +130,23 @@ export function LandingPage({
           <div className="entry-hero-copy">
             <h1 id="entry-title">Sua folha do mês, pronta para assinar.</h1>
             <p>Anote cada atividade quando ela acontece. O PET Folha soma as horas pela regra do programa e monta a folha oficial em PDF.</p>
-            <div className="entry-hero-actions">
-              <a className="primary-button" href="#acesso" onClick={() => setTab("create")}>Começar agora <ArrowRight size={20} /></a>
-              <a className="entry-secondary-button" href="#acesso" onClick={() => setTab(profiles.length ? "local" : "create")}>Continuar minha folha</a>
-            </div>
-            <p className="entry-privacy"><LockKeyhole size={17} aria-hidden="true" /> Sem cadastro e sem senha. Os registros ficam neste aparelho.</p>
+            {google ? (
+              <>
+                <GoogleAccess error={loginError} />
+                <p className="entry-privacy">
+                  <LockKeyhole size={17} aria-hidden="true" />
+                  <span>Sua folha sincroniza na pasta <strong>PET Folha</strong> do seu Drive. <a href="/privacidade">Política de privacidade</a></span>
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="entry-hero-actions">
+                  <a className="primary-button" href="#acesso" onClick={() => setTab("create")}>Começar agora <ArrowRight size={20} /></a>
+                  <a className="entry-secondary-button" href="#acesso" onClick={() => setTab(profiles.length ? "local" : "create")}>Continuar minha folha</a>
+                </div>
+                <p className="entry-privacy"><LockKeyhole size={17} aria-hidden="true" /> Sem cadastro e sem senha. Os registros ficam neste aparelho.</p>
+              </>
+            )}
           </div>
           <div className="entry-preview" aria-label="Exemplo ilustrativo de uma folha">
             <div className="entry-preview-card">
@@ -146,7 +159,7 @@ export function LandingPage({
             <div className="entry-preview-note"><Clock size={20} aria-hidden="true" /><span><strong>14:00 às 15:30 = 2 horas</strong><br />hora iniciada conta como hora cheia</span></div>
           </div>
         </section>
-        <div className="start-layout">
+        {local && <div className="start-layout">
           <section id="acesso" aria-labelledby="access-title">
             <Frame>
               <FrameHeader><h2 id="access-title">Abrir minha folha</h2></FrameHeader>
@@ -163,7 +176,7 @@ export function LandingPage({
                   <form className="start-form" onSubmit={(event) => {
                     event.preventDefault();
                     const profile = profiles.find((item) => item.id === profileId);
-                    if (profile) onSelectProfile?.(profile);
+                    if (profile) local.onSelectProfile?.(profile);
                   }}>
                     <p className="access-hint">Abra seu perfil e escolha o mês. Você pode começar um novo mês sem o arquivo anterior.</p>
                     <div className="field">
@@ -254,7 +267,7 @@ export function LandingPage({
                       aria-label="Cópia de segurança da folha"
                       onChange={(event) => {
                         const file = event.target.files?.[0];
-                        if (file) onLoginWithJson(file);
+                        if (file) local.onLoginWithJson(file);
                         event.target.value = "";
                       }}
                     />
@@ -272,7 +285,7 @@ export function LandingPage({
               </FramePanel>
             </Frame>
           </section>
-        </div>
+        </div>}
         <section id="como-funciona" className="entry-how" aria-labelledby="how-title">
           <div className="entry-section-heading"><p className="section-kicker">Como funciona</p><h2 id="how-title">Três passos por mês.</h2></div>
           <div className="entry-steps">
@@ -282,10 +295,10 @@ export function LandingPage({
           </div>
         </section>
         <section id="arquivos" className="entry-files" aria-labelledby="files-title">
-          <div className="entry-section-heading"><p className="section-kicker">O que guardar</p><h2 id="files-title">Dois arquivos, cada um com sua função.</h2><p>Ao terminar o mês, guarde os dois. Não há sincronização entre aparelhos: a cópia é o que permite continuar em outro lugar.</p></div>
+          <div className="entry-section-heading"><p className="section-kicker">O que guardar</p><h2 id="files-title">Dois arquivos, cada um com sua função.</h2><p>{google ? "A folha sincroniza no Google Drive. Guarde o PDF para assinatura e baixe uma cópia .json quando precisar." : "Ao terminar o mês, guarde os dois. Não há sincronização entre aparelhos: a cópia é o que permite continuar em outro lugar."}</p></div>
           <div className="entry-file-cards">
             <article><span>.pdf</span><h3>Folha para assinar</h3><p>É o documento que você imprime ou assina e envia. Ele não traz os registros de volta para edição.</p></article>
-            <article><span>.json</span><h3>Cópia para continuar</h3><p>Guarda sua identificação, atividades, comprovantes e relatórios. Use Restaurar cópia para abrir em outro aparelho.</p></article>
+            <article><span>.json</span><h3>{google ? "Cópia manual" : "Cópia para continuar"}</h3><p>Guarda sua identificação, atividades, comprovantes e relatórios. {google ? "Depois de entrar, acesse a Conta para baixar ou importar uma cópia." : "Use Restaurar cópia para abrir em outro aparelho."}</p></article>
           </div>
         </section>
         <section
@@ -294,7 +307,7 @@ export function LandingPage({
           aria-labelledby="faq-title"
         >
           <h2 id="faq-title">Dúvidas frequentes</h2>
-          <FAQ />
+          <FAQ google={google} />
         </section>
       </main>
       <SiteFooter
@@ -307,7 +320,7 @@ export function LandingPage({
           trigger?.click();
         }}
       />
-      <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
+      <HelpModal google={google} isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

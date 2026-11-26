@@ -18,6 +18,7 @@ interface ExitModalProps {
   cloud?: {
     email?: string;
     pending: number;
+    hasSynced: boolean;
     offline: boolean;
     onLogout: (eraseDevice: boolean) => Promise<void> | void;
   };
@@ -37,7 +38,7 @@ function CloudExit({ isOpen, onClose, onDownloadPdf, userName, cloud }: ExitModa
     setBusy(kind);
     try {
       if (kind === "pdf") await onDownloadPdf();
-      else await cloud.onLogout(erase);
+      else await cloud.onLogout(erase && !unsent);
     } finally {
       setBusy(null);
     }
@@ -63,8 +64,10 @@ function CloudExit({ isOpen, onClose, onDownloadPdf, userName, cloud }: ExitModa
                 {" "}Se apagar os dados deste aparelho agora, essas alterações se perdem.
               </p>
             </div>
-          ) : (
+          ) : cloud.hasSynced ? (
             <p>Tudo está salvo na pasta PET Folha do seu Google Drive. Ao entrar de novo, sua folha volta.</p>
+          ) : (
+            <p>A primeira atividade que você salvar vai para a pasta PET Folha no Drive.</p>
           )}
           <div className="conclusion-option">
             <FileText size={24} aria-hidden="true" />
@@ -81,7 +84,7 @@ function CloudExit({ isOpen, onClose, onDownloadPdf, userName, cloud }: ExitModa
             <input type="checkbox" checked={erase} disabled={unsent} onChange={(event) => setErase(event.target.checked)} />
             <span>
               <strong>Apagar os dados deste aparelho</strong>
-              <small>{unsent ? "Disponível depois que tudo for enviado ao Drive." : "Use em computador compartilhado. A folha continua no seu Drive."}</small>
+              <small>{unsent ? "Disponível depois que tudo for enviado ao Drive." : "Use em computador compartilhado para remover a folha deste navegador."}</small>
             </span>
           </label>
         </div>

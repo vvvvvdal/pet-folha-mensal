@@ -8,7 +8,24 @@ A prioridade é preencher a frequência com poucos passos, inclusive no celular:
 abrir perfil → escolher mês → lançar/revisar → conferir folha → guardar cópia e PDF.
 A direção e as referências estão no [plano](ui-ux-restructure-plan.md).
 
-### Entrada e retomada sem JSON
+### Entrada com Google e retomada
+
+Com Google configurado, a landing mostra a prévia da folha e o botão de login.
+Ao lado do botão, uma instrução indica onde marcar a permissão do Drive, com
+um recorte da tela de consentimento em “Ver onde marcar”. Se a pessoa volta
+sem conceder a permissão, a instrução junto do botão de nova tentativa recebe
+foco e o recorte abre. Quem já tem uma folha neste navegador pode vinculá-la à
+conta e enviar os meses ao Drive. Quem tem apenas um JSON pode importar o
+primeiro arquivo no cadastro e os demais na Conta. Quem começa do zero confere a
+identificação e cria a pasta PET Folha no Drive ao salvar a primeira atividade.
+O status “Salvo no Drive” confirma que houve sincronização. O PDF serve para
+assinar e enviar.
+
+O perfil distingue o e-mail da conta Google, usado no login e na sincronização,
+do e-mail dos relatórios. Se o campo de relatórios estiver vazio, o formulário
+usa o endereço da conta Google.
+
+### Entrada sem configuração do Google
 
 “Continuar” oferece um seletor dos perfis que permanecem neste navegador. O participante pode
 abrir outro mês sem restaurar o arquivo anterior. Primeiro acesso cria um perfil;

@@ -14,6 +14,7 @@ import { Modal } from "./Modal";
 interface Props {
   activity: Activity;
   user: UserProfile;
+  googleEmail?: string;
   onClose: () => void;
   onEditProfile: () => void;
   onSaveProfile: (user: UserProfile) => boolean;
@@ -43,10 +44,11 @@ function YesNo({ label, value, onChange }: { label: string; value: string; onCha
   );
 }
 
-export function ActivityReportModal({ activity, user, onClose, onEditProfile, onSaveProfile, onSave }: Props) {
+export function ActivityReportModal({ activity, user, googleEmail, onClose, onEditProfile, onSaveProfile, onSave }: Props) {
   const saved = activity.formReport ?? defaultFormReport(user);
   const initial = { ...saved, activityType: saved.activityType || suggestActivityType(activity.description) };
-  const [email, setEmail] = useState(user.email ?? "");
+  const reportEmail = user.email || googleEmail || "";
+  const [email, setEmail] = useState(reportEmail);
   const [group, setGroup] = useState(initial.group);
   const [role, setRole] = useState(initial.role);
   const [activityType, setActivityType] = useState(initial.activityType);
@@ -62,8 +64,8 @@ export function ActivityReportModal({ activity, user, onClose, onEditProfile, on
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- A nested profile edit refreshes email without dropping the activity draft.
-    setEmail(user.email ?? "");
-  }, [user.email]);
+    setEmail(reportEmail);
+  }, [reportEmail]);
   useEffect(() => {
     if (error) form.current?.querySelector('[role="alert"]')?.scrollIntoView({ block: "nearest" });
   }, [error]);

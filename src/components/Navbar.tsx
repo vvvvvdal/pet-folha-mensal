@@ -23,7 +23,7 @@ interface NavbarProps {
   onOpenHelp: () => void;
   onOpenSheets: () => void;
   /** Google Drive mode: the sync status replaces the manual copy buttons in the top bar. */
-  cloud?: { status: ReactNode; folderUrl: string };
+  cloud?: { status: ReactNode; folderUrl: string; email?: string };
 }
 export function initials(name: string) { return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase(); }
 export function Navbar(props: NavbarProps) {
@@ -74,7 +74,7 @@ export function Navbar(props: NavbarProps) {
           if (event.key === "Home" || event.key === "End") { event.preventDefault(); items[event.key === "Home" ? 0 : items.length - 1]?.focus(); }
           if (event.key === "Escape") { menuRef.current?.hidePopover(); profileRef.current?.focus(); }
         }}>
-          <div className="profile-identity"><span className="avatar">{initials(user.name)}</span><div><strong>{user.name}</strong><small>{user.email || `${user.role} · GAT ${user.gatNumber}`}</small></div></div>
+          <div className="profile-identity"><span className="avatar">{initials(user.name)}</span><div><strong>{user.name}</strong><small>{cloud?.email || user.email || `${user.role} · GAT ${user.gatNumber}`}</small></div></div>
           <div role="menu" aria-label="Perfil"><button role="menuitem" onClick={() => menuAction(onOpenProfileModal)}><User size={18} />Meu perfil</button><button role="menuitem" onClick={() => menuAction(onOpenSheets)}><FileText size={18} />Minhas folhas</button></div>
           {cloud && <div role="menu" aria-label="Cópia no Google Drive"><button role="menuitem" onClick={() => menuAction(() => window.open(cloud.folderUrl, "_blank", "noopener"))}><FolderOpen size={18} />Abrir pasta PET Folha no Drive</button><button role="menuitem" onClick={() => menuAction(onExportBackup)}><Download size={18} />Baixar cópia .json</button><button role="menuitem" onClick={() => menuAction(() => fileRef.current?.click())}><Upload size={18} />Importar cópia .json</button></div>}
           <div className="profile-theme"><p>Tema</p><ThemeSelector /></div>
@@ -93,6 +93,7 @@ export function Navbar(props: NavbarProps) {
   </>;
 }
 
-export function AccountScreen({ user, onBack, onProfile, onSheets, onHelp, onAdmin, onExit, onRestore, onDownload }: { user: UserProfile; onBack: () => void; onProfile: () => void; onSheets: () => void; onHelp: () => void; onAdmin: () => void; onExit: () => void; onRestore: () => void; onDownload?: () => void }) {
-  return <section className="account-screen"><header><button className="icon-button" onClick={onBack} aria-label="Voltar à frequência"><ArrowLeft size={22} /></button><h1>Conta</h1></header><div className="account-card profile-identity"><span className="avatar">{initials(user.name)}</span><div><strong>{user.name}</strong>{user.email && <small>{user.email}</small>}<small>{user.role} · GAT {user.gatNumber} · {user.gatName}</small></div></div><div className="account-card">{[{label:"Meu perfil", Icon:User, action:onProfile}, {label:"Minhas folhas", Icon:FileText, action:onSheets}, ...(onDownload ? [{label:"Baixar cópia .json", Icon:Download, action:onDownload}] : []), {label: onDownload ? "Importar cópia .json" : "Restaurar cópia", Icon:Upload, action:onRestore}].map(({label,Icon,action}) => <button key={label} onClick={action}><Icon size={20}/>{label}<ChevronRight size={18}/></button>)}</div><div className="account-card account-theme"><h2>Tema</h2><ThemeSelector /></div><div className="account-card"><button onClick={onHelp}><CircleHelp size={20}/>Ajuda e suporte<ChevronRight size={18}/></button><button onClick={onAdmin}><Settings2 size={20}/>Configurações<ChevronRight size={18}/></button></div><button className="secondary-button account-exit" onClick={onExit}><LogOut size={20}/>Sair</button></section>;
+export function AccountScreen({ user, googleEmail, onBack, onProfile, onSheets, onHelp, onAdmin, onExit, onRestore, onDownload }: { user: UserProfile; googleEmail?: string; onBack: () => void; onProfile: () => void; onSheets: () => void; onHelp: () => void; onAdmin: () => void; onExit: () => void; onRestore: () => void; onDownload?: () => void }) {
+  const accountEmail = googleEmail || user.email;
+  return <section className="account-screen"><header><button className="icon-button" onClick={onBack} aria-label="Voltar à frequência"><ArrowLeft size={22} /></button><h1>Conta</h1></header><div className="account-card profile-identity"><span className="avatar">{initials(user.name)}</span><div><strong>{user.name}</strong>{accountEmail && <small>{accountEmail}</small>}<small>{user.role} · GAT {user.gatNumber} · {user.gatName}</small></div></div><div className="account-card">{[{label:"Meu perfil", Icon:User, action:onProfile}, {label:"Minhas folhas", Icon:FileText, action:onSheets}, ...(onDownload ? [{label:"Baixar cópia .json", Icon:Download, action:onDownload}] : []), {label: onDownload ? "Importar cópia .json" : "Restaurar cópia", Icon:Upload, action:onRestore}].map(({label,Icon,action}) => <button key={label} onClick={action}><Icon size={20}/>{label}<ChevronRight size={18}/></button>)}</div><div className="account-card account-theme"><h2>Tema</h2><ThemeSelector /></div><div className="account-card"><button onClick={onHelp}><CircleHelp size={20}/>Ajuda e suporte<ChevronRight size={18}/></button><button onClick={onAdmin}><Settings2 size={20}/>Configurações<ChevronRight size={18}/></button></div><button className="secondary-button account-exit" onClick={onExit}><LogOut size={20}/>Sair</button></section>;
 }

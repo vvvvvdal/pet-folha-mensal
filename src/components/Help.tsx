@@ -3,7 +3,7 @@
 import { ChevronDown, X } from "lucide-react";
 import { Modal } from "./Modal";
 
-const questions = [
+const localQuestions = [
   [
     "Como começo minha folha?",
     "Informe seu nome, função e GAT. Nos próximos meses, abra seu perfil neste navegador e escolha o mês. Você não precisa de uma cópia para começar um novo mês aqui.",
@@ -20,6 +20,28 @@ const questions = [
     "Perdi a cópia. Posso continuar?",
     "Se ainda usa o mesmo navegador, abra seu perfil em “Continuar”. Em outro aparelho ou após limpar os dados, você pode começar um novo mês. Para recuperar registros antigos, use a cópia ou o navegador original. Os aparelhos não são sincronizados.",
   ],
+];
+
+const googleQuestions = [
+  [
+    "Como começo minha folha?",
+    "Entre com o Google. Vincule uma folha deste navegador ou importe seu arquivo .json no primeiro acesso. Se estiver começando do zero, confira seu nome, função e GAT. A primeira atividade salva cria a pasta PET Folha no Drive.",
+  ],
+  [
+    "Por que preciso autorizar o Google Drive?",
+    "O PET Folha usa a permissão para salvar e recuperar os meses na pasta PET Folha. Na tela do Google, marque a caixa do Drive se ela aparecer e selecione “Continuar”. A permissão vale para os arquivos que você usa com o app.",
+  ],
+  [
+    "Como abro minha folha em outro aparelho?",
+    "Entre com a mesma conta Google. O PET Folha busca os meses sincronizados na pasta PET Folha do seu Drive.",
+  ],
+  [
+    "Como baixo ou importo uma cópia manual?",
+    "Na Conta, escolha “Baixar cópia .json” ou “Importar cópia .json”. Se o arquivo antigo estiver no Drive, baixe-o antes de importar. Importe um arquivo por mês e acompanhe o envio até aparecer “Salvo no Drive”.",
+  ],
+];
+
+const commonQuestions = [
   [
     "Como as horas são calculadas?",
     "Cada hora iniciada conta como uma hora inteira. Por exemplo, das 13h30 às 17h30 são 5 horas. A referência é de 8 horas por semana e cerca de 32 horas por mês.",
@@ -34,10 +56,11 @@ const questions = [
   ],
 ];
 
-export function FAQ() {
+export function FAQ({ google = false }: { google?: boolean }) {
+  const questions = google ? googleQuestions : localQuestions;
   return (
     <div className="faq-list">
-      {questions.map(([question, answer]) => (
+      {[...questions, ...commonQuestions].map(([question, answer]) => (
         <details key={question}>
           <summary>
             {question}
@@ -51,9 +74,11 @@ export function FAQ() {
 }
 
 export function HelpModal({
+  google,
   isOpen,
   onClose,
 }: {
+  google?: boolean;
   isOpen: boolean;
   onClose: () => void;
 }) {
@@ -73,7 +98,7 @@ export function HelpModal({
             <X size={20} />
           </button>
         </div>
-        <FAQ />
+        <FAQ google={google} />
       </div>
     </Modal>
   );

@@ -85,7 +85,9 @@ Plano: [docs/entrega-2-login-google-drive.md](docs/entrega-2-login-google-drive.
 - [x] Telas aprovadas no canvas: entrada com Google, primeira entrada no aparelho, status de sincronização e conflito.
 - [x] Motor de sincronização (`drive-sync.ts`, `use-drive-sync.ts`), entrada com Google, vínculo de folha local, status na barra, conflito, saída com opção de apagar dados do aparelho e página `/privacidade`.
 - [x] Testes E2E com rotas do Google e Drive simulados (`tests/e2e/google-sync.spec.ts`).
+- [x] Recuperar a landing com a prévia da folha e orientar sobre a permissão do Drive antes do login e após uma recusa.
+- [x] Oferecer importação de JSON no primeiro acesso e distinguir o e-mail da conta Google do e-mail dos relatórios.
 - [ ] Rotas do servidor `/api/google/*` (sessão em andamento em outra branch) e integração com esta branch.
 - [ ] Projeto no Google Cloud, variáveis na Vercel e status **In production** (mantenedor).
-- [ ] Teste manual com conta real: dois navegadores, conflito, revogação de acesso e saída.
+- [ ] Teste manual com conta real: recusar Drive, conceder na nova tentativa, importar JSON e confirmar envio. Conferir também dois navegadores, conflito, revogação de acesso e saída.
 - [ ] Sincronizar a nota do Obsidian quando a entrega for publicada.

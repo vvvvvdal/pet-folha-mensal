@@ -11,6 +11,7 @@ interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: UserProfile;
+  googleEmail?: string;
   allProfiles: UserProfile[];
   gats: Record<string, GATInfo>;
   roles: string[];
@@ -21,6 +22,7 @@ export function ProfileModal({
   isOpen,
   onClose,
   currentUser,
+  googleEmail,
   allProfiles,
   gats,
   roles,
@@ -101,10 +103,13 @@ export function ProfileModal({
             <input id="profilemodal-field-1" type="text" required value={name}
               onChange={(event) => setName(event.target.value)} />
           </div>
+          {googleEmail && <p className="field-hint">Conta Google para login e Drive <strong>{googleEmail}</strong></p>}
           <div className="field">
-            <label htmlFor="profile-email">E-mail para o formulário (opcional)</label>
+            <label htmlFor="profile-email">{googleEmail ? "E-mail dos relatórios" : "E-mail para o formulário (opcional)"}</label>
             <input id="profile-email" type="email" autoComplete="email" value={email}
+              placeholder={googleEmail} aria-describedby={googleEmail ? "profile-email-hint" : undefined}
               onChange={(event) => setEmail(event.target.value)} />
+            {googleEmail && <p id="profile-email-hint" className="field-hint">Deixe em branco para usar o e-mail da conta Google nos relatórios.</p>}
           </div>
           <div className="pair-fields">
             <div className="field">
@@ -124,7 +129,7 @@ export function ProfileModal({
               </select>
             </div>
           </div>
-          <p className="field-hint">Seus dados ficam salvos neste navegador.</p>
+          <p className="field-hint">{googleEmail ? "As alterações são sincronizadas com a pasta PET Folha do seu Drive." : "Seus dados ficam salvos neste navegador."}</p>
         </div>
         <footer className="editor-foot">
           <div className="editor-actions">
