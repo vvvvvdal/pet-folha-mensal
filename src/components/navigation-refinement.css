@@ -34,7 +34,7 @@ html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .d
 }
 .drive-popover > :is(a, button):hover { background: var(--surface-raised); }
 @media (max-width: 899px) {
-  .app-topbar :is(.desktop-sheets, .desktop-drive, .drive-popover) { display: none; }
+  .app-topbar :is(.desktop-drive, .drive-popover) { display: none; }
 }
 @media print { .drive-popover { display: none !important; } }
 @media (min-width: 900px) {
@@ -54,7 +54,7 @@ html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .d
     max-height: var(--profile-max-height, calc(100dvh - 120px));
     overscroll-behavior: contain;
   }
-  .app-topbar .desktop-sheets, .app-topbar .desktop-drive { flex-shrink: 0; white-space: nowrap; }
+  .app-topbar .desktop-drive { flex-shrink: 0; white-space: nowrap; }
   .app-topbar .app-top-actions { flex-shrink: 1; min-width: 0; }
   .app-topbar .sync-status { min-width: 0; }
   .app-topbar .sync-status-text { overflow: hidden; text-overflow: ellipsis; }

@@ -83,6 +83,7 @@ import {
   CircleAlert,
   CircleCheck,
   Download,
+  FileText,
   Paperclip,
   Printer,
   ArrowLeft,
@@ -1060,7 +1061,6 @@ export default function Home() {
           activeTab={activeTab}
           onTabChange={(tab) => void changeTab(tab)}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
-          onOpenSheets={() => setSheetsOpen(true)}
           hasChanges={hasChanges}
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
@@ -1084,27 +1084,34 @@ export default function Home() {
                   : activeTab === "attachments" ? "Fotos e PDFs que acompanham as atividades do mês." : "Confira os dados antes de imprimir e assinar."}
               </p>
             </div>
-            <label className="workspace-month">
-              <Calendar className="size-4 text-accent" />
-              <span>Mês</span>
-              <select
-                aria-label="Mês da folha"
-                value={monthKey}
-                onChange={(e) => void changeMonth(e.target.value)}
-              >
-                {Array.from(new Set([...PROJECT_MONTHS, monthKey]))
-                  .sort()
-                  .map((month) => (
-                    <option key={month} value={month}>
-                      {getMonthYearLabel(month)}
-                    </option>
-                  ))}
-              </select>
-            </label>
+            <div className="workspace-overview-actions">
+              <label className="workspace-month">
+                <Calendar className="size-4 text-accent" />
+                <span>Mês</span>
+                <select
+                  aria-label="Mês da folha"
+                  value={monthKey}
+                  onChange={(e) => void changeMonth(e.target.value)}
+                >
+                  {Array.from(new Set([...PROJECT_MONTHS, monthKey]))
+                    .sort()
+                    .map((month) => (
+                      <option key={month} value={month}>
+                        {getMonthYearLabel(month)}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              {activeTab === "official" && (
+                <button type="button" className="secondary-button" aria-haspopup="dialog" onClick={() => setSheetsOpen(true)}>
+                  <FileText size={18} aria-hidden="true" />Minhas folhas
+                </button>
+              )}
+            </div>
           </div>
 
           {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} formsPending={formsPending} view={summaryView} onViewChange={setSummaryView} />}
-          {activeTab === "account" && <AccountScreen user={activeUser} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} onOpenDrive={syncUser && syncSub ? () => window.open(driveFolderUrl(syncSub), "_blank", "noopener") : undefined} />}
+          {activeTab === "account" && <AccountScreen user={activeUser} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} onOpenDrive={syncUser && syncSub ? () => window.open(driveFolderUrl(syncSub), "_blank", "noopener") : undefined} />}
           {sheetsOpen && (
             <SavedSheets
               profileId={activeUser.id}

@@ -278,7 +278,6 @@ test("os atalhos do Drive ficam no topo do desktop e na Conta do celular", async
   const toolbar = page.locator(".app-topbar");
   const trigger = toolbar.getByRole("button", { name: "Drive", exact: true });
   if (testInfo.project.name === "desktop") {
-    await expect(toolbar.getByRole("button", { name: "Minhas folhas" })).toBeVisible();
     await trigger.focus();
     await page.keyboard.press("Enter");
     const menu = page.getByRole("region", { name: "Google Drive e cópias" });
@@ -294,7 +293,6 @@ test("os atalhos do Drive ficam no topo do desktop e na Conta do celular", async
     await expect(trigger).toBeHidden();
     await toolbar.getByRole("button", { name: "Abrir Conta" }).click();
     await expect(page.getByRole("button", { name: "Abrir no Google Drive" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Minhas folhas" })).toBeVisible();
   }
   const chooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: "Importar cópia .json", exact: true }).click();

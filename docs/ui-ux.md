@@ -198,11 +198,12 @@ barra inferior do celular. No desktop, lista e formulário ficam lado a lado;
 no celular, Adicionar atividade abre uma folha inferior e preserva o rascunho
 ao voltar. A página rola para acomodar os campos e listas extensas.
 
-No computador, **Minhas folhas** fica no cabeçalho. Com sincronização ativa,
-o botão **Drive** ao lado do status agrupa o acesso à pasta e as ações de baixar
+Em **Folha**, o botão **Minhas folhas** fica junto ao seletor de mês no
+computador e no celular. No computador, com sincronização ativa, o botão
+**Drive** ao lado do status agrupa o acesso à pasta e as ações de baixar
 ou importar JSON. Sem configuração do Google, Restaurar cópia e Salvar cópia
-ficam no cabeçalho. No celular, o avatar abre a Conta com os atalhos de folhas e
-Drive, e o botão Cópia reúne as ações do modo local.
+ficam no cabeçalho. No celular, o avatar abre a Conta com os atalhos do Drive,
+e o botão Cópia reúne as ações do modo local.
 
 O menu de perfil abre acima do nome na barra lateral. Ele reúne Meu perfil,
 Ajuda e suporte, Configurações, Sair e o seletor de tema. Em janelas mais baixas,

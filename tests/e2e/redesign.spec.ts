@@ -82,7 +82,7 @@ test("Minhas folhas muda mês e o resumo semanal permanece após recarregar", as
   await page.reload();
   await expect(summary.getByRole("button", { name: "Semanal" })).toHaveAttribute("aria-pressed", "true");
   await summary.getByRole("button", { name: "Mensal" }).click();
-  if (await page.getByRole("button", { name: "Abrir Conta" }).isVisible()) await openAccount(page);
+  await page.getByRole("button", { name: "Folha", exact: true }).click();
   await page.getByRole("button", { name: "Minhas folhas", exact: true }).filter({ visible: true }).click();
   const sheets = page.getByRole("dialog", { name: "Minhas folhas" });
   const surface = sheets.locator(".saved-sheets");
@@ -264,21 +264,18 @@ test("janelas usam largura coerente e cabem na tela", async ({ page }) => {
   await page.keyboard.press("Escape");
 });
 
-test("Minhas folhas preserva rascunho ao cancelar descarte do mês atual", async ({ page }) => {
+test("aba Folha preserva rascunho ao cancelar a troca de seção", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await seedProfile(page);
   await page.goto("/");
   const description = page.getByLabel("Atividade realizada", { exact: true });
   await description.fill("Rascunho que deve continuar disponível");
   await page.getByLabel("Entrada", { exact: true }).fill("14:00");
-  await page.getByRole("button", { name: "Minhas folhas", exact: true }).click();
-  const sheets = page.getByRole("dialog", { name: "Minhas folhas" });
-  await sheets.getByRole("button", { name: /Novembro\/2026/ }).click();
+  await page.getByRole("button", { name: "Folha", exact: true }).click();
   const confirmation = page.getByRole("dialog", { name: "Atividade ainda não adicionada" });
   await expect(confirmation).toBeVisible();
   await confirmation.getByRole("button", { name: "Continuar editando" }).click();
-  await expect(sheets).toBeVisible();
-  await sheets.getByRole("button", { name: "Fechar", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Minhas folhas", exact: true })).toHaveCount(0);
   await expect(description).toHaveValue("Rascunho que deve continuar disponível");
   await expect(page.getByLabel("Entrada", { exact: true })).toHaveValue("14:00");
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-11");

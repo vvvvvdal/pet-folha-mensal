@@ -36,6 +36,25 @@ html[data-theme="light"] { --primary-soft:#e6f3ec; --info-soft:#e3f1f6; --warnin
 .workspace-overview[hidden] {display:none}
 .workspace-overview h1 {font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
 .workspace-month {border:1px solid var(--border);border-radius:12px;padding:4px 12px;background:var(--surface);max-width:100%}
+.workspace-overview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 100%;
+  margin-left: auto;
+}
+.workspace-overview .workspace-overview-actions .workspace-month { order: 0; margin-left: 0; }
+.workspace-overview-actions .secondary-button { min-height: 52px; white-space: nowrap; }
+@media (max-width: 899px) {
+  .workspace-overview-actions { width: 100%; justify-content: start; }
+  .workspace-overview .workspace-overview-actions .workspace-month { flex: 1 1 165px; width: auto; }
+}
+@media (max-width: 480px) {
+  [data-tab="official"] .workspace-overview-actions .workspace-month > :is(span, svg) { display: none; }
+  .workspace-overview-actions .secondary-button { padding-inline: 12px; }
+}
 .dashboard-shell > .site-footer {grid-column:2}
 .frequency-workbench {grid-template-columns:minmax(0,1fr) 336px;gap:24px}
 .frequency-workbench .form-panel {grid-column:2;grid-row:1;padding:24px;border-radius:24px}
