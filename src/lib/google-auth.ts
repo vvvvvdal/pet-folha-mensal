@@ -42,6 +42,7 @@ export interface GoogleSession {
   sub: string;
   email: string;
   name: string;
+  picture?: string;
 }
 
 export interface GoogleOAuthFlow {
@@ -56,6 +57,7 @@ export interface GoogleIdentity {
   sub: string;
   email: string;
   name: string;
+  picture?: string;
 }
 
 export interface GoogleTokenResponse {
@@ -189,6 +191,17 @@ function isNonEmptyString(value: unknown, maxLength = 2048): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= maxLength;
 }
 
+function googlePicture(value: unknown): string | undefined {
+  if (!isNonEmptyString(value, 1024)) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'https:' && !url.username && !url.password && !url.port &&
+      /^lh\d+\.googleusercontent\.com$/.test(url.hostname)) return url.href;
+  } catch {
+    return undefined;
+  }
+}
+
 function isGoogleSession(value: unknown): value is GoogleSession {
   if (typeof value !== 'object' || value === null) return false;
   const session = value as Record<string, unknown>;
@@ -196,7 +209,8 @@ function isGoogleSession(value: unknown): value is GoogleSession {
     isNonEmptyString(session.refreshToken) &&
     isNonEmptyString(session.sub, 255) &&
     typeof session.email === 'string' &&
-    typeof session.name === 'string'
+    typeof session.name === 'string' &&
+    (session.picture === undefined || googlePicture(session.picture) !== undefined)
   );
 }
 
@@ -407,9 +421,11 @@ export function verifyIdToken(idToken: string, expectedNonce: string): GoogleIde
   if (typeof claims.nonce !== 'string' || !safeEqual(claims.nonce, expectedNonce)) return null;
   if (!isNonEmptyString(claims.sub, 255)) return null;
 
+  const picture = googlePicture(claims.picture);
   return {
     sub: claims.sub,
     email: typeof claims.email === 'string' ? claims.email : '',
-    name: typeof claims.name === 'string' ? claims.name : ''
+    name: typeof claims.name === 'string' ? claims.name : '',
+    ...(picture && { picture })
   };
 }

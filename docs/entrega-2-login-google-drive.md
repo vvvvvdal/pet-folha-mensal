@@ -24,7 +24,7 @@ Fontes conferidas em 25/11/2026 (Google, documentação oficial):
 ```
 Navegador ──/api/google/login──► Google (código + PKCE + state)
           ◄─/api/google/callback─ troca código → refresh token + id_token
-             cookie pet_google (AES-256-GCM: refresh token, sub, e-mail, nome)
+             cookie pet_google (AES-256-GCM: refresh token, sub, e-mail, nome e URL opcional da foto)
 Navegador ──/api/google/token───► servidor renova e devolve access token (~1 h, sem cache)
 Navegador ──REST/CORS──────────► Drive API v3 (pasta "PET Folha", 1 arquivo por mês)
 ```

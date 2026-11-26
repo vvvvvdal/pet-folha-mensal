@@ -9,6 +9,7 @@ export interface GoogleSession {
   sub?: string;
   email?: string;
   name?: string;
+  picture?: string;
   /** True when the session could not be checked (offline or server error). */
   unreachable?: boolean;
 }
@@ -36,6 +37,7 @@ export async function fetchGoogleSession(): Promise<GoogleSession> {
       sub: typeof data.sub === "string" ? data.sub : undefined,
       email: typeof data.email === "string" ? data.email : undefined,
       name: typeof data.name === "string" ? data.name : undefined,
+      picture: typeof data.picture === "string" ? data.picture : undefined,
     };
   } catch {
     return { configured: true, authenticated: false, unreachable: true };

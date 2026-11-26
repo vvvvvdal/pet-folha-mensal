@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       <article>
         <p className="privacy-back"><Link href="/">← Voltar ao PET Folha</Link></p>
         <h1>Política de privacidade</h1>
-        <p className="privacy-updated">Atualizada em 25 de novembro de 2026.</p>
+        <p className="privacy-updated">Atualizada em 26 de novembro de 2026.</p>
 
         <p>
           O PET Folha ajuda participantes do PET-Saúde Clima UFG a registrar atividades, anexar comprovantes e imprimir a
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         <h2>Dados da sua conta Google</h2>
         <p>Ao entrar com o Google, o app pede somente:</p>
         <ul>
-          <li><strong>Nome, e-mail e identificador da conta</strong>, para reconhecer você e preencher o cadastro.</li>
+          <li><strong>Nome, e-mail e identificador da conta</strong>, para reconhecer você e preencher o cadastro. A foto de perfil, quando fornecida pelo Google, aparece no botão da conta.</li>
           <li><strong>Acesso aos arquivos que o próprio app cria no seu Drive</strong> (permissão <code>drive.file</code>). O app não vê, não lê e não altera nenhum outro arquivo do seu Drive.</li>
         </ul>
         <p>

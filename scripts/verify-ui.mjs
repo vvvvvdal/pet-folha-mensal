@@ -645,6 +645,8 @@ test("sessão Google: selagem AES-256-GCM rejeita adulteração, chave errada e 
     assert.doesNotMatch(sealed, /refresh-teste|pessoa@teste/);
     assert.deepEqual(auth.openSession(sealed), session);
     assert.notEqual(auth.sealSession(session), sealed, "IV aleatório a cada selagem");
+    const withPicture = { ...session, picture: "https://lh3.googleusercontent.com/a/pessoa" };
+    assert.deepEqual(auth.openSession(auth.sealSession(withPicture)), withPicture);
 
     const [version, iv, ciphertext, tag] = sealed.split(".");
     const flipped = (ciphertext[0] === "A" ? "B" : "A") + ciphertext.slice(1);
@@ -717,6 +719,11 @@ test("sessão Google: PKCE S256 e id_token conferem aud, iss, exp e nonce", () =
       email: "pessoa@teste.local",
       name: "Pessoa",
     });
+    const picture = "https://lh3.googleusercontent.com/a/pessoa";
+    assert.equal(auth.verifyIdToken(idToken({ ...valid, picture }), flow.nonce).picture, picture);
+    for (const invalidPicture of ["http://lh3.googleusercontent.com/a/pessoa", "https://lh3.googleusercontent.com.example.org/foto"]) {
+      assert.equal(auth.verifyIdToken(idToken({ ...valid, picture: invalidPicture }), flow.nonce).picture, undefined);
+    }
     assert.equal(auth.verifyIdToken(idToken({ ...valid, aud: "outro-cliente" }), flow.nonce), null);
     assert.equal(auth.verifyIdToken(idToken({ ...valid, iss: "https://malicioso.local" }), flow.nonce), null);
     assert.equal(auth.verifyIdToken(idToken({ ...valid, exp: now - 3600 }), flow.nonce), null);

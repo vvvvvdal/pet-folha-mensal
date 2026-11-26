@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     authenticated: session !== null,
     email: session?.email ?? null,
     name: session?.name ?? null,
-    sub: session?.sub ?? null
+    sub: session?.sub ?? null,
+    picture: session?.picture ?? null
   });
 }

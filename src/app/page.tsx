@@ -195,6 +195,7 @@ export default function Home() {
         ? activeUser?.googleSub
         : undefined;
   const syncUser = activeUser && syncSub && activeUser.googleSub === syncSub ? activeUser : null;
+  const googlePicture = syncUser ? google?.picture : undefined;
   const sync = useDriveSync({
     enabled: Boolean(syncUser),
     sub: syncSub,
@@ -1097,6 +1098,7 @@ export default function Home() {
         {/* Header Superior Fixo com Blur */}
         <Navbar
           user={activeUser}
+          googlePicture={googlePicture}
           activeTab={activeTab}
           onTabChange={(tab) => void changeTab(tab)}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
@@ -1163,7 +1165,7 @@ export default function Home() {
           </div>
 
           {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} formsPending={formsPending} view={summaryView} onViewChange={setSummaryView} />}
-          {activeTab === "account" && <AccountScreen user={activeUser} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} onOpenDrive={syncUser && syncSub ? () => window.open(driveFolderUrl(syncSub), "_blank", "noopener") : undefined} />}
+          {activeTab === "account" && <AccountScreen user={activeUser} googlePicture={googlePicture} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} onOpenDrive={syncUser && syncSub ? () => window.open(driveFolderUrl(syncSub), "_blank", "noopener") : undefined} />}
           {sheetsOpen && (
             <SavedSheets
               profileId={activeUser.id}

@@ -61,12 +61,12 @@ function parseMultipart(body: string, contentType: string) {
   return { meta: JSON.parse(parts[0]), content: parts[1] };
 }
 
-async function mockGoogle(page: Page, drive: FakeDrive, session: { authenticated: boolean }) {
+async function mockGoogle(page: Page, drive: FakeDrive, session: { authenticated: boolean; picture?: string }) {
   const state = { ...session, loggedOut: false, rejectNextPdf: false };
   const pdfUploads = new Map<string, { id?: string; meta: Partial<FakeFile> }>();
   let uploadCounter = 0;
   await page.route("**/api/google/session", (route) =>
-    route.fulfill({ json: state.authenticated && !state.loggedOut ? { configured: true, authenticated: true, ...sessionUser } : { configured: true, authenticated: false } }));
+    route.fulfill({ json: state.authenticated && !state.loggedOut ? { configured: true, authenticated: true, ...sessionUser, picture: state.picture } : { configured: true, authenticated: false } }));
   await page.route("**/api/google/token", (route) => route.fulfill({ json: { accessToken: "token-de-teste", expiresAt: Date.now() + 3_600_000 } }));
   await page.route("**/api/google/logout", (route) => {
     state.loggedOut = true;
@@ -435,4 +435,32 @@ test("a confirmação de entrega acompanha a cópia mensal em outro navegador", 
   } finally {
     await second.close();
   }
+});
+
+test("a conta mostra a foto do Google e volta às iniciais se a imagem falhar", async ({ page }, testInfo) => {
+  const drive = new FakeDrive();
+  await seedLocal(page, { ...localProfile, googleSub: SUB }, "2026-11", [reuniao], { pet_folha_active_profile_id_v2: localProfile.id });
+  const picture = "https://lh3.googleusercontent.com/a/avatar-de-teste";
+  await mockGoogle(page, drive, { authenticated: true, picture });
+  await page.route(picture, (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="#007c46"/></svg>',
+  }));
+  await page.goto("/");
+  const trigger = testInfo.project.name === "mobile"
+    ? page.getByRole("button", { name: "Abrir Conta" })
+    : page.locator(".profile-trigger");
+  const avatar = trigger.locator(".profile-avatar");
+  await expect(avatar.locator("img")).toBeVisible();
+  await expect.poll(() => avatar.locator("img").evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  if (testInfo.project.name === "mobile") {
+    await expect(trigger).toHaveText("");
+    await trigger.click();
+    await expect(page.locator(".account-screen .profile-avatar img")).toBeVisible();
+  }
+
+  await page.unroute(picture);
+  await page.route(picture, (route) => route.abort());
+  await page.reload();
+  await expect(avatar).toHaveText("AS");
 });
