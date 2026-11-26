@@ -1,6 +1,7 @@
 "use client";
 
 import { Modal } from "./Modal";
+import { DateInput } from "./DateInput";
 import React, { useState, useEffect } from "react";
 import { Activity, ModalityType, ActivityTemplate } from "@/types";
 import { calcPetHours, cleanActivityDescription } from "@/lib/pet-calculator";
@@ -132,7 +133,7 @@ export function EditActivityModal({
               </div>
               <div className="field">
                 <label htmlFor="edit-date">Data</label>
-                <input id="edit-date" type="date" required value={date}
+                <DateInput id="edit-date" required value={date}
                   onChange={(event) => setDate(event.target.value)} />
               </div>
               <div className="pair-fields">

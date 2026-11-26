@@ -18,6 +18,29 @@ html[data-theme="light"] { --primary-soft:#e6f3ec; --info-soft:#e3f1f6; --warnin
 .dashboard-shell .list-filters button[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--primary-soft); color: var(--accent); }
 .list-filters button span { min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--surface-raised); color: var(--body); font-size: 14px; font-variant-numeric: tabular-nums; }
 
+.date-input {
+  position: relative;
+  min-width: 0;
+  color: var(--foreground);
+}
+.screen-only .date-input > input[type="date"] { width: 100%; color: inherit; background-color: var(--surface); }
+.date-input > input::-webkit-calendar-picker-indicator { display: none; }
+.screen-only .field .date-input .date-input-trigger {
+  position: absolute;
+  inset-block: 1px;
+  inset-inline-end: 1px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+}
+@supports selector(input::-webkit-calendar-picker-indicator) {
+  .dashboard-shell .field .date-input > input[type="date"] { padding-inline-end: 44px; }
+}
+
 .dashboard-shell {display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto 1fr auto;min-height:100dvh;height:auto;overflow:visible}
 .app-sidebar {grid-column:1;grid-row:1/4;position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;padding:32px 20px 20px;background:var(--surface);border-right:1px solid var(--border);gap:24px;min-width:0}
 .sidebar-group {font-size:14px;color:var(--muted)}

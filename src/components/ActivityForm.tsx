@@ -9,6 +9,7 @@ import {
   getDefaultActivityDate,
 } from "@/lib/pet-calculator";
 import { Plus, X } from "lucide-react";
+import { DateInput } from "./DateInput";
 import { Modal } from "./Modal";
 import "./frequency-redesign.css";
 
@@ -129,9 +130,8 @@ export function ActivityForm({
   const dateField = (
     <div className="field">
       <label htmlFor="activity-date">Data</label>
-      <input
+      <DateInput
         id="activity-date"
-        type="date"
         required
         min={`${monthKey}-01`}
         max={lastDate}

@@ -342,6 +342,43 @@ test("busca e modalidade filtram os registros junto com as pendências", async (
   await expect(editButtons).toHaveCount(3);
 });
 
+test("calendário usa o mesmo ícone e a cor da data na criação e na edição", async ({ page }) => {
+  await page.addInitScript(({ keys, user, activity }) => {
+    localStorage.setItem(keys.profiles, JSON.stringify([user]));
+    localStorage.setItem(keys.active, user.id);
+    localStorage.setItem(`pet_folha_activities_v2_${user.id}_2026-11`, JSON.stringify([
+      { ...activity, date: "2026-11-04" },
+    ]));
+  }, { keys, user, activity });
+
+  for (const theme of ["light", "dark"]) {
+    await page.goto(`/?theme=${theme}`);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await openActivityForm(page);
+    const create = page.locator("#nova-atividade");
+    const createDate = create.getByLabel("Data", { exact: true });
+    const createPicker = create.getByRole("button", { name: "Abrir calendário" });
+    await expect(createPicker.locator("svg")).toHaveClass(/\blucide-calendar\b/);
+    await expect(createPicker.locator("svg")).toHaveCSS("stroke", await createDate.evaluate((input) => getComputedStyle(input).color));
+    await createPicker.click();
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("Enter");
+    await expect(createDate).toHaveValue("2026-11-03");
+    await closeActivityForm(page);
+
+    await page.getByRole("button", { name: /^Editar atividade:/ }).click();
+    const edit = page.getByRole("dialog", { name: "Editar atividade", exact: true });
+    const editDate = edit.getByLabel("Data", { exact: true });
+    const editPicker = edit.getByRole("button", { name: "Abrir calendário" });
+    await expect(editPicker.locator("svg")).toHaveClass(/\blucide-calendar\b/);
+    await expect(editPicker.locator("svg")).toHaveCSS("stroke", await editDate.evaluate((input) => getComputedStyle(input).color));
+    await editPicker.click();
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("Enter");
+    await expect(editDate).toHaveValue("2026-11-05");
+  }
+});
+
 test("temas, larguras, controles e retorno de foco", async ({
   page,
 }, testInfo) => {
