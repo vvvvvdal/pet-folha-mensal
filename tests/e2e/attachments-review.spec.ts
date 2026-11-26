@@ -188,8 +188,11 @@ test("galeria dedicada, WebP, popover nos atalhos secundários e larguras sem es
   await expect(review).toHaveCount(0);
 
   const missing = region.locator(".attachments-missing");
-  await missing.locator("summary").click();
   const attachB = missing.getByRole("button", { name: /Anexar comprovante a .*Atividade B/ });
+  await expect(attachB).toBeVisible();
+  const missingBox = await missing.boundingBox();
+  const listBox = await region.locator(".attachments-list").boundingBox();
+  expect(missingBox!.y).toBeLessThan(listBox!.y);
   await attachB.focus();
   await page.keyboard.press("Enter");
   const missingMenu = missing.getByRole("menu", { name: "Origem do comprovante" });
@@ -225,4 +228,121 @@ test("galeria dedicada, WebP, popover nos atalhos secundários e larguras sem es
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     }
   }
+});
+
+test("anexo direto na aba Frequência, opção de 1ª página em PDF e compressão de imagem pesada", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-11-12T15:00:00Z") });
+  await page.addInitScript(({ user, records }) => {
+    if (sessionStorage.getItem("quick-seeded")) return;
+    localStorage.setItem("pet_folha_profiles_v2", JSON.stringify([user]));
+    localStorage.setItem("pet_folha_active_profile_id_v2", user.id);
+    localStorage.setItem(`pet_folha_activities_v2_${user.id}_2026-11`, JSON.stringify(records));
+    localStorage.setItem("pet_folha_onboarding_seen", "1");
+    sessionStorage.setItem("quick-seeded", "1");
+  }, { user, records });
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+
+  const heavyPngBase64 = await page.evaluate(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 2200;
+    canvas.height = 1500;
+    const ctx = canvas.getContext("2d")!;
+    const imgData = ctx.createImageData(2200, 1500);
+    const data = imgData.data;
+    let seed = 42;
+    for (let i = 0; i < data.length; i += 4) {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      const noise = seed & 31;
+      const px = (i >> 2) % 2200;
+      const py = ((i >> 2) / 2200) | 0;
+      data[i] = ((px * 255) / 2200 + noise) & 255;
+      data[i + 1] = ((py * 255) / 1500 + noise) & 255;
+      data[i + 2] = (120 + noise) & 255;
+      data[i + 3] = 255;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  const originalPngBytes = Buffer.from(heavyPngBase64, "base64").length;
+  expect(originalPngBytes).toBeGreaterThan(300 * 1024);
+
+  const quickTrigger = page
+    .getByRole("button", { name: "Anexar comprovante a Atividade B" })
+    .filter({ visible: true })
+    .first();
+  await expect(quickTrigger).toBeEnabled();
+  await quickTrigger.click();
+  const quickMenu = page.getByRole("menu", { name: "Origem do comprovante" }).filter({ visible: true });
+  await expect(quickMenu).toBeVisible();
+
+  const [quickChooser] = await Promise.all([
+    page.waitForEvent("filechooser"),
+    quickMenu.getByRole("menuitem", { name: /PDF ou arquivos/ }).click(),
+  ]);
+  await quickChooser.setFiles([
+    {
+      name: "camera-alta-res.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(heavyPngBase64, "base64"),
+    },
+    {
+      name: "apostila-multipage.pdf",
+      mimeType: "application/pdf",
+      buffer: twoPagePdf(),
+    },
+  ]);
+
+  const review = page.getByRole("dialog", { name: "Conferir comprovantes" });
+  await expect(review).toBeVisible();
+  await expect(review.locator(".review-file").first().getByRole("checkbox", { name: /Atividade B/ })).toBeChecked();
+  await expect(review.getByText(/Usar também em outras atividades deste mês \(1\)/).first()).toBeVisible();
+  await expect(review.locator(".attachment-page-budget")).toContainText("3 de 60 páginas");
+
+  await review
+    .locator(".review-file")
+    .filter({ hasText: "apostila-multipage.pdf" })
+    .getByRole("checkbox", { name: /Incluir só a 1ª página no PDF final/ })
+    .check();
+  await expect(review.locator(".attachment-page-budget")).toContainText("2 de 60 páginas");
+
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+  await expect(review).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "2 comprovantes de Atividade B. Ver em Comprovantes" }).filter({ visible: true }),
+  ).toBeVisible();
+
+  const storedInfo = await page.evaluate(async (id) => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const req = indexedDB.open("pet-folha-comprovantes", 1);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    try {
+      const items = await new Promise<{ name: string; file: Blob; firstPageOnly?: boolean }[]>((resolve, reject) => {
+        const req = db.transaction("months").objectStore("months").get([id, "2026-11"]);
+        req.onsuccess = () => resolve(req.result ?? []);
+        req.onerror = () => reject(req.error);
+      });
+      return items.map((i) => ({ name: i.name, size: i.file.size, type: i.file.type, firstPageOnly: Boolean(i.firstPageOnly) }));
+    } finally {
+      db.close();
+    }
+  }, user.id);
+
+  const compressedPhoto = storedInfo.find((i) => i.name === "camera-alta-res.png")!;
+  expect(compressedPhoto.type).toBe("image/jpeg");
+  expect(compressedPhoto.size).toBeLessThan(originalPngBytes * 0.6);
+  const coverPdf = storedInfo.find((i) => i.name === "apostila-multipage.pdf")!;
+  expect(coverPdf.firstPageOnly).toBe(true);
+
+  await page.evaluate(() => { window.print = () => { document.body.dataset.printed = "1"; }; });
+  await page.getByRole("button", { name: "Folha", exact: true }).filter({ visible: true }).click();
+  await page.getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
+  await expect(page.locator("body")).toHaveAttribute("data-printed", "1");
+  const printPages = page.locator(".print-attachment-page");
+  await expect(printPages).toHaveCount(2);
+  await expect(printPages.nth(1)).toContainText("Página 1 de 2 (1ª página)");
 });

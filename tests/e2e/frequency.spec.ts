@@ -653,13 +653,13 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
     imageProof,
     { name: "relatorio.pdf", mimeType: "application/pdf", buffer: makePdf(2) },
     { name: "invalido.png", mimeType: "image/png", buffer: Buffer.from("texto") },
-    { name: "grande.pdf", mimeType: "application/pdf", buffer: makePdf(31) },
+    { name: "grande.pdf", mimeType: "application/pdf", buffer: makePdf(61) },
     { name: "corrompido.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\nbroken") },
   ]);
   const review = page.getByRole("dialog", { name: "Conferir comprovantes" });
   const notices = review.getByRole("alert");
   await expect(notices).toContainText("invalido.png: formato inválido");
-  await expect(notices).toContainText("grande.pdf: o PDF excede o limite de 30 páginas");
+  await expect(notices).toContainText("grande.pdf: o PDF excede o limite de 60 páginas");
   await expect(notices).toContainText("corrompido.pdf: o PDF está ilegível");
   await expect(review.getByRole("button", { name: /^Visualizar .* em outra aba$/ })).toHaveCount(2);
   await review.getByRole("button", { name: "Salvar comprovantes" }).click();
@@ -855,15 +855,15 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   await firstCheck.check();
   await secondCheck.check();
   await saveLinks.click();
-  await expect(region).toContainText("4 de 30 páginas");
+  await expect(region).toContainText("4 de 60 páginas");
 
   await page.reload();
   await openSheet(page);
   await expect(region.getByRole("button", { name: "Visualizar foto.png em outra aba" })).toHaveCount(1);
-  await expect(region).toContainText("4 de 30 páginas");
+  await expect(region).toContainText("4 de 60 páginas");
   await input.setInputFiles({ ...imageProof, name: "avulso.png" });
   await review.getByRole("button", { name: "Salvar comprovantes" }).click();
-  await expect(region).toContainText("5 de 30 páginas");
+  await expect(region).toContainText("5 de 60 páginas");
 
   await page.evaluate(() => { window.print = () => { document.body.dataset.printed = "true"; }; });
   await page.getByRole("button", { name: "Folha", exact: true }).click();
@@ -906,18 +906,18 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   }
 
   await openSheet(page);
-  await input.setInputFiles({ name: "limite.pdf", mimeType: "application/pdf", buffer: makePdf(16) });
+  await input.setInputFiles({ name: "limite.pdf", mimeType: "application/pdf", buffer: makePdf(31) });
   await review.getByRole("button", { name: "Salvar comprovantes" }).click();
-  await expect(region).toContainText("21 de 30 páginas");
+  await expect(region).toContainText("36 de 60 páginas");
   await region.getByRole("button", { name: "Alterar atividades de limite.pdf" }).click();
   await firstCheck.check();
   await secondCheck.check();
   await saveLinks.click();
-  await expect(dialog.getByRole("alert")).toContainText("ultrapassa o limite de 30 páginas");
+  await expect(dialog.getByRole("alert")).toContainText("ultrapassa o limite de 60 páginas");
   await expect(firstCheck).toBeChecked();
   await expect(secondCheck).toBeChecked();
   await dialog.getByRole("button", { name: "Cancelar", exact: true }).click();
-  await expect(region).toContainText("21 de 30 páginas");
+  await expect(region).toContainText("36 de 60 páginas");
 
   await page.getByRole("button", { name: "Frequência", exact: true }).click();
   await page.getByRole("button", { name: "Editar atividade: Oficina de teste" }).click();
@@ -929,7 +929,7 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   await page.getByRole("button", { name: "Excluir atividade: Oficina atualizada" }).click();
   await page.getByRole("button", { name: "Sim, excluir" }).click();
   await openSheet(page);
-  await expect(region).toContainText("20 de 30 páginas");
+  await expect(region).toContainText("35 de 60 páginas");
   await expect(region.getByRole("list", { name: "Atividades vinculadas" }).first()).toContainText("Atualização do site");
   await expect(region.getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
 
@@ -941,7 +941,7 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   await expect(region.getByRole("listitem").filter({
     has: page.getByRole("button", { name: "Alterar atividades de foto.png" }),
   })).toContainText("Sem atividade · entra no final dos comprovantes");
-  await expect(region).toContainText("20 de 30 páginas");
+  await expect(region).toContainText("35 de 60 páginas");
 });
 
 test("preparar Forms, confirmar envio, revisar edição e restaurar relatório", async ({ page }, testInfo) => {
@@ -1048,8 +1048,8 @@ test("novidades na entrada mostram publicação e histórico nos dois temas", as
   const bell = page.locator('.entry-header button[aria-controls="entry-news"]');
   const panel = page.getByRole("region", { name: "Novidades", exact: true });
   await bell.click();
-  await expect(panel.getByRole("heading", { name: "Fotos direto da galeria nos comprovantes" })).toBeVisible();
-  await expect(panel.getByText("24 de novembro de 2026").first()).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Anexo direto na atividade, 60 páginas e novos indicadores de progresso" })).toBeVisible();
+  await expect(panel.getByText("25 de novembro de 2026").first()).toBeVisible();
   for (const theme of ["light", "dark"]) {
     await page.evaluate((theme) => { document.documentElement.dataset.theme = theme; }, theme);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -1096,7 +1096,7 @@ test("sino de novidades preserva rascunho e guarda leitura", async ({ page }, te
   await closeActivityForm(page);
   await expect(bell.locator(".news-dot")).toBeVisible();
   await bell.press("Enter");
-  await expect(panel.getByRole("heading", { name: "Fotos direto da galeria nos comprovantes" })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "Anexo direto na atividade, 60 páginas e novos indicadores de progresso" })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(bell).toBeFocused();
   await expect(page.getByLabel("Atividade realizada", { exact: true })).toHaveValue("Rascunho preservado");
@@ -1107,7 +1107,7 @@ test("sino de novidades preserva rascunho e guarda leitura", async ({ page }, te
   for (const theme of ["light", "dark"]) {
     await page.locator("html").evaluate((element, value) => { element.dataset.theme = value; }, theme);
     await bell.click();
-    const heading = panel.getByRole("heading", { name: "Fotos direto da galeria nos comprovantes" });
+    const heading = panel.getByRole("heading", { name: "Anexo direto na atividade, 60 páginas e novos indicadores de progresso" });
     if (!(await heading.isVisible())) await panel.getByText("Ver atualizações anteriores", { exact: true }).click();
     await expect(heading).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));

@@ -1,9 +1,11 @@
 import { getActivitiesForMonth } from "./storage";
 
 export const ATTACHMENT_LIMIT_MB = 20;
-export const MONTH_LIMIT_MB = 40;
-export const MONTH_PAGE_LIMIT = 30;
+export const MONTH_LIMIT_MB = 80;
+export const MONTH_PAGE_LIMIT = 60;
 const MIB = 1024 * 1024;
+const STORAGE_OPTIMIZE_BYTES = 300 * 1024;
+const STORAGE_JPEG_QUALITY = 0.82;
 // About 160 dpi within the printable A4 landscape area.
 const PRINT_WIDTH = 1745;
 const PRINT_HEIGHT = 1222;
@@ -16,6 +18,7 @@ export interface Attachment {
   name: string;
   file: Blob;
   pages: number;
+  firstPageOnly?: boolean;
   activityIds?: string[];
 }
 
@@ -24,6 +27,7 @@ export interface BackupAttachment {
   name: string;
   base64: string;
   activityIds: string[];
+  firstPageOnly?: boolean;
 }
 
 export interface AttachmentScope {
@@ -101,16 +105,20 @@ export function linkedActivityIds(item: Attachment, activityIds: ReadonlySet<str
   return (item.activityIds ?? []).filter((id) => activityIds.has(id));
 }
 
+export function effectiveAttachmentPages(item: Attachment) {
+  return item.file.type === "application/pdf" && item.firstPageOnly ? 1 : item.pages;
+}
+
 export function countAttachmentPages(items: Attachment[], activityIds: ReadonlySet<string>) {
   return items.reduce((count, item) =>
-    count + item.pages * Math.max(1, linkedActivityIds(item, activityIds).length), 0);
+    count + effectiveAttachmentPages(item) * Math.max(1, linkedActivityIds(item, activityIds).length), 0);
 }
 
 function limitError(items: Attachment[], activityIds = new Set<string>()): string | undefined {
   if (items.reduce((size, { file }) => size + file.size, 0) > MONTH_LIMIT_MB * MIB)
-    return "a folha atingiu o limite de 40 MB de comprovantes.";
+    return `a folha atingiu o limite de ${MONTH_LIMIT_MB} MB de comprovantes.`;
   if (countAttachmentPages(items, activityIds) > MONTH_PAGE_LIMIT)
-    return "a folha atingiu o limite de 30 páginas de comprovantes.";
+    return `a folha atingiu o limite de ${MONTH_PAGE_LIMIT} páginas de comprovantes.`;
 }
 
 function currentActivityIds({ profileId, monthKey }: AttachmentScope) {
@@ -124,15 +132,28 @@ function checkActivityIds(ids: string[], available: ReadonlySet<string>) {
     throw new AttachmentLinkError("Confira as atividades selecionadas. A lista deste mês mudou.");
 }
 
-export function updateAttachmentLinks(scope: AttachmentScope, attachmentId: string, activityIds: string[]) {
+export function updateAttachmentLinks(
+  scope: AttachmentScope,
+  attachmentId: string,
+  activityIds: string[],
+  firstPageOnly?: boolean,
+) {
   return withMonth(scope, (current) => {
     if (!current.some(({ id }) => id === attachmentId))
       throw new AttachmentLinkError("Este comprovante já foi removido.");
     const available = currentActivityIds(scope);
     checkActivityIds(activityIds, available);
-    const next = current.map((item) => item.id === attachmentId ? { ...item, activityIds } : item);
+    const next = current.map((item) => {
+      if (item.id !== attachmentId) return item;
+      const updated: Attachment = { ...item, activityIds };
+      if (firstPageOnly !== undefined && item.file.type === "application/pdf" && item.pages > 1) {
+        if (firstPageOnly) updated.firstPageOnly = true;
+        else delete updated.firstPageOnly;
+      }
+      return updated;
+    });
     if (countAttachmentPages(next, available) > MONTH_PAGE_LIMIT)
-      throw new AttachmentLinkError("Com estes vínculos, o PDF ultrapassa o limite de 30 páginas de comprovantes.");
+      throw new AttachmentLinkError(`Com estes vínculos, o PDF ultrapassa o limite de ${MONTH_PAGE_LIMIT} páginas de comprovantes.`);
     return next;
   });
 }
@@ -169,12 +190,11 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
   return image;
 }
 
-export function printScale(width: number, height: number) {
-  return Math.min(PRINT_WIDTH / width, PRINT_HEIGHT / height);
+export function printScale(width: number, height: number, maxWidth = PRINT_WIDTH, maxHeight = PRINT_HEIGHT) {
+  return Math.min(maxWidth / width, maxHeight / height);
 }
 
-// JPEG a 80% mantém a leitura de documentos a ~150 dpi e pesa uma fração do PNG
-// (o gov.br aceita até 5 MB para assinar).
+// JPEG a 80% mantém a leitura de documentos a ~150 dpi e pesa uma fração do PNG.
 export const PRINT_JPEG_QUALITY = 0.8;
 
 // JPEG não tem transparência: pinta o fundo de branco antes de desenhar.
@@ -185,18 +205,38 @@ export function paintWhite(canvas: HTMLCanvasElement) {
   context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-export function canvasToBlob(canvas: HTMLCanvasElement, type = "image/jpeg"): Promise<Blob> {
+export function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type = "image/jpeg",
+  quality = PRINT_JPEG_QUALITY,
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
       else reject(new Error("não foi possível preparar a imagem para impressão."));
-    }, type, PRINT_JPEG_QUALITY);
+    }, type, quality);
   });
+}
+
+async function optimizeImageToJpeg(image: HTMLImageElement, maxWidth: number, maxHeight: number, quality: number): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  try {
+    const scale = Math.min(1, printScale(image.naturalWidth, image.naturalHeight, maxWidth, maxHeight));
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("não foi possível preparar a imagem para impressão.");
+    paintWhite(canvas);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return await canvasToBlob(canvas, "image/jpeg", quality);
+  } finally {
+    canvas.width = 0;
+    canvas.height = 0;
+  }
 }
 
 async function convertHeicToJpeg(blob: Blob): Promise<Blob> {
   const url = URL.createObjectURL(blob.slice(0, blob.size, "image/heic"));
-  const canvas = document.createElement("canvas");
   try {
     let image: HTMLImageElement;
     try {
@@ -204,22 +244,18 @@ async function convertHeicToJpeg(blob: Blob): Promise<Blob> {
     } catch {
       throw new Error("formato HEIC não suportado neste navegador. Compartilhe ou salve a foto como JPEG ou PNG.");
     }
-    const scale = Math.min(1, printScale(image.naturalWidth, image.naturalHeight));
-    canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("não foi possível preparar a imagem para impressão.");
-    paintWhite(canvas);
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    return await canvasToBlob(canvas, "image/jpeg");
+    return await optimizeImageToJpeg(image, PRINT_WIDTH, PRINT_HEIGHT, STORAGE_JPEG_QUALITY);
   } finally {
     URL.revokeObjectURL(url);
-    canvas.width = 0;
-    canvas.height = 0;
   }
 }
 
-async function validateAttachment(id: string, name: string, blob: Blob): Promise<Attachment> {
+async function validateAttachment(
+  id: string,
+  name: string,
+  blob: Blob,
+  options?: { compressImage?: boolean },
+): Promise<Attachment> {
   if (blob.size > ATTACHMENT_LIMIT_MB * MIB)
     throw new Error("o arquivo excede o limite de 20 MB.");
   const rawType = await detectRawFormat(blob);
@@ -230,7 +266,7 @@ async function validateAttachment(id: string, name: string, blob: Blob): Promise
     const normalizedName = /\.(heic|heif)$/i.test(name) ? name.replace(/\.(heic|heif)$/i, ".jpg") : `${name}.jpg`;
     return { id, name: normalizedName, file: converted, pages: 1 };
   }
-  const file = blob.slice(0, blob.size, rawType);
+  let file = blob.slice(0, blob.size, rawType);
 
   let pages = 1;
   if (rawType === "application/pdf") {
@@ -239,7 +275,16 @@ async function validateAttachment(id: string, name: string, blob: Blob): Promise
   } else {
     const url = URL.createObjectURL(file);
     try {
-      await loadImage(url);
+      const image = await loadImage(url);
+      if (
+        options?.compressImage !== false &&
+        (file.size > STORAGE_OPTIMIZE_BYTES || image.naturalWidth > PRINT_WIDTH || image.naturalHeight > PRINT_HEIGHT)
+      ) {
+        const optimized = await optimizeImageToJpeg(image, PRINT_WIDTH, PRINT_HEIGHT, STORAGE_JPEG_QUALITY);
+        if (optimized.size < file.size * 0.9) {
+          file = optimized;
+        }
+      }
     } catch {
       throw new Error("a imagem está ilegível.");
     } finally {
@@ -250,15 +295,20 @@ async function validateAttachment(id: string, name: string, blob: Blob): Promise
 }
 
 /** Validate each file without writing anything, so links can be reviewed first. */
-export async function prepareAttachmentFiles(files: File[]): Promise<{ accepted: Attachment[]; rejected: string[] }> {
+export async function prepareAttachmentFiles(
+  files: File[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<{ accepted: Attachment[]; rejected: string[] }> {
   const accepted: Attachment[] = [];
   const rejected: string[] = [];
-  for (const file of files) {
+  for (let index = 0; index < files.length; index++) {
+    const file = files[index];
     try {
       accepted.push(await validateAttachment(crypto.randomUUID(), file.name, file));
     } catch (error) {
       rejected.push(describeAttachmentError(file.name, error));
     }
+    onProgress?.(index + 1, files.length);
   }
   return { accepted, rejected };
 }
@@ -339,32 +389,43 @@ export async function encodeAttachments(items: Attachment[], activityIds: Readon
     id: item.id,
     name: item.name,
     activityIds: linkedActivityIds(item, activityIds),
+    ...(item.firstPageOnly && item.file.type === "application/pdf" && item.pages > 1 ? { firstPageOnly: true } : {}),
     base64: await encodeFile(item.file),
   })));
 }
 
-export async function decodeAttachments(values: unknown[], activityIds?: Set<string>): Promise<Attachment[]> {
+export async function decodeAttachments(
+  values: unknown[],
+  activityIds?: Set<string>,
+  onProgress?: (done: number, total: number) => void,
+): Promise<Attachment[]> {
   if (values.length > MONTH_PAGE_LIMIT) throw new Error("A cópia excede o limite de comprovantes.");
   const items: Attachment[] = [];
   const ids = new Set<string>();
-  for (const value of values) {
-    const { id, name, base64, activityIds: links } = (value ?? {}) as Partial<BackupAttachment>;
+  for (let index = 0; index < values.length; index++) {
+    const value = values[index];
+    const { id, name, base64, activityIds: links, firstPageOnly } = (value ?? {}) as Partial<BackupAttachment>;
     if (typeof id !== "string" || !id.trim() || ids.has(id) ||
         typeof name !== "string" || !name.trim() ||
         typeof base64 !== "string" || !base64.length ||
-        base64.length > Math.ceil(ATTACHMENT_LIMIT_MB * MIB / 3) * 4)
+        base64.length > Math.ceil(ATTACHMENT_LIMIT_MB * MIB / 3) * 4 ||
+        (firstPageOnly !== undefined && typeof firstPageOnly !== "boolean"))
       throw new Error("A cópia contém um comprovante inválido ou acima do limite.");
     if (activityIds && (!Array.isArray(links) ||
         new Set(links).size !== links.length || links.some((link) => !activityIds.has(link))))
       throw new Error("A cópia contém vínculos de comprovantes inválidos.");
     try {
       const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
-      const item = await validateAttachment(id, name, new Blob([bytes]));
+      const item = await validateAttachment(id, name, new Blob([bytes]), { compressImage: false });
       if (activityIds) item.activityIds = links;
+      if (firstPageOnly && item.file.type === "application/pdf" && item.pages > 1) {
+        item.firstPageOnly = true;
+      }
       const error = limitError([...items, item], activityIds);
       if (error) throw new Error(error);
       items.push(item);
       ids.add(id);
+      onProgress?.(index + 1, values.length);
     } catch (error) {
       throw new Error(describeAttachmentError(name, error));
     }
@@ -372,10 +433,29 @@ export async function decodeAttachments(values: unknown[], activityIds?: Set<str
   return items;
 }
 
-export async function prepareAttachmentPages(items: Attachment[]) {
+function getPrintProfile(totalPrintPages: number) {
+  if (totalPrintPages <= 25) return { maxWidth: PRINT_WIDTH, maxHeight: PRINT_HEIGHT, quality: PRINT_JPEG_QUALITY };
+  if (totalPrintPages <= 45) return { maxWidth: 1500, maxHeight: 1050, quality: 0.72 };
+  return { maxWidth: 1320, maxHeight: 924, quality: 0.66 };
+}
+
+export async function prepareAttachmentPages(
+  items: Attachment[],
+  options?: {
+    activityIds?: ReadonlySet<string>;
+    onProgress?: (done: number, total: number) => void;
+  },
+) {
   const urls: string[] = [];
   const pagesByAttachment = new Map<string, HTMLImageElement[]>();
   const release = () => urls.splice(0).forEach((url) => URL.revokeObjectURL(url));
+  const totalPrintPages = options?.activityIds
+    ? countAttachmentPages(items, options.activityIds)
+    : items.reduce((sum, item) => sum + effectiveAttachmentPages(item), 0);
+  const totalUniquePages = items.reduce((sum, item) => sum + effectiveAttachmentPages(item), 0);
+  const profile = getPrintProfile(totalPrintPages);
+  let donePages = 0;
+
   const openPage = (blob: Blob) => {
     const url = URL.createObjectURL(blob);
     urls.push(url);
@@ -383,24 +463,16 @@ export async function prepareAttachmentPages(items: Attachment[]) {
   };
   const preparePhoto = async (blob: Blob) => {
     const photo = await openPage(blob);
-    const scale = printScale(photo.naturalWidth, photo.naturalHeight);
-    if (scale >= 1) return photo;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.floor(photo.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.floor(photo.naturalHeight * scale));
+    const scale = printScale(photo.naturalWidth, photo.naturalHeight, profile.maxWidth, profile.maxHeight);
+    if (blob.type === "image/jpeg" && scale >= 1 && blob.size <= 220 * 1024) {
+      return photo;
+    }
     let resized: Blob;
     try {
-      const context = canvas.getContext("2d");
-      if (!context) throw new Error("não foi possível preparar a imagem para impressão.");
-      paintWhite(canvas);
-      context.drawImage(photo, 0, 0, canvas.width, canvas.height);
-      resized = await canvasToBlob(canvas);
+      resized = await optimizeImageToJpeg(photo, profile.maxWidth, profile.maxHeight, profile.quality);
     } finally {
       URL.revokeObjectURL(photo.src);
       photo.removeAttribute("src");
-      canvas.width = 0;
-      canvas.height = 0;
     }
     return openPage(resized);
   };
@@ -410,9 +482,24 @@ export async function prepareAttachmentPages(items: Attachment[]) {
       const images: HTMLImageElement[] = [];
       if (item.file.type === "application/pdf") {
         const { renderPdfPages } = await import("./attachment-pdf");
-        await renderPdfPages(item.file, async (blob) => { images.push(await openPage(blob)); });
+        await renderPdfPages(
+          item.file,
+          async (blob) => {
+            images.push(await openPage(blob));
+            donePages++;
+            options?.onProgress?.(donePages, totalUniquePages);
+          },
+          {
+            firstPageOnly: item.firstPageOnly,
+            maxWidth: profile.maxWidth,
+            maxHeight: profile.maxHeight,
+            quality: profile.quality,
+          },
+        );
       } else {
         images.push(await preparePhoto(item.file));
+        donePages++;
+        options?.onProgress?.(donePages, totalUniquePages);
       }
       pagesByAttachment.set(item.id, images);
     } catch (error) {

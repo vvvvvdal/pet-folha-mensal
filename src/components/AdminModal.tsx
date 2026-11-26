@@ -520,11 +520,15 @@ export function AdminModal({
         {/* Content Area */}
         {accessStatus === "checking" ? (
           <div
-            className="p-6 sm:p-10 flex flex-col items-center justify-center text-center space-y-4"
+            className="p-6 sm:p-10 flex flex-col items-center justify-center text-center space-y-3"
             role="status"
+            aria-live="polite"
+            aria-busy="true"
           >
-            <Lock className="size-7 text-accent animate-pulse" />
-            <p className="text-sm text-body">Verificando sessão do painel...</p>
+            <span className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-raised border border-line text-sm font-medium text-ink">
+              <span className="size-4 rounded-full border-2 border-accent/30 border-t-accent animate-spin" aria-hidden="true" />
+              Verificando sessão do painel…
+            </span>
           </div>
         ) : accessStatus !== "authenticated" ? (
           /* TELA DE BLOQUEIO LOCAL VALIDADO PELO SERVIDOR */

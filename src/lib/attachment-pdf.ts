@@ -32,7 +32,7 @@ async function withPdf<T>(
 
 class AttachmentPageLimitError extends Error {
   constructor() {
-    super("o PDF excede o limite de 30 páginas de comprovantes.");
+    super(`o PDF excede o limite de ${MONTH_PAGE_LIMIT} páginas de comprovantes.`);
   }
 }
 
@@ -70,21 +70,31 @@ export function renderPdfThumbnail(file: Blob): Promise<Blob> {
   });
 }
 
-export function renderPdfPages(file: Blob, addPage: (blob: Blob) => Promise<void>) {
+export function renderPdfPages(
+  file: Blob,
+  addPage: (blob: Blob) => Promise<void>,
+  options?: {
+    firstPageOnly?: boolean;
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+  },
+) {
   return withPdf(file, async (pdf) => {
     const canvas = document.createElement("canvas");
+    const limit = options?.firstPageOnly ? Math.min(1, pdf.numPages) : pdf.numPages;
     try {
-      for (let index = 1; index <= pdf.numPages; index++) {
+      for (let index = 1; index <= limit; index++) {
         const page = await pdf.getPage(index);
         const base = page.getViewport({ scale: 1 });
         const viewport = page.getViewport({
-          scale: printScale(base.width, base.height),
+          scale: printScale(base.width, base.height, options?.maxWidth, options?.maxHeight),
         });
         canvas.width = Math.max(1, Math.ceil(viewport.width));
         canvas.height = Math.max(1, Math.ceil(viewport.height));
         paintWhite(canvas);
         await page.render({ canvas, viewport, intent: "print" }).promise;
-        await addPage(await canvasToBlob(canvas));
+        await addPage(await canvasToBlob(canvas, "image/jpeg", options?.quality));
         page.cleanup();
       }
     } finally {

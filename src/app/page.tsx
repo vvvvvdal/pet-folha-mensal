@@ -33,7 +33,9 @@ import {
   encodeAttachments,
   linkedActivityIds,
   listAttachments,
+  prepareAttachmentFiles,
   prepareAttachmentPages,
+  savePreparedAttachments,
   type Attachment,
 } from "@/lib/attachments";
 import { restoreWithAttachments } from "@/lib/attachment-backup";
@@ -62,6 +64,13 @@ import { ActivityForm } from "@/components/ActivityForm";
 import { ACTIVITY_FORM_URL } from "@/lib/form-report";
 import { ActivityReportModal } from "@/components/ActivityReportModal";
 import { ActivityTable } from "@/components/ActivityTable";
+import { AttachmentReviewModal } from "@/components/AttachmentReviewModal";
+import type { AttachmentSource } from "@/components/AttachmentSourceMenu";
+import {
+  InlineSpinner,
+  OperationProgressModal,
+  WorkspaceSkeleton,
+} from "@/components/LoadingStates";
 import { EditActivityModal } from "@/components/EditActivityModal";
 import { OfficialSheet } from "@/components/OfficialSheet";
 import { MonthlyAttachments } from "@/components/MonthlyAttachments";
@@ -100,6 +109,12 @@ export default function Home() {
     message: string;
   } | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [restoreProgress, setRestoreProgress] = useState<{
+    phase: "reading" | "attachments" | "writing";
+    done?: number;
+    total?: number;
+  } | null>(null);
+  const [printProgress, setPrintProgress] = useState<{ done: number; total: number } | null>(null);
   const importInProgress = useRef(false);
   const [formRevision, setFormRevision] = useState(0);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -128,6 +143,13 @@ export default function Home() {
   const [attachmentState, setAttachmentState] = useState<{ key: string; items: Attachment[] } | null>(null);
   const [attachmentsRevision, setAttachmentsRevision] = useState(0);
   const [attachmentsFocus, setAttachmentsFocus] = useState<string | null>(null);
+  const quickGalleryRef = useRef<HTMLInputElement>(null);
+  const quickFilesRef = useRef<HTMLInputElement>(null);
+  const quickPreselectRef = useRef<string | null>(null);
+  const [quickDrafts, setQuickDrafts] = useState<Attachment[] | null>(null);
+  const [quickTargetId, setQuickTargetId] = useState<string | null>(null);
+  const [quickErrors, setQuickErrors] = useState<string[]>([]);
+  const [quickPrepareProgress, setQuickPrepareProgress] = useState<{ done: number; total: number } | null>(null);
 
   const activeProfileId = activeUser?.id;
   useEffect(() => () => clearPrintAttachments.current?.(), [activeProfileId, monthKey, showBlankTemplate]);
@@ -438,12 +460,18 @@ export default function Home() {
           });
           if (!proceed) return false;
         } else if (attachments.length) {
-          const { pagesByAttachment, release } = await prepareAttachmentPages(attachments);
+          const printActivityIds = new Set(activities.map(({ id }) => id));
+          setPrintProgress({ done: 0, total: attachments.length });
+          const { pagesByAttachment, release } = await prepareAttachmentPages(attachments, {
+            activityIds: printActivityIds,
+            onProgress: (done, total) => setPrintProgress({ done, total }),
+          });
           const pages = await buildAttachmentPrintPages(attachments, activities, pagesByAttachment)
             .catch((error: unknown) => {
               release();
               throw error;
             });
+          setPrintProgress(null);
           if (!stillCurrent()) {
             release();
             return false;
@@ -474,6 +502,7 @@ export default function Home() {
     } finally {
       printInProgress.current = false;
       setPreparingPrint(false);
+      setPrintProgress(null);
     }
   };
 
@@ -579,6 +608,7 @@ export default function Home() {
       return;
     }
     setRestoring(true);
+    setRestoreProgress({ phase: "reading" });
     setRestoreIssue(null);
     try {
       const content = await file.text();
@@ -589,11 +619,18 @@ export default function Home() {
       }
       let attachments;
       try {
-        if (preview.attachmentData)
+        if (preview.attachmentData) {
+          setRestoreProgress({
+            phase: "attachments",
+            done: 0,
+            total: preview.attachmentData.length,
+          });
           attachments = await decodeAttachments(
             preview.attachmentData,
             preview.hasAttachmentLinks ? new Set(preview.activities?.map(({ id }) => id)) : undefined,
+            (done, total) => setRestoreProgress({ phase: "attachments", done, total }),
           );
+        }
       } catch (error) {
         setRestoreIssue({
           code: "INVALID_BACKUP",
@@ -601,6 +638,7 @@ export default function Home() {
         });
         return;
       }
+      setRestoreProgress(null);
       const existing = profiles.find(
         (profile) => profile.id === preview.user!.id,
       );
@@ -615,6 +653,7 @@ export default function Home() {
         variant: "warning",
       });
       if (!accepted) return;
+      setRestoreProgress({ phase: "writing" });
       const result = await restoreWithAttachments(preview, preview.user!.id, preview.monthKey!, attachments);
       if (!result.success) {
         setRestoreIssue({ code: result.code, message: result.error! });
@@ -636,6 +675,7 @@ export default function Home() {
           "Não foi possível ler ou abrir a cópia. Verifique o arquivo e as permissões deste navegador e tente novamente.",
       });
     } finally {
+      setRestoreProgress(null);
       setRestoring(false);
       importInProgress.current = false;
     }
@@ -648,10 +688,52 @@ export default function Home() {
           <p>{storageError}</p>
         </div>
       )}
-      {restoring && (
-        <p className="operation-notice" role="status">
-          Lendo e conferindo a cópia…
-        </p>
+      {restoreProgress && (
+        <OperationProgressModal
+          title="Restaurando cópia de segurança"
+          done={restoreProgress.done}
+          total={restoreProgress.total}
+          steps={[
+            {
+              label: "Lendo e validando estrutura do arquivo JSON",
+              state: restoreProgress.phase === "reading" ? "active" : "done",
+            },
+            {
+              label: "Conferindo comprovantes da cópia",
+              state:
+                restoreProgress.phase === "reading"
+                  ? "pending"
+                  : restoreProgress.phase === "attachments"
+                    ? "active"
+                    : "done",
+            },
+            {
+              label: "Gravando registros neste navegador",
+              state: restoreProgress.phase === "writing" ? "active" : "pending",
+            },
+          ]}
+        />
+      )}
+      {printProgress && (
+        <OperationProgressModal
+          title="Preparando PDF para impressão"
+          done={printProgress.done}
+          total={printProgress.total}
+          steps={[
+            { label: "Montando folha oficial A4 horizontal", state: "done" },
+            { label: "Otimizando páginas de comprovantes em JPEG", state: "active" },
+          ]}
+        />
+      )}
+      {quickPrepareProgress && (
+        <OperationProgressModal
+          title="Preparando comprovantes"
+          done={quickPrepareProgress.done}
+          total={quickPrepareProgress.total}
+          steps={[
+            { label: "Validando formato e otimizando tamanho", state: "active" },
+          ]}
+        />
       )}
       {restoreIssue && (
         <div className="operation-notice" role="alert">
@@ -676,12 +758,7 @@ export default function Home() {
     </>
   );
 
-  if (!ready)
-    return (
-      <main className="loading-sheet" aria-busy="true">
-        Abrindo sua folha…
-      </main>
-    );
+  if (!ready) return <WorkspaceSkeleton />;
 
   // Se não houver participante ativo, exibir Landing Page informativa e privada
   if (!activeUser) {
@@ -731,6 +808,9 @@ export default function Home() {
   const monthLabel = getMonthYearLabel(monthKey);
   const activityIdSet = new Set(activities.map(({ id }) => id));
   const attachmentItems = attachmentState?.key === `${activeUser.id}:${monthKey}` ? attachmentState.items : undefined;
+  const provenActivityIds = new Set(
+    attachmentItems?.flatMap((item) => linkedActivityIds(item, activityIdSet)) ?? [],
+  );
   const proofCounts = attachmentItems?.reduce<Record<string, number>>((counts, item) => {
     for (const id of linkedActivityIds(item, activityIdSet)) counts[id] = (counts[id] ?? 0) + 1;
     return counts;
@@ -738,12 +818,96 @@ export default function Home() {
   const proofPages = attachmentItems ? countAttachmentPages(attachmentItems, activityIdSet) : 0;
   const formsPending = activities.filter((activity) => formReportStatus(activeUser, activity) !== "Enviado").length;
   const deadline = getSubmissionDeadline(monthKey);
+  const quickBusy = attachmentsBusy || preparingPrint || restoring;
+
+  const chooseQuickAttach = (activityId: string | null, source: AttachmentSource) => {
+    if (quickBusy) return;
+    quickPreselectRef.current = activityId;
+    if (source === "gallery") quickGalleryRef.current?.click();
+    else quickFilesRef.current?.click();
+  };
+
+  const handleQuickInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    const activityId = quickPreselectRef.current;
+    quickPreselectRef.current = null;
+    if (!files.length || quickBusy) return;
+    setAttachmentsBusy(true);
+    setQuickPrepareProgress({ done: 0, total: files.length });
+    try {
+      const result = await prepareAttachmentFiles(files, (done, total) => {
+        setQuickPrepareProgress({ done, total });
+      });
+      const effectiveTarget = activityId ?? quickTargetId;
+      const accepted = effectiveTarget
+        ? result.accepted.map((item) => ({ ...item, activityIds: [effectiveTarget] }))
+        : result.accepted;
+      if (activityId !== null && quickDrafts === null) {
+        setQuickTargetId(activityId);
+      } else if (quickDrafts === null) {
+        setQuickTargetId(null);
+      }
+      setQuickDrafts((current) => [...(current ?? []), ...accepted]);
+      setQuickErrors(result.rejected);
+    } catch {
+      setStorageError("Não foi possível preparar os arquivos. Tente novamente.");
+    } finally {
+      setQuickPrepareProgress(null);
+      setAttachmentsBusy(false);
+    }
+  };
+
+  const closeQuickReview = async () => {
+    if (attachmentsBusy) return;
+    if (
+      quickDrafts?.length &&
+      !(await confirm({
+        title: "Descartar arquivos selecionados?",
+        message:
+          "Os arquivos desta seleção ainda não foram salvos. Os comprovantes já salvos serão mantidos.",
+        confirmText: "Descartar seleção",
+        cancelText: "Continuar conferindo",
+        variant: "warning",
+      }))
+    )
+      return;
+    setQuickDrafts(null);
+    setQuickTargetId(null);
+    setQuickErrors([]);
+  };
+
+  const saveQuickDrafts = async () => {
+    if (!quickDrafts?.length || attachmentsBusy) return;
+    const batch = quickDrafts;
+    setAttachmentsBusy(true);
+    setQuickErrors([]);
+    try {
+      const next = await savePreparedAttachments({ profileId: activeUser.id, monthKey }, batch);
+      setAttachmentState({ key: `${activeUser.id}:${monthKey}`, items: next });
+      setQuickDrafts(null);
+      setQuickTargetId(null);
+      setHasChanges(true);
+      setUndoActivity(null);
+      setAttachmentsRevision((revision) => revision + 1);
+      showToast("Comprovantes salvos.");
+    } catch (error) {
+      setQuickErrors([
+        error instanceof Error
+          ? error.message
+          : "Não foi possível salvar. Confira os arquivos e tente novamente.",
+      ]);
+    } finally {
+      setAttachmentsBusy(false);
+    }
+  };
   const changeTab = async (tab: WorkspaceTab) => {
     if (tab === activeTab || (await confirmDraft())) {
       setDraftDirty(false);
       setUndoActivity(null);
       setAttachmentsFocus(null);
       setActiveTab(tab);
+      if (tab !== activeTab) window.scrollTo({ top: 0, behavior: "instant" });
     }
   };
   const openProofs = async (activity: Activity) => {
@@ -752,6 +916,7 @@ export default function Home() {
     setUndoActivity(null);
     setAttachmentsFocus(activity.id);
     setActiveTab("attachments");
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
   const reportActivity = reportingActivity?.profileId === activeUser.id &&
     reportingActivity.monthKey === monthKey
@@ -866,6 +1031,8 @@ export default function Home() {
                   view={summaryView}
                   proofCounts={proofCounts}
                   onOpenProofs={(activity) => void openProofs(activity)}
+                  onQuickAttach={(activity, source) => chooseQuickAttach(activity.id, source)}
+                  attachDisabled={quickBusy || attachmentItems === undefined}
                   onLoadSamples={handleLoadSamples}
                   onClearMonth={handleClearMonth}
                 />
@@ -989,7 +1156,7 @@ export default function Home() {
                       aria-busy={preparingPrint}
                       className={showBlankTemplate ? "secondary-button" : "primary-button"}
                     >
-                      <Printer size={18} aria-hidden="true" />
+                      {preparingPrint ? <InlineSpinner size={18} /> : <Printer size={18} aria-hidden="true" />}
                       {preparingPrint ? "Preparando PDF…" : showBlankTemplate ? "Imprimir modelo" : "Imprimir ou salvar PDF"}
                     </button>
                     <p>Para gerar o arquivo, escolha “Salvar como PDF” no destino da impressão.</p>
@@ -1026,6 +1193,49 @@ export default function Home() {
                   onChange={() => { setHasChanges(true); setUndoActivity(null); setAttachmentsRevision((revision) => revision + 1); }}
                 />
               )}
+          {activeTab !== "attachments" && (
+            <>
+              <input
+                ref={quickGalleryRef}
+                className="sr-only"
+                type="file"
+                multiple
+                aria-label="Adicionar fotos da galeria"
+                accept="image/*"
+                disabled={quickBusy}
+                onChange={(event) => void handleQuickInputChange(event)}
+              />
+              <input
+                ref={quickFilesRef}
+                className="sr-only"
+                type="file"
+                multiple
+                aria-label="Adicionar comprovantes"
+                accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+                disabled={quickBusy}
+                onChange={(event) => void handleQuickInputChange(event)}
+              />
+            </>
+          )}
+          {quickDrafts !== null && activeTab !== "attachments" && (
+            <AttachmentReviewModal
+              drafts={quickDrafts}
+              activities={activities}
+              savedPages={proofPages}
+              provenIds={provenActivityIds}
+              targetActivityId={quickTargetId}
+              busy={attachmentsBusy}
+              reviewErrors={quickErrors}
+              onClose={() => {
+                void closeQuickReview();
+              }}
+              onSave={() => {
+                void saveQuickDrafts();
+              }}
+              onAddMore={(source) => chooseQuickAttach(quickTargetId, source)}
+              onUpdateDrafts={(updater) => setQuickDrafts((current) => updater(current ?? []))}
+            />
+          )}
           {reportActivity && (
             <ActivityReportModal
               key={JSON.stringify([activeUser.id, monthKey, reportActivity.id])}

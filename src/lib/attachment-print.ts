@@ -41,6 +41,10 @@ export async function buildAttachmentPrintPages(
         const pageNumber = document.createElement("span");
         pageNumber.textContent = `· Página ${index + 1} de ${prepared.length}`;
         file.append(pageNumber);
+      } else if (item.file.type === "application/pdf" && item.firstPageOnly && item.pages > 1) {
+        const pageNumber = document.createElement("span");
+        pageNumber.textContent = `· Página 1 de ${item.pages} (1ª página)`;
+        file.append(pageNumber);
       }
       header.append(file);
       const copy = image.cloneNode() as HTMLImageElement;

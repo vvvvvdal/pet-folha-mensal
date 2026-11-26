@@ -77,8 +77,8 @@ mantém confirmação de saída quando existem alterações sem cópia acionada.
 A aba **Comprovantes** reúne os arquivos opcionais do perfil e mês selecionados.
 Escolha os arquivos, confira as prévias e selecione as atividades de cada um antes
 de **Salvar comprovantes**. Use **Alterar atividades** nos arquivos já salvos. O mesmo arquivo pode aparecer em várias atividades. O navegador guarda
-um original, com limites de 20 MB por arquivo, 40 MB por mês e 30 páginas de
-comprovantes no PDF, contando cada repetição.
+os arquivos com limites de 20 MB por arquivo, 80 MB por mês e 60 páginas de
+comprovantes no PDF, contando cada repetição (com opção de usar apenas a 1ª página em PDFs longos). Imagens grandes são otimizadas ao anexar e páginas impressas usam JPEG adaptativo para manter o PDF e a cópia leves.
 
 O PDF acrescenta os comprovantes em A4 paisagem após as assinaturas, na ordem
 das atividades e dos arquivos enviados. Os sem vínculo aparecem no final.

@@ -51,9 +51,9 @@ Use transições discretas de foco, hover e abertura onde os componentes já as 
 
 ## Comprovantes e cópia
 
-A aba **Comprovantes** oferece no cabeçalho **Fotos da galeria** (seletor exclusivo de imagens para abrir direto a galeria no celular e tablet) e **PDF ou arquivos** (seletor geral de documentos e imagens), além de mostrar uma miniatura ao lado de cada arquivo salvo. Fotos mantêm
-as proporções. PDFs mostram a primeira página e o total de páginas. A miniatura
-abre o arquivo original em outra aba. As atividades vinculadas aparecem como cartões com data abreviada e permitem filtrar os comprovantes daquela atividade (também acessível pelo botão de comprovante em cada linha de **Frequência**). Arquivos sem vínculo exibem aviso explícito, e atividades ainda sem comprovante ficam reunidas em lista expansível com atalho **Anexar** (que abre um menu curto entre **Fotos da galeria** e **PDF ou arquivos**, padrão repetido no filtro por atividade e na revisão). **Alterar atividades** (ou **Escolher atividades**) é a ação secundária. Remover usa ícone com nome
+A aba **Comprovantes** oferece no cabeçalho **Fotos da galeria** (seletor exclusivo de imagens para abrir direto a galeria no celular e tablet) e **PDF ou arquivos** (seletor geral de documentos e imagens), além de posicionar **Atividades sem comprovante** logo no topo antes da lista de arquivos salvos. Na aba **Frequência**, o botão **Anexar** de cada atividade sem anexo permite enviar o comprovante diretamente sem trocar de aba, exibindo a atividade selecionada no topo da revisão e recolhendo as demais. Em envios gerais, as atividades sem comprovante aparecem primeiro. PDFs com múltiplas páginas oferecem a opção **Incluir só a 1ª página no PDF final**. Fotos mantêm
+as proporções, imagens grandes são otimizadas ao anexar quando reduzirem o peso da cópia e todas as páginas saem em JPEG adaptativo na impressão. A miniatura
+abre o arquivo original em outra aba. **Alterar atividades** (ou **Escolher atividades**) é a ação secundária. Remover usa ícone com nome
 acessível e confirmação.
 
 A inclusão segue **escolher arquivos → conferir prévias e atividades → salvar**.

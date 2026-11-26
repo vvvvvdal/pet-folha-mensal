@@ -14,6 +14,7 @@ import {
 import { Pencil, Trash2, ExternalLink, Paperclip } from "lucide-react";
 import { formReportStatus } from "@/lib/form-report";
 import { ConfirmModal } from "./ConfirmModal";
+import { AttachmentSourceMenu, type AttachmentSource } from "./AttachmentSourceMenu";
 import type { SummaryView } from "./StatsGrid";
 import "./frequency-redesign.css";
 
@@ -35,19 +36,61 @@ interface ActivityTableProps {
   /** Number of proofs linked to each activity; undefined while it is unknown. */
   proofCounts?: Record<string, number>;
   onOpenProofs?: (activity: Activity) => void;
+  onQuickAttach?: (activity: Activity, source: AttachmentSource) => void;
+  attachDisabled?: boolean;
 }
 
-function ProofChip({ activity, count, onOpen }: { activity: Activity; count: number; onOpen?: (activity: Activity) => void }) {
+function ProofChip({
+  activity,
+  count,
+  onOpen,
+  onQuickAttach,
+  disabled,
+}: {
+  activity: Activity;
+  count: number;
+  onOpen?: (activity: Activity) => void;
+  onQuickAttach?: (activity: Activity, source: AttachmentSource) => void;
+  disabled?: boolean;
+}) {
   const title = cleanActivityDescription(activity.description);
-  return count > 0 ? (
-    <button type="button" className="proof-chip" data-has="true" onClick={() => onOpen?.(activity)}
-      aria-label={`${count} ${count === 1 ? "comprovante" : "comprovantes"} de ${title}. Ver em Comprovantes`}>
-      <Paperclip size={16} aria-hidden="true" />{count}
-    </button>
-  ) : (
-    <button type="button" className="proof-chip" data-has="false" onClick={() => onOpen?.(activity)}
-      aria-label={`Anexar comprovante a ${title}`}>
-      <Paperclip size={16} aria-hidden="true" />Anexar
+  if (count > 0) {
+    return (
+      <button
+        type="button"
+        className="proof-chip"
+        data-has="true"
+        onClick={() => onOpen?.(activity)}
+        aria-label={`${count} ${count === 1 ? "comprovante" : "comprovantes"} de ${title}. Ver em Comprovantes`}
+      >
+        <Paperclip size={16} aria-hidden="true" />
+        {count}
+      </button>
+    );
+  }
+  if (onQuickAttach) {
+    return (
+      <AttachmentSourceMenu
+        label="Anexar"
+        ariaLabel={`Anexar comprovante a ${title}`}
+        triggerClassName="proof-chip"
+        dataHas="false"
+        leadingIcon={<Paperclip size={16} aria-hidden="true" />}
+        disabled={Boolean(disabled)}
+        onChoose={(source) => onQuickAttach(activity, source)}
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="proof-chip"
+      data-has="false"
+      onClick={() => onOpen?.(activity)}
+      aria-label={`Anexar comprovante a ${title}`}
+    >
+      <Paperclip size={16} aria-hidden="true" />
+      Anexar
     </button>
   );
 }
@@ -67,6 +110,8 @@ export function ActivityTable({
   onPrepareForm,
   proofCounts,
   onOpenProofs,
+  onQuickAttach,
+  attachDisabled,
 }: ActivityTableProps) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
@@ -201,7 +246,7 @@ export function ActivityTable({
                     <h3>{cleanActivityDescription(activity.description)}</h3>
                     <p>{activity.start} às {activity.end} · {activity.modality}</p>
                     <div className="record-actions">
-                      {showProofs && <ProofChip activity={activity} count={proofCounts[activity.id] ?? 0} onOpen={onOpenProofs} />}
+                      {showProofs && <ProofChip activity={activity} count={proofCounts[activity.id] ?? 0} onOpen={onOpenProofs} onQuickAttach={onQuickAttach} disabled={attachDisabled} />}
                       {formsCell(activity)}
                       {editButtons(activity)}
                     </div>
@@ -245,7 +290,7 @@ export function ActivityTable({
                       </td>
                       <td className="record-hours">{activity.hours}h</td>
                       {showProofs && (
-                        <td><ProofChip activity={activity} count={proofCounts[activity.id] ?? 0} onOpen={onOpenProofs} /></td>
+                        <td><ProofChip activity={activity} count={proofCounts[activity.id] ?? 0} onOpen={onOpenProofs} onQuickAttach={onQuickAttach} disabled={attachDisabled} /></td>
                       )}
                       <td>{formsCell(activity)}</td>
                       <td>{editButtons(activity)}</td>

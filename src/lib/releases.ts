@@ -1,6 +1,16 @@
 // Dates are publication dates in São Paulo, not the build or the visitor's date.
 export const RELEASES = [
   {
+    date: "2026-11-25",
+    title: "Anexo direto na atividade, 60 páginas e novos indicadores de progresso",
+    changes: [
+      "Na aba Frequência, o botão Anexar de cada atividade permite escolher fotos ou PDFs e salvar o comprovante sem sair da lista.",
+      "A conferência de comprovantes agora destaca a atividade escolhida no topo (ou prioriza as sem comprovante) e traz as pendências para o topo da aba Comprovantes.",
+      "O limite subiu para 60 páginas de comprovantes por mês, com opção de incluir apenas a 1ª página em PDFs longos e compressão automática de imagens para manter o PDF e a cópia leves.",
+      "Restauração de cópia, preparo de arquivos e impressão exibem progresso por etapa em tempo real.",
+    ],
+  },
+  {
     date: "2026-11-24",
     title: "Fotos direto da galeria nos comprovantes",
     changes: [

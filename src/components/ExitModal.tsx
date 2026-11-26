@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download, FileText, X, ArrowRight } from "lucide-react";
 import { Modal } from "./Modal";
+import { InlineSpinner } from "./LoadingStates";
 
 interface ExitModalProps {
   isOpen: boolean;
@@ -31,10 +32,11 @@ function Conclusion({
   const [jsonTriggered, setJsonTriggered] = useState(false);
   const [pdfTriggered, setPdfTriggered] = useState(false);
   const [exitWarning, setExitWarning] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busyKind, setBusyKind] = useState<"json" | "pdf" | null>(null);
+  const busy = busyKind !== null;
   async function download(kind: "json" | "pdf") {
     if (busy) return;
-    setBusy(true);
+    setBusyKind(kind);
     try {
       const result = await (kind === "json"
         ? onDownloadJson()
@@ -44,7 +46,7 @@ function Conclusion({
         else setPdfTriggered(true);
       }
     } finally {
-      setBusy(false);
+      setBusyKind(null);
     }
   }
   function leave() {
@@ -74,7 +76,10 @@ function Conclusion({
             <h3>Cópia de segurança</h3>
             {jsonTriggered && <p role="status">Confira se a cópia foi salva na pasta escolhida.</p>}
           </div>
-          <button className="secondary-button" disabled={busy} onClick={() => void download("json")}>{jsonTriggered ? "Salvar outra cópia" : "Salvar cópia"}</button>
+          <button className="secondary-button" disabled={busy} aria-busy={busyKind === "json"} onClick={() => void download("json")}>
+            {busyKind === "json" && <InlineSpinner size={16} />}
+            {busyKind === "json" ? "Preparando cópia…" : jsonTriggered ? "Salvar outra cópia" : "Salvar cópia"}
+          </button>
         </div>
         <div className="conclusion-option">
           <FileText size={24} aria-hidden="true" />
@@ -83,7 +88,10 @@ function Conclusion({
             <p>Quando precisar, salve o PDF em A4 na horizontal para assinar.</p>
             {pdfTriggered && <p role="status">Impressão aberta. Salve o PDF ou imprima na janela do navegador.</p>}
           </div>
-          <button className="secondary-button" disabled={busy} onClick={() => void download("pdf")}>Imprimir ou salvar PDF</button>
+          <button className="secondary-button" disabled={busy} aria-busy={busyKind === "pdf"} onClick={() => void download("pdf")}>
+            {busyKind === "pdf" && <InlineSpinner size={16} />}
+            {busyKind === "pdf" ? "Preparando PDF…" : "Imprimir ou salvar PDF"}
+          </button>
         </div>
         {exitWarning && (
           <div className="operation-notice" role="alert">

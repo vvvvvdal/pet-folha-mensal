@@ -1,0 +1,296 @@
+@keyframes pet-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pet-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.48;
+  }
+}
+
+.pet-spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  animation: pet-spin 780ms linear infinite;
+}
+
+.pet-skeleton-bar,
+.pet-skeleton-box {
+  background: var(--surface-raised);
+  border-radius: 8px;
+  animation: pet-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.pet-skeleton-box {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+/* Initial workspace skeleton */
+.workspace-skeleton-shell {
+  min-height: 100dvh;
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--background);
+}
+
+.workspace-skeleton-sidebar {
+  display: none;
+}
+
+.workspace-skeleton-main {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+  box-sizing: border-box;
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+
+.workspace-skeleton-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.workspace-skeleton-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+.workspace-skeleton-tile {
+  display: grid;
+  gap: 10px;
+}
+
+.workspace-skeleton-card {
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 900px) {
+  .workspace-skeleton-shell {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+  .workspace-skeleton-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 32px 20px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+  }
+  .workspace-skeleton-main {
+    padding: 40px 36px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .workspace-skeleton-shell {
+    grid-template-columns: 304px minmax(0, 1fr);
+  }
+}
+
+/* Attachments list skeleton */
+.attachments-skeleton-list {
+  display: grid;
+  gap: 0;
+}
+
+.attachments-skeleton-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+  align-items: start;
+}
+
+.attachments-skeleton-thumb {
+  width: 112px;
+  height: 132px;
+}
+
+.attachments-skeleton-lines {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+@media (max-width: 767px) {
+  .attachments-skeleton-row {
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .attachments-skeleton-thumb {
+    width: 88px;
+    height: 108px;
+  }
+}
+
+/* Step-based operation progress overlay & inline card (BoardUI / agentes.chat anatomy) */
+.operation-progress-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 42%);
+}
+
+.operation-progress-card {
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  padding: 22px 24px;
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 16px 44px rgb(0 0 0 / 24%);
+  display: grid;
+  gap: 16px;
+}
+
+html[data-theme="dark"] .operation-progress-card {
+  box-shadow: 0 16px 44px rgb(0 0 0 / 52%);
+}
+
+.operation-progress-inline {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 12px 0;
+  padding: 16px 18px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.operation-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.operation-progress-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.operation-progress-title svg {
+  color: var(--accent);
+}
+
+.operation-progress-count {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.operation-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  overflow: hidden;
+}
+
+.operation-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 200ms ease-out;
+}
+
+.operation-progress-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.operation-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.operation-progress-step[data-state="active"] {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.operation-progress-step[data-state="done"] {
+  color: var(--body);
+}
+
+.operation-step-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border);
+  color: var(--accent);
+}
+
+.operation-progress-step[data-state="done"] .operation-step-dot {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.operation-progress-step[data-state="active"] .operation-step-dot {
+  border-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-spinner,
+  .pet-skeleton-bar,
+  .pet-skeleton-box {
+    animation: none;
+  }
+  .operation-progress-fill {
+    transition: none;
+  }
+}
+
+@media print {
+  .operation-progress-backdrop,
+  .operation-progress-inline {
+    display: none !important;
+  }
+}
