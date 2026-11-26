@@ -98,6 +98,8 @@ export interface UserProfile {
   role: UserRole;
   gatNumber: string;
   gatName?: string;
+  /** Google account (`sub`) linked to this profile; its Drive keeps the monthly copies. */
+  googleSub?: string;
   createdAt: string;
 }
 

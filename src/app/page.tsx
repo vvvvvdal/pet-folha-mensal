@@ -18,7 +18,6 @@ import {
   getActivitiesForMonth,
   saveActivitiesForMonth,
   loadSampleActivitiesForUser,
-  exportUserData,
   inspectUserData,
   getRestoreDiagnostic,
   type RestoreCode,
@@ -30,7 +29,6 @@ import {
 import {
   countAttachmentPages,
   decodeAttachments,
-  encodeAttachments,
   linkedActivityIds,
   listAttachments,
   prepareAttachmentFiles,
@@ -90,6 +88,15 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useDialog } from "@/context/DialogContext";
+import { GoogleLanding } from "@/components/GoogleLanding";
+import { FirstEntry } from "@/components/FirstEntry";
+import { SyncStatus } from "@/components/SyncStatus";
+import { SyncConflictModal } from "@/components/SyncConflictModal";
+import { fetchGoogleSession, logoutGoogle, type GoogleSession } from "@/lib/google-session";
+import { driveFolderUrl, forgetAccountState, markMonthDirty } from "@/lib/drive-sync";
+import { useDriveSync } from "@/lib/use-drive-sync";
+import { createMonthBackup, removeMonthAttachments } from "@/lib/month-backup";
+import { removeProfileFromDevice } from "@/lib/storage";
 
 export default function Home() {
   const { alert, confirm } = useDialog();
@@ -151,6 +158,48 @@ export default function Home() {
   const [quickErrors, setQuickErrors] = useState<string[]>([]);
   const [quickPrepareProgress, setQuickPrepareProgress] = useState<{ done: number; total: number } | null>(null);
 
+  // Google login and Drive copy. Without server credentials the app keeps the local-only mode.
+  const [google, setGoogle] = useState<GoogleSession | null>(null);
+  const [loginError, setLoginError] = useState(false);
+  useEffect(() => {
+    let current = true;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("login") === "erro") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- The OAuth callback reports failures through the URL once.
+      setLoginError(true);
+      params.delete("login");
+      window.history.replaceState(null, "", `${window.location.pathname}${params.size ? `?${params}` : ""}`);
+    }
+    fetchGoogleSession().then((session) => { if (current) setGoogle(session); });
+    return () => { current = false; };
+  }, []);
+  const cloudMode = google?.configured === true;
+  const syncSub = !cloudMode
+    ? undefined
+    : google.authenticated
+      ? google.sub
+      : google.unreachable
+        ? activeUser?.googleSub
+        : undefined;
+  const syncUser = activeUser && syncSub && activeUser.googleSub === syncSub ? activeUser : null;
+  const sync = useDriveSync({
+    enabled: Boolean(syncUser),
+    sub: syncSub,
+    email: google?.email,
+    user: syncUser,
+    onRemoteApplied: (months) => {
+      const stored = getStoredProfiles();
+      setProfiles(stored);
+      const fresh = stored.find((profile) => profile.id === activeUser?.id);
+      if (fresh) setActiveUser(fresh);
+      if (fresh && months.includes(monthKey)) {
+        setActivities(sortActivitiesChronologically(getActivitiesForMonth(fresh.id, monthKey)));
+        setAttachmentsRevision((revision) => revision + 1);
+        if (!draftDirty) setFormRevision((revision) => revision + 1);
+      }
+      showToast("Folha atualizada com o Google Drive.");
+    },
+  });
   const activeProfileId = activeUser?.id;
   useEffect(() => () => clearPrintAttachments.current?.(), [activeProfileId, monthKey, showBlankTemplate]);
   // Proof counts for the activity list and the print review; the Comprovantes tab keeps its own copy.
@@ -234,6 +283,16 @@ export default function Home() {
     }
   };
 
+  // Open the profile linked to the signed-in Google account.
+  useEffect(() => {
+    if (!ready || !cloudMode || !google?.authenticated || activeUser?.googleSub === google.sub) return;
+    const linked = profiles.find((profile) => profile.googleSub === google.sub);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- The linked profile opens after the session check; another account's profile must not stay open.
+    if (linked) handleSelectProfile(linked);
+    else if (activeUser) setActiveUser(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleSelectProfile only reads the current month.
+  }, [ready, cloudMode, google, profiles, activeUser]);
+
   const confirmDraft = async () => {
     if (!draftDirty) return true;
     const discard = await confirm({
@@ -276,6 +335,7 @@ export default function Home() {
       saveActivitiesForMonth(activeUser.id, monthKey, sorted);
       setActivities(sorted);
       setHasChanges(true);
+      sync.schedule(monthKey);
       setStorageError("");
       showToast(message);
       return true;
@@ -296,6 +356,7 @@ export default function Home() {
       setProfiles(updatedProfiles);
       setActiveUser(updated);
       setHasChanges(true);
+      sync.schedule(monthKey);
       showToast("Identificação atualizada.");
       return true;
     } catch {
@@ -519,10 +580,7 @@ export default function Home() {
     if (!activeUser || attachmentsBusy || importInProgress.current) return false;
     let jsonString: string;
     try {
-      const items = await listAttachments({ profileId: activeUser.id, monthKey });
-      const snapshot = getActivitiesForMonth(activeUser.id, monthKey);
-      const activityIds = new Set(snapshot.map(({ id }) => id));
-      jsonString = exportUserData(activeUser, monthKey, await encodeAttachments(items, activityIds), snapshot);
+      jsonString = await createMonthBackup(activeUser, monthKey);
     } catch {
       setStorageError(
         "Não foi possível ler os registros para criar a cópia. Verifique o armazenamento e tente novamente.",
@@ -617,6 +675,8 @@ export default function Home() {
         setRestoreIssue({ code: preview.code, message: preview.error! });
         return;
       }
+      // Signed in with Google: the copy becomes a month of the linked profile.
+      if (syncUser) preview.user = syncUser;
       let attachments;
       try {
         if (preview.attachmentData) {
@@ -667,6 +727,7 @@ export default function Home() {
       setDraftDirty(false);
       setHasChanges(false);
       setStorageError("");
+      sync.schedule(result.monthKey!);
       showToast("Cópia restaurada. Confira o mês e os registros.");
     } catch {
       setRestoreIssue({
@@ -758,7 +819,41 @@ export default function Home() {
     </>
   );
 
-  if (!ready) return <WorkspaceSkeleton />;
+  if (!ready || google === null) return <WorkspaceSkeleton />;
+
+  // Login com Google obrigatório quando o servidor tem as credenciais.
+  if (cloudMode && !syncUser) {
+    // The linked profile is being opened by the effect above.
+    if (google.authenticated && profiles.some((profile) => profile.googleSub === google.sub)) return <WorkspaceSkeleton />;
+    const signOut = async () => {
+      await logoutGoogle();
+      setGoogle({ configured: true, authenticated: false });
+    };
+    return (
+      <>
+        {notices}
+        {google.authenticated && google.sub ? (
+          <FirstEntry
+            session={{ ...google, sub: google.sub }}
+            localProfiles={getProfilesForAccess(profiles).filter((profile) => !profile.googleSub)}
+            gats={gats}
+            roles={roles}
+            onSignOut={() => void signOut()}
+            onDone={(user, pushMonths) => {
+              for (const month of pushMonths) markMonthDirty(google.sub!, month);
+              setProfiles(getStoredProfiles());
+              handleSelectProfile(user);
+              showToast(pushMonths.length ? "Folha vinculada. Enviando para o seu Drive…" : "Folha aberta.");
+            }}
+          />
+        ) : (
+          <GoogleLanding loginError={loginError || google.unreachable} onOpenFeedback={() => setIsFeedbackModalOpen(true)} />
+        )}
+        <FeedbackModal isOpen={isFeedbackModalOpen} onClose={() => setIsFeedbackModalOpen(false)} />
+        {toastMessage && <Toast key={toastRevision} message={toastMessage} onClose={() => setToastMessage(null)} />}
+      </>
+    );
+  }
 
   // Se não houver participante ativo, exibir Landing Page informativa e privada
   if (!activeUser) {
@@ -890,6 +985,7 @@ export default function Home() {
       setHasChanges(true);
       setUndoActivity(null);
       setAttachmentsRevision((revision) => revision + 1);
+      sync.schedule(monthKey);
       showToast("Comprovantes salvos.");
     } catch (error) {
       setQuickErrors([
@@ -946,6 +1042,7 @@ export default function Home() {
           onOpenExitModal={openConclusion}
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
           onOpenHelp={() => setIsHelpOpen(true)}
+          cloud={syncUser && syncSub ? { status: <SyncStatus sync={sync} />, folderUrl: driveFolderUrl(syncSub) } : undefined}
         />
 
         <main id="conteudo" className="workspace-main" data-tab={activeTab}>
@@ -981,7 +1078,7 @@ export default function Home() {
           </div>
 
           {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} formsPending={formsPending} view={summaryView} onViewChange={setSummaryView} />}
-          {activeTab === "account" && <AccountScreen user={activeUser} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} />}
+          {activeTab === "account" && <AccountScreen user={activeUser} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} />}
           {sheetsOpen && (
             <SavedSheets
               profileId={activeUser.id}
@@ -1190,7 +1287,7 @@ export default function Home() {
                   focusActivityId={attachmentsFocus}
                   onFocusChange={setAttachmentsFocus}
                   onBusyChange={setAttachmentsBusy}
-                  onChange={() => { setHasChanges(true); setUndoActivity(null); setAttachmentsRevision((revision) => revision + 1); }}
+                  onChange={() => { setHasChanges(true); setUndoActivity(null); setAttachmentsRevision((revision) => revision + 1); sync.schedule(monthKey); }}
                 />
               )}
           {activeTab !== "attachments" && (
@@ -1311,7 +1408,42 @@ export default function Home() {
             onDownloadPdf={printParticipantSheet}
             userName={activeUser.name}
             hasChanges={hasChanges}
+            cloud={syncUser && syncSub ? {
+              email: google?.email ?? activeUser.email,
+              pending: sync.pending,
+              offline: sync.status === "offline",
+              onLogout: async (eraseDevice) => {
+                if (sync.pending) await sync.flush();
+                if (eraseDevice) {
+                  await removeMonthAttachments(activeUser.id, PROJECT_MONTHS).catch(() => undefined);
+                  removeProfileFromDevice(activeUser.id);
+                  forgetAccountState(syncSub);
+                  setProfiles(getStoredProfiles());
+                } else setActiveProfileId(null);
+                await logoutGoogle();
+                setIsExitModalOpen(false);
+                setDraftDirty(false);
+                setActiveTab("dashboard");
+                setActiveUser(null);
+                setActivities([]);
+                setHasChanges(false);
+                setGoogle({ configured: true, authenticated: false });
+                showToast(eraseDevice ? "Você saiu e os dados deste aparelho foram apagados." : "Você saiu da conta.");
+              },
+            } : undefined}
           />
+          {sync.conflict && (
+            <SyncConflictModal
+              key={sync.conflict.monthKey}
+              conflict={sync.conflict}
+              busy={sync.resolving}
+              local={(() => {
+                const items = getActivitiesForMonth(activeUser.id, sync.conflict.monthKey);
+                return { activities: items.length, hours: items.reduce((sum, item) => sum + item.hours, 0) };
+              })()}
+              onResolve={(keep) => void sync.resolveConflict(keep)}
+            />
+          )}
 
           {/* Modal de Feedback & Avaliação */}
           <FeedbackModal

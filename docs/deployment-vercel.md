@@ -148,6 +148,26 @@ A aplicação opera no modelo **Local-First** e inicia sem variáveis de ambient
 
 Essas variáveis protegem o acesso casual à interface. Como perfis, atividades e configurações permanecem no `localStorage`, elas não conferem autoridade institucional aos dados gerados no navegador.
 
+### Login com Google e cópia no Drive
+
+Com as três variáveis abaixo, o login com Google passa a ser obrigatório. Sem elas, o app continua no modo somente local.
+
+| Variável | Descrição |
+|---|---|
+| `GOOGLE_CLIENT_ID` | ID do cliente OAuth "Aplicativo da Web". |
+| `GOOGLE_CLIENT_SECRET` | Segredo desse cliente. Lido apenas no servidor. |
+| `GOOGLE_SESSION_SECRET` | Segredo aleatório (≥ 32 bytes, `openssl rand -hex 32`) que criptografa o cookie da sessão. Trocar invalida todas as sessões. |
+
+Passos no Google Cloud Console (feitos pelo mantenedor):
+
+1. Criar um projeto e ativar a **Google Drive API**.
+2. Em **Google Auth Platform › Branding**: nome do app (sem usar marcas do Google), e-mail de suporte, página inicial `https://pet-folha-mensal.vercel.app` e política de privacidade `https://pet-folha-mensal.vercel.app/privacidade`.
+3. Em **Audience**: tipo **Externo**. Depois dos testes, mudar o status para **In production**. Em **Testing**, só usuários de teste entram e os tokens expiram em 7 dias.
+4. Em **Data Access**: escopos `openid`, `email`, `profile` e `https://www.googleapis.com/auth/drive.file` (todos não sensíveis).
+5. Em **Clients**: criar cliente **Aplicativo da Web** com URIs de redirecionamento `https://pet-folha-mensal.vercel.app/api/google/callback` e `http://localhost:5013/api/google/callback`.
+6. Pôr as três variáveis na Vercel (Production e Preview) e no `.env.local`.
+7. Opcional: verificar o domínio no Google Search Console e enviar a marca para verificação, para mostrar nome e logo na tela de consentimento.
+
 ---
 
 ## 4. Telemetria e Analytics

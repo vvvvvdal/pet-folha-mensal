@@ -246,6 +246,27 @@ export function deleteUserProfile(profileId: string): void {
   }
 }
 
+/** Months of a profile that have activities saved in this browser. */
+export function getProfileMonths(profileId: string): string[] {
+  if (typeof window === "undefined") return [];
+  const prefix = `${ACTIVITIES_PREFIX}${profileId}_`;
+  const months: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith(prefix)) months.push(key.slice(prefix.length));
+  }
+  return months.filter((month) => /^\d{4}-\d{2}$/.test(month)).sort();
+}
+
+/** Removes a profile and its monthly activities from this browser (sign-out on a shared device). */
+export function removeProfileFromDevice(profileId: string): void {
+  if (typeof window === "undefined") return;
+  for (const month of getProfileMonths(profileId))
+    localStorage.removeItem(`${ACTIVITIES_PREFIX}${profileId}_${month}`);
+  deleteUserProfile(profileId);
+  if (localStorage.getItem(ACTIVE_PROFILE_ID_KEY) === profileId) setActiveProfileId(null);
+}
+
 export function updateUserProfileAdmin(updated: UserProfile): {
   success: boolean;
   error?: string;
@@ -688,6 +709,8 @@ export function inspectUserData(jsonStr: string): RestoreResult {
   };
   if (typeof profile.gatName === "string") user.gatName = profile.gatName;
   if (typeof profile.email === "string") user.email = profile.email;
+  if (typeof profile.googleSub === "string" && /^[\w.-]{1,128}$/.test(profile.googleSub))
+    user.googleSub = profile.googleSub;
   return {
     success: true,
     code: "RESTORED",

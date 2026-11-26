@@ -77,3 +77,15 @@
 - [x] Substituir a barra da aba **Folha** pelo painel **Antes de imprimir** com checklist de horas, Forms, comprovantes/páginas e prazo do 1º dia útil (envio orientado por cada GAT, sem e-mail fixo), com layout adaptativo por container query.
 - [x] Reestruturar **Minhas folhas** sobre `editor-panel` com superfície opaca nos dois temas, barra integrada de destino (**Frequência** / **Folha**), hierarquia visual entre meses preenchidos, abertos, atuais e vazios, e anos futuros expansíveis.
 - [x] Alinhar `AGENTS.md` e `docs/regimento-pet.md` à regra operacional em que cada GAT define seu fluxo de entrega da folha assinada até o 1º dia útil.
+
+## Entrega 2: login com Google e cópia no Google Drive — 25/11/2026
+
+Plano: [docs/entrega-2-login-google-drive.md](docs/entrega-2-login-google-drive.md).
+
+- [x] Telas aprovadas no canvas: entrada com Google, primeira entrada no aparelho, status de sincronização e conflito.
+- [x] Motor de sincronização (`drive-sync.ts`, `use-drive-sync.ts`), entrada com Google, vínculo de folha local, status na barra, conflito, saída com opção de apagar dados do aparelho e página `/privacidade`.
+- [x] Testes E2E com rotas do Google e Drive simulados (`tests/e2e/google-sync.spec.ts`).
+- [ ] Rotas do servidor `/api/google/*` (sessão em andamento em outra branch) e integração com esta branch.
+- [ ] Projeto no Google Cloud, variáveis na Vercel e status **In production** (mantenedor).
+- [ ] Teste manual com conta real: dois navegadores, conflito, revogação de acesso e saída.
+- [ ] Sincronizar a nota do Obsidian quando a entrega for publicada.

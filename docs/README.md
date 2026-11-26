@@ -14,6 +14,7 @@ Este diretório concentra a documentação técnica, arquitetural e normativa da
 3. **[deployment-vercel.md](deployment-vercel.md)**: Manual de deploy contínuo na Vercel, variáveis de ambiente e ativação do Vercel Analytics.
 4. **[CONTRIBUTING.md](../CONTRIBUTING.md)**: Guia de colaboração, convenções Git, Conventional Commits e gates de aceitação.
 5. **[AGENTS.md](../AGENTS.md)**: Contrato de execução para agentes de inteligência artificial.
+6. **[entrega-2-login-google-drive.md](entrega-2-login-google-drive.md)**: Plano do login com Google obrigatório e da cópia automática no Google Drive.
 
 ---
 

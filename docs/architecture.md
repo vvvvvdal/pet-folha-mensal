@@ -130,6 +130,18 @@ export interface GATInfo {
 4. **Zero Rastreamento Invasivo**: A telemetria de uso é fornecida pelo `@vercel/analytics`, que opera de maneira puramente estatística sem uso de cookies e sem coleta de IP ou dados identificáveis.
 5. **Contenção de Viewport**: A interface implementa proteção estrita contra overflow horizontal (`overflow-x: hidden; max-width: 100vw;`) e dimensões fluidas, garantindo que navegadores móveis (Safari iOS e Chrome Android) mantenham a escala correta `1:1`.
 
+## Login com Google e cópia no Google Drive (25/11/2026)
+
+Plano e decisões: [entrega-2-login-google-drive.md](entrega-2-login-google-drive.md).
+
+- **Modo de operação**: com `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `GOOGLE_SESSION_SECRET` configurados, o login com Google é obrigatório. Sem eles, `/api/google/session` responde `configured: false` (ou a rota não existe) e o app mantém o modo somente local, para desenvolvimento e testes.
+- **Sessão**: o servidor guarda o refresh token do Google criptografado (AES-256-GCM) no cookie `HttpOnly` `pet_google`, no próprio navegador. Não há banco de dados. O navegador pede tokens de acesso curtos em `/api/google/token`.
+- **Continua local-first**: `localStorage` e IndexedDB seguem como fonte de trabalho. `src/lib/drive-sync.ts` envia cada mês alterado para a pasta visível **PET Folha** (escopo `drive.file`), um arquivo JSON 1.3 por mês, identificado por `appProperties` (`petFolha=month`, `monthKey`, `profileId`). O envio vai do navegador direto para a API do Drive (limite de ~4,5 MB por requisição nas funções da Vercel).
+- **Agendamento** (`src/lib/use-drive-sync.ts`): envio cerca de 3 s depois de cada alteração; nova tentativa ao voltar a conexão e ao esconder a aba; busca de meses mais novos ao abrir o app e ao voltar à aba após 1 min. O estado por conta fica em `pet_folha_drive_sync_v1`.
+- **Conflito**: se o mesmo mês mudou aqui e no Drive desde a última sincronização, a pessoa escolhe qual versão fica. A outra é gravada na mesma pasta como cópia de conflito (`petFolha=conflict`), nunca apagada. Meses locais nunca sincronizados são enviados ou viram conflito, nunca sobrescritos.
+- **Perfil vinculado**: `UserProfile.googleSub` liga o perfil à conta. Primeira entrada num aparelho: traz os meses do Drive, vincula uma folha que já está no navegador ou cria o cadastro (`src/components/FirstEntry.tsx`).
+- **Saída**: `Sair da conta` revoga o acesso e pode apagar os dados deste aparelho, só depois que tudo foi enviado.
+
 ## Refinamento de interface (31/10/2026)
 
 A interface usa tokens semânticos e componentes compartilhados de marca, rodapé e ajuda. Os modais utilizam o elemento nativo `dialog`, e o tema é sincronizado com `useSyncExternalStore`, preservando a preferência no navegador. Não há alteração de contratos de dados nem de autenticação. Consulte [ui-ux.md](ui-ux.md) para detalhes e verificação.

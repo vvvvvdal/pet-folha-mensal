@@ -2,6 +2,16 @@
 export const RELEASES = [
   {
     date: "2026-11-25",
+    title: "Entrar com Google e cópia automática no Drive",
+    changes: [
+      "Agora você entra com a sua conta Google e encontra a mesma folha no celular e no computador.",
+      "Cada atividade e comprovante é copiado sozinho para a pasta PET Folha do seu Google Drive. Sem internet, o envio acontece quando a conexão voltar.",
+      "Quem já tinha uma folha neste navegador vincula ela à conta uma única vez. A cópia .json continua no menu do perfil.",
+      "Se o mesmo mês mudar em dois aparelhos, você escolhe qual versão fica, e a outra é guardada na pasta.",
+    ],
+  },
+  {
+    date: "2026-11-25",
     title: "Anexo direto na atividade, 60 páginas e novos indicadores de progresso",
     changes: [
       "Na aba Frequência, o botão Anexar de cada atividade permite escolher fotos ou PDFs e salvar o comprovante sem sair da lista.",

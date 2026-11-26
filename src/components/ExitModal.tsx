@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Download, FileText, X, ArrowRight } from "lucide-react";
 import { Modal } from "./Modal";
 import { InlineSpinner } from "./LoadingStates";
+import "./google-sync.css";
 
 interface ExitModalProps {
   isOpen: boolean;
@@ -13,11 +14,89 @@ interface ExitModalProps {
   onDownloadPdf: () => Promise<boolean> | boolean | void;
   userName: string;
   hasChanges?: boolean;
+  /** Google Drive mode: sign out of the account instead of saving a manual copy. */
+  cloud?: {
+    email?: string;
+    pending: number;
+    offline: boolean;
+    onLogout: (eraseDevice: boolean) => Promise<void> | void;
+  };
 }
 
 export function ExitModal(props: ExitModalProps) {
   if (!props.isOpen) return null;
-  return <Conclusion {...props} />;
+  return props.cloud ? <CloudExit {...props} cloud={props.cloud} /> : <Conclusion {...props} />;
+}
+
+function CloudExit({ isOpen, onClose, onDownloadPdf, userName, cloud }: ExitModalProps & { cloud: NonNullable<ExitModalProps["cloud"]> }) {
+  const [erase, setErase] = useState(false);
+  const [busy, setBusy] = useState<"pdf" | "exit" | null>(null);
+  const unsent = cloud.pending > 0;
+  async function run(kind: "pdf" | "exit") {
+    if (busy) return;
+    setBusy(kind);
+    try {
+      if (kind === "pdf") await onDownloadPdf();
+      else await cloud.onLogout(erase);
+    } finally {
+      setBusy(null);
+    }
+  }
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} label="Sair da conta" variant="editor">
+      <section className="editor-panel editor-narrow">
+        <header className="editor-head">
+          <div>
+            <h2>Sair da conta</h2>
+            <p className="access-hint">{userName}{cloud.email ? ` · ${cloud.email}` : ""}</p>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="Fechar">
+            <X size={20} />
+          </button>
+        </header>
+        <div className="editor-body editor-fields conclusion-body">
+          {unsent ? (
+            <div className="operation-notice" role="alert">
+              <p>
+                {cloud.offline ? "Sem conexão: " : ""}
+                {cloud.pending} {cloud.pending === 1 ? "mês ainda não foi enviado" : "meses ainda não foram enviados"} ao Google Drive.
+                {" "}Se apagar os dados deste aparelho agora, essas alterações se perdem.
+              </p>
+            </div>
+          ) : (
+            <p>Tudo está salvo na pasta PET Folha do seu Google Drive. Ao entrar de novo, sua folha volta.</p>
+          )}
+          <div className="conclusion-option">
+            <FileText size={24} aria-hidden="true" />
+            <div>
+              <h3>Folha para assinatura (opcional)</h3>
+              <p>Quando precisar, salve o PDF em A4 na horizontal para assinar.</p>
+            </div>
+            <button className="secondary-button" disabled={Boolean(busy)} aria-busy={busy === "pdf"} onClick={() => void run("pdf")}>
+              {busy === "pdf" && <InlineSpinner size={16} />}
+              {busy === "pdf" ? "Preparando PDF…" : "Imprimir ou salvar PDF"}
+            </button>
+          </div>
+          <label className="exit-erase">
+            <input type="checkbox" checked={erase} disabled={unsent} onChange={(event) => setErase(event.target.checked)} />
+            <span>
+              <strong>Apagar os dados deste aparelho</strong>
+              <small>{unsent ? "Disponível depois que tudo for enviado ao Drive." : "Use em computador compartilhado. A folha continua no seu Drive."}</small>
+            </span>
+          </label>
+        </div>
+        <footer className="editor-foot conclusion-actions">
+          <button className="secondary-button" onClick={onClose}>
+            Continuar editando
+          </button>
+          <button className="primary-button" disabled={Boolean(busy)} aria-busy={busy === "exit"} onClick={() => void run("exit")}>
+            {busy === "exit" && <InlineSpinner size={16} />}
+            Sair da conta <ArrowRight size={18} />
+          </button>
+        </footer>
+      </section>
+    </Modal>
+  );
 }
 
 function Conclusion({
