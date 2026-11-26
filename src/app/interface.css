@@ -10,6 +10,14 @@
   --warning-soft:color-mix(in srgb,var(--warning) 12%,var(--surface));
 }
 html[data-theme="light"] { --primary-soft:#e6f3ec; --info-soft:#e3f1f6; --warning-soft:#fbf1dc; }
+
+/* Filtros das listas de registros e comprovantes */
+.list-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.dashboard-shell .list-filters button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--body); font-size: 14px; font-weight: 600; }
+.dashboard-shell .list-filters button:hover { background: var(--surface-raised); }
+.dashboard-shell .list-filters button[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--primary-soft); color: var(--accent); }
+.list-filters button span { min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--surface-raised); color: var(--body); font-size: 14px; font-variant-numeric: tabular-nums; }
+
 .dashboard-shell {display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto 1fr auto;min-height:100dvh;height:auto;overflow:visible}
 .app-sidebar {grid-column:1;grid-row:1/4;position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;padding:32px 20px 20px;background:var(--surface);border-right:1px solid var(--border);gap:24px;min-width:0}
 .sidebar-group {font-size:14px;color:var(--muted)}

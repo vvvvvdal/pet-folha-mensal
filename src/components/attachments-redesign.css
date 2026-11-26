@@ -22,6 +22,7 @@
 .attachments-focus > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .dashboard-shell .attachments-focus .secondary-button { min-height: 44px; font-size: 14px; }
 .dashboard-shell .attachments-focus-empty { padding: 24px 0; border-top: 1px solid var(--border); color: var(--muted); font-size: 15px; }
+.attachment-filters { margin-bottom: 16px; }
 .attachments-missing { margin: 0 0 18px; padding: 2px 16px; border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border)); border-radius: 16px; background: var(--surface-raised); }
 .attachments-missing[open] { padding-bottom: 14px; }
 .attachments-missing summary { display: flex; align-items: center; min-height: 48px; cursor: pointer; font-weight: 600; color: var(--foreground); }

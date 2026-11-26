@@ -309,6 +309,39 @@ test("erro de cópia e cancelamento preservam dados; formulário não some ao tr
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-11");
 });
 
+test("busca e modalidade filtram os registros junto com as pendências", async ({ page }) => {
+  await page.addInitScript(({ keys, user, activity }) => {
+    localStorage.setItem(keys.profiles, JSON.stringify([user]));
+    localStorage.setItem(keys.active, user.id);
+    localStorage.setItem(`pet_folha_activities_v2_${user.id}_2026-11`, JSON.stringify([
+      { ...activity, date: "2026-11-02", description: "Oficina de educação climática" },
+      { ...activity, id: "second", date: "2026-11-03", description: "Roda de educação ambiental", modality: "Síncrona presencial" },
+      { ...activity, id: "third", date: "2026-11-04", description: "Reunião de planejamento" },
+    ]));
+  }, { keys, user, activity });
+  await page.goto("/");
+  const records = page.getByRole("region", { name: "Registros de novembro" });
+  const search = records.getByRole("searchbox", { name: "Buscar atividade" });
+  const editButtons = records.getByRole("button", { name: /^Editar atividade:/ });
+  await expect(editButtons).toHaveCount(3);
+  await search.fill("EDUCACAO");
+  await expect(editButtons).toHaveCount(2);
+  const modality = records.getByRole("combobox", { name: "Modalidade" });
+  await modality.selectOption("Síncrona presencial");
+  await expect(editButtons).toHaveCount(1);
+  await records.getByRole("button", { name: /^Pendentes no Forms/ }).click();
+  await expect(editButtons.first()).toHaveAccessibleName("Editar atividade: Roda de educação ambiental");
+  await expect(records.getByRole("status")).toHaveText("Mostrando 1 de 3 atividades");
+  await expect(records.getByText("3 atividades · 6 h", { exact: true })).toBeVisible();
+
+  await search.fill("termo ausente");
+  await expect(records.getByText("Nenhuma atividade corresponde aos filtros.")).toBeVisible();
+  await records.getByRole("button", { name: "Limpar filtros" }).click();
+  await expect(search).toBeFocused();
+  await expect(modality).toHaveValue("");
+  await expect(editButtons).toHaveCount(3);
+});
+
 test("temas, larguras, controles e retorno de foco", async ({
   page,
 }, testInfo) => {

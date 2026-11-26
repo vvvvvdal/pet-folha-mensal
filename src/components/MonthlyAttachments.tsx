@@ -44,6 +44,8 @@ interface Props {
   onFocusChange?: (activityId: string | null) => void;
 }
 
+type LinkFilter = "all" | "linked" | "unlinked";
+
 function activityLabel(activity: Activity) {
   return `${formatDateBR(activity.date)} · ${cleanActivityDescription(activity.description)}`;
 }
@@ -66,6 +68,7 @@ export function MonthlyAttachments({
   const activeOp = useRef<Promise<void>>(Promise.resolve());
   const localBusy = useRef(false);
   const [items, setItems] = useState<Attachment[] | null>(null);
+  const [linkFilter, setLinkFilter] = useState<LinkFilter>("all");
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState("");
   const [attempt, setAttempt] = useState(0);
@@ -83,11 +86,18 @@ export function MonthlyAttachments({
     ? activities.find(({ id }) => id === focusActivityId)
     : undefined;
   const linkedTo = (item: Attachment) => linkedActivityIds(item, activityIds);
-  const visibleItems =
-    items && focusActivity
-      ? items.filter((item) => linkedTo(item).includes(focusActivity.id))
-      : items;
-  const proven = new Set(items?.flatMap(linkedTo) ?? []);
+  const files = items?.map((item) => ({ item, links: linkedTo(item) })) ?? [];
+  const linkedCount = files.filter(({ links }) => links.length > 0).length;
+  const visibleFiles = files.filter(({ links }) =>
+    focusActivity ? links.includes(focusActivity.id)
+      : linkFilter === "all" || (linkFilter === "linked" ? links.length > 0 : links.length === 0),
+  );
+  const filters: { value: LinkFilter; label: string; count: number }[] = [
+    { value: "all", label: "Todos", count: files.length },
+    { value: "linked", label: "Com atividade", count: linkedCount },
+    { value: "unlinked", label: "Sem atividade", count: files.length - linkedCount },
+  ];
+  const proven = new Set(files.flatMap(({ links }) => links));
   const withoutProof = activities.filter(({ id }) => !proven.has(id));
 
   useEffect(() => {
@@ -358,14 +368,26 @@ export function MonthlyAttachments({
             <button
               type="button"
               className="secondary-button"
-              onClick={() => onFocusChange?.(null)}
+              onClick={() => {
+                setLinkFilter("all");
+                onFocusChange?.(null);
+              }}
             >
               Ver todos
             </button>
           </div>
         </div>
       )}
-      {!focusActivity && !!items && items.length > 0 && withoutProof.length > 0 && (
+      {!focusActivity && files.length > 0 && (
+        <div className="list-filters attachment-filters" role="group" aria-label="Filtrar comprovantes">
+          {filters.map(({ value, label, count }) => (
+            <button key={value} type="button" aria-pressed={linkFilter === value} onClick={() => setLinkFilter(value)}>
+              {label} <span>{count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {!focusActivity && linkFilter === "all" && files.length > 0 && withoutProof.length > 0 && (
         <details className="attachments-missing" open={withoutProof.length <= 3}>
           <summary>Atividades sem comprovante ({withoutProof.length})</summary>
           <ul>
@@ -391,13 +413,17 @@ export function MonthlyAttachments({
           <p>Você pode adicionar arquivos se o seu GAT solicitar.</p>
         </div>
       )}
-      {!!items?.length && focusActivity && visibleItems?.length === 0 && (
-        <p className="attachments-focus-empty">Esta atividade ainda não tem comprovante.</p>
+      {files.length > 0 && visibleFiles.length === 0 && (
+        <p className="attachments-focus-empty" role="status">
+          {focusActivity ? "Esta atividade ainda não tem comprovante."
+            : linkFilter === "linked" ? "Nenhum comprovante vinculado a uma atividade."
+              : "Todos os comprovantes estão vinculados a atividades."}
+        </p>
       )}
-      {!!visibleItems?.length && (
+      {visibleFiles.length > 0 && (
         <ol className="attachments-list">
-          {visibleItems.map((item) => {
-            const linked = activities.filter(({ id }) => linkedTo(item).includes(id));
+          {visibleFiles.map(({ item, links }) => {
+            const linked = activities.filter(({ id }) => links.includes(id));
             return (
               <li key={item.id} className="attachment-row">
                 <AttachmentPreview item={item} />

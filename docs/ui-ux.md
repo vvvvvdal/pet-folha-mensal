@@ -69,6 +69,11 @@ celular. A tabela usa quatro colunas; listas em cartões atendem espaços menore
 Editar/excluir têm nomes acessíveis com a descrição do registro. Limpar mês exige
 confirmação; exemplos são opcionais e identificados como fictícios.
 
+Nos registros, a busca aceita a descrição com ou sem acentos. Quando há mais de
+uma modalidade no mês, a lista pode ser filtrada por modalidade. A busca e a
+modalidade combinam com **Pendentes no Forms** e **Sem comprovante**. O total do
+mês continua contando todos os registros.
+
 ### Tipografia e conforto
 
 A escala deriva da orientação `frontend-design-ultimate` e dos controles e
@@ -93,6 +98,9 @@ preservados. A folha oficial mantém sua escala em pontos e entrelinha própria.
 abre a impressão da folha para assinatura. A janela “Antes de sair” distingue as duas ações e
 mantém confirmação de saída quando existem alterações sem cópia acionada.
 A aba **Comprovantes** reúne os arquivos opcionais do perfil e mês selecionados.
+Os filtros **Todos**, **Com atividade** e **Sem atividade** mostram a quantidade
+de arquivos em cada grupo. Clicar numa atividade vinculada abre os comprovantes
+dela, e **Ver todos** volta à lista inteira.
 Escolha os arquivos, confira as prévias e selecione as atividades de cada um antes
 de **Salvar comprovantes**. Use **Alterar atividades** nos arquivos já salvos. O mesmo arquivo pode aparecer em várias atividades. O navegador guarda
 os arquivos com limites de 20 MB por arquivo, 80 MB por mês e 60 páginas de

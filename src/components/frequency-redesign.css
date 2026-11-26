@@ -54,11 +54,13 @@
 .dashboard-shell .records-v2 .records-title { display: block; }
 .dashboard-shell .records-v2 .records-title h2 { font-size: 18px; font-weight: 700; }
 .dashboard-shell .records-v2 .records-title p { margin-top: 2px; font-size: 14px; color: var(--muted); }
-.records-filters { display: flex; flex-wrap: wrap; gap: 8px; }
-.dashboard-shell .records-filters button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--body); font-size: 14px; font-weight: 600; }
-.dashboard-shell .records-filters button:hover { background: var(--surface-raised); }
-.dashboard-shell .records-filters button[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: var(--primary-soft); color: var(--accent); }
-.records-filters button span { min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--surface-raised); color: var(--body); font-size: 14px; font-variant-numeric: tabular-nums; }
+.records-refine { display: flex; flex: 1 0 100%; flex-wrap: wrap; align-items: end; gap: 10px; }
+.records-search { flex: 1 1 224px; min-width: 0; max-width: 380px; }
+.records-modality { flex: 0 1 224px; min-width: 0; }
+.records-refine :is(input, select) { width: 100%; min-height: 44px; }
+.dashboard-shell .records-refine .text-button { display: inline-flex; align-items: center; min-height: 44px; padding-inline: 8px; font-size: 14px; }
+.dashboard-shell .records-refine .records-result { display: flex; align-items: center; min-height: 44px; margin-inline-start: auto; color: var(--muted); font-size: 14px; }
+.records-result:empty { position: absolute; }
 .dashboard-shell .records-v2 .records-empty { padding: 20px 24px; }
 
 .dashboard-shell .records-v2 .records-table table { width: 100%; border-collapse: collapse; }
@@ -107,7 +109,9 @@
   .summary-tile { padding: 14px 16px; }
   .summary-figure strong { font-size: 26px; }
   .dashboard-shell .records-v2 .records-heading { padding: 16px; }
-  .records-filters { width: 100%; }
+  .records-v2 .list-filters { width: 100%; }
+  .records-search { max-width: none; }
+  .records-modality { flex: 1 1 180px; }
   .dashboard-shell .records-v2 .record-card { padding: 16px; }
   .dashboard-shell .records-v2 .record-group .week-head { padding: 10px 16px; }
   .records-v2 .week-hours { min-width: 0; text-align: left; }

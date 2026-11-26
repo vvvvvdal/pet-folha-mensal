@@ -115,6 +115,42 @@ test("revisão mantém lote temporário, permite descartar e salva vínculos por
   await expect(edit.getByRole("checkbox", { name: /Atividade B/ })).toBeChecked();
 });
 
+test("filtros de comprovantes distinguem arquivos com atividade e sem atividade", async ({ page }) => {
+  await openProofs(page);
+  const region = page.getByRole("region", { name: "Arquivos deste mês" });
+  await region.getByLabel("Adicionar comprovantes").setInputFiles([image, { ...image, name: "sem-vinculo.png" }]);
+  const review = page.getByRole("dialog", { name: "Conferir comprovantes" });
+  await review.locator(".review-file").filter({ hasText: "foto.png" })
+    .getByRole("checkbox", { name: /Atividade A/ }).check();
+  await review.getByRole("button", { name: "Salvar comprovantes" }).click();
+
+  const filters = region.getByRole("group", { name: "Filtrar comprovantes" });
+  const photo = region.getByRole("button", { name: "Visualizar foto.png em outra aba" });
+  const unlinked = region.getByRole("button", { name: "Visualizar sem-vinculo.png em outra aba" });
+  await expect(filters.getByRole("button", { name: "Todos 2" })).toHaveAttribute("aria-pressed", "true");
+  await filters.getByRole("button", { name: "Com atividade 1" }).click();
+  await expect(photo).toBeVisible();
+  await expect(unlinked).toHaveCount(0);
+  await filters.getByRole("button", { name: "Sem atividade 1" }).click();
+  await expect(unlinked).toBeVisible();
+  await expect(photo).toHaveCount(0);
+
+  await region.getByRole("button", { name: "Alterar atividades de sem-vinculo.png" }).click();
+  const edit = page.getByRole("dialog", { name: "Alterar atividades do comprovante" });
+  await edit.getByRole("checkbox", { name: /Atividade B/ }).check();
+  await edit.getByRole("button", { name: "Salvar atividades" }).click();
+  await expect(region.getByText("Todos os comprovantes estão vinculados a atividades.")).toBeVisible();
+  await expect(filters.getByRole("button", { name: "Com atividade 2" })).toBeVisible();
+
+  await filters.getByRole("button", { name: "Com atividade 2" }).click();
+  await region.getByRole("button", { name: /Atividade A/ }).click();
+  await expect(photo).toBeVisible();
+  await expect(unlinked).toHaveCount(0);
+  await region.getByRole("button", { name: "Ver todos" }).click();
+  await expect(filters.getByRole("button", { name: "Todos 2" })).toHaveAttribute("aria-pressed", "true");
+  await expect(unlinked).toBeVisible();
+});
+
 test("falha de gravação preserva revisão e permite salvar após recuperar", async ({ page }) => {
   await openProofs(page);
   const region = page.getByRole("region", { name: "Arquivos deste mês" });

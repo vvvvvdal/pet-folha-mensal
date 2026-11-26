@@ -13,6 +13,7 @@ import {
 } from "@/lib/pet-calculator";
 import { Pencil, Trash2, ExternalLink, Paperclip } from "lucide-react";
 import { formReportStatus } from "@/lib/form-report";
+import { normalizeName } from "@/lib/storage";
 import { ConfirmModal } from "./ConfirmModal";
 import { AttachmentSourceMenu, type AttachmentSource } from "./AttachmentSourceMenu";
 import type { SummaryView } from "./StatsGrid";
@@ -115,10 +116,21 @@ export function ActivityTable({
 }: ActivityTableProps) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
-  const pending = activities.filter((activity) => formReportStatus(user, activity) !== "Enviado");
-  const withoutProof = proofCounts ? activities.filter((activity) => !(proofCounts[activity.id] > 0)) : [];
+  const [query, setQuery] = useState("");
+  const [modality, setModality] = useState("");
+  const modalities = [...new Set<string>(activities.map((activity) => activity.modality))];
+  const selectedModality = modalities.length > 1 && modalities.includes(modality) ? modality : "";
+  const term = normalizeName(query);
+  const matches = activities.filter((activity) =>
+    (!selectedModality || activity.modality === selectedModality) &&
+    (!term || normalizeName(cleanActivityDescription(activity.description)).includes(term)),
+  );
+  const pending = matches.filter((activity) => formReportStatus(user, activity) !== "Enviado");
+  const withoutProof = proofCounts ? matches.filter((activity) => !(proofCounts[activity.id] > 0)) : [];
   const activeFilter = filter === "noproof" && !proofCounts ? "all" : filter;
-  const visible = activeFilter === "pending" ? pending : activeFilter === "noproof" ? withoutProof : activities;
+  const visible = activeFilter === "pending" ? pending : activeFilter === "noproof" ? withoutProof : matches;
+  const refined = Boolean(term || selectedModality);
+  const filtered = refined || activeFilter !== "all";
   const key = monthKey ?? activities[0]?.date.slice(0, 7);
   const monthName = key ? getMonthName(key) : monthLabel.split("/")[0].toLowerCase();
   const today = todayKey();
@@ -174,13 +186,13 @@ export function ActivityTable({
     </div>
   );
   const filters: { value: Filter; label: string; count: number }[] = [
-    { value: "all", label: "Todas", count: activities.length },
+    { value: "all", label: "Todas", count: matches.length },
     { value: "pending", label: "Pendentes no Forms", count: pending.length },
     ...(proofCounts ? [{ value: "noproof" as const, label: "Sem comprovante", count: withoutProof.length }] : []),
   ];
-  const emptyFilterText = activeFilter === "pending"
-    ? "Nenhuma pendência do Forms neste mês."
-    : "Todas as atividades deste mês têm comprovante.";
+  const emptyFilterText = refined ? "Nenhuma atividade corresponde aos filtros."
+    : activeFilter === "pending" ? "Nenhuma pendência do Forms neste mês."
+      : "Todas as atividades deste mês têm comprovante.";
 
   return (
     <section className="activity-list records-v2" aria-labelledby="records-title">
@@ -192,7 +204,7 @@ export function ActivityTable({
           </p>
         </div>
         {activities.length > 0 && (
-          <div className="records-filters" role="group" aria-label="Filtrar registros">
+          <div className="list-filters" role="group" aria-label="Filtrar registros">
             {filters.map((item) => (
               <button key={item.value} type="button" aria-pressed={activeFilter === item.value}
                 onClick={() => setFilter(item.value)}
@@ -200,6 +212,34 @@ export function ActivityTable({
                 {item.label} <span>{item.count}</span>
               </button>
             ))}
+          </div>
+        )}
+        {activities.length > 0 && (
+          <div className="records-refine">
+            <div className="field records-search">
+              <label htmlFor="records-search">Buscar atividade</label>
+              <input id="records-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+            </div>
+            {modalities.length > 1 && (
+              <div className="field records-modality">
+                <label htmlFor="records-modality">Modalidade</label>
+                <select id="records-modality" value={selectedModality} onChange={(event) => setModality(event.target.value)}>
+                  <option value="">Todas as modalidades</option>
+                  {modalities.map((option) => <option key={option}>{option}</option>)}
+                </select>
+              </div>
+            )}
+            {filtered && (
+              <button type="button" className="text-button" onClick={() => {
+                setFilter("all");
+                setQuery("");
+                setModality("");
+                document.getElementById("records-search")?.focus();
+              }}>Limpar filtros</button>
+            )}
+            <p className="records-result" role="status">
+              {filtered ? `Mostrando ${visible.length} de ${activities.length} atividades` : ""}
+            </p>
           </div>
         )}
       </div>
