@@ -55,7 +55,8 @@ limitado aos meses da vigência. A seleção cobre agosto/2026 a agosto/2028. Um
 válido restaurado fora desse intervalo continua selecionável, preservando a
 compatibilidade. A data inicial da atividade acompanha o mês escolhido. As opções dos seletores
 nativos definem fundo e texto com os tokens do tema, evitando texto claro sobre
-um popup claro no modo escuro.
+um popup claro no modo escuro. O calendário usa a cor dos números da data ao
+registrar e editar uma atividade.
 
 O resumo mostra horas, atividades e referência mensal aproximada de 32h. Não usa
 média por quatro semanas como validação semanal nem declara “Apta para envio”.
