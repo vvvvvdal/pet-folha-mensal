@@ -25,7 +25,7 @@ class FakeDrive {
   }
   create(meta: Partial<FakeFile>, content?: string) {
     const file: FakeFile = {
-      id: `f${++this.seq}`,
+      id: meta.id ?? this.reserveId(),
       name: meta.name ?? "sem nome",
       mimeType: meta.mimeType ?? "application/json",
       parents: meta.parents,
@@ -35,6 +35,9 @@ class FakeDrive {
     };
     this.files.set(file.id, file);
     return file;
+  }
+  reserveId() {
+    return `f${++this.seq}`;
   }
   update(id: string, meta: Partial<FakeFile>, content?: string) {
     const file = this.files.get(id)!;
@@ -59,7 +62,9 @@ function parseMultipart(body: string, contentType: string) {
 }
 
 async function mockGoogle(page: Page, drive: FakeDrive, session: { authenticated: boolean }) {
-  const state = { ...session, loggedOut: false };
+  const state = { ...session, loggedOut: false, rejectNextPdf: false };
+  const pdfUploads = new Map<string, { id?: string; meta: Partial<FakeFile> }>();
+  let uploadCounter = 0;
   await page.route("**/api/google/session", (route) =>
     route.fulfill({ json: state.authenticated && !state.loggedOut ? { configured: true, authenticated: true, ...sessionUser } : { configured: true, authenticated: false } }));
   await page.route("**/api/google/token", (route) => route.fulfill({ json: { accessToken: "token-de-teste", expiresAt: Date.now() + 3_600_000 } }));
@@ -72,7 +77,24 @@ async function mockGoogle(page: Page, drive: FakeDrive, session: { authenticated
     const url = new URL(request.url());
     const method = request.method();
     const id = /\/files\/([^/?]+)/.exec(url.pathname)?.[1];
+    if (url.pathname === "/drive/v3/files/generateIds")
+      return route.fulfill({ json: { ids: [drive.reserveId()] } });
+    if (url.pathname.startsWith("/pdf-session/")) {
+      const upload = pdfUploads.get(url.pathname)!;
+      if (state.rejectNextPdf) {
+        state.rejectNextPdf = false;
+        return route.fulfill({ status: 503 });
+      }
+      const bytes = request.postDataBuffer()?.toString("latin1");
+      const file = upload.id ? drive.update(upload.id, upload.meta, bytes) : drive.create(upload.meta, bytes);
+      return route.fulfill({ json: { id: file.id } });
+    }
     if (url.pathname.startsWith("/upload/drive/v3/files")) {
+      if (url.searchParams.get("uploadType") === "resumable") {
+        const path = `/pdf-session/${++uploadCounter}`;
+        pdfUploads.set(path, { id, meta: JSON.parse(request.postData() ?? "{}") });
+        return route.fulfill({ headers: { Location: `https://www.googleapis.com${path}`, "Access-Control-Expose-Headers": "Location" } });
+      }
       const { meta, content } = parseMultipart(request.postData() ?? "", request.headers()["content-type"]);
       const file = id ? drive.update(id, meta, content) : drive.create(meta, content);
       return route.fulfill({ json: { id: file.id, modifiedTime: file.modifiedTime } });
@@ -80,7 +102,8 @@ async function mockGoogle(page: Page, drive: FakeDrive, session: { authenticated
     if (url.pathname === "/drive/v3/files" && method === "GET") {
       const q = url.searchParams.get("q") ?? "";
       const value = /key='petFolha' and value='(\w+)'/.exec(q)?.[1] ?? "";
-      const files = drive.byProp("petFolha", value).map((file) => ({ ...file, content: undefined, size: String(file.content?.length ?? 0) }));
+      const month = /key='monthKey' and value='([^']+)'/.exec(q)?.[1];
+      const files = drive.byProp("petFolha", value).filter((file) => !month || file.appProperties.monthKey === month).map((file) => ({ ...file, content: undefined, size: String(file.content?.length ?? 0) }));
       return route.fulfill({ json: { files } });
     }
     if (url.pathname === "/drive/v3/files" && method === "POST") {
@@ -347,4 +370,69 @@ test("sair da conta pode apagar os dados deste aparelho", async ({ page }) => {
   }));
   expect(JSON.parse(stored.profiles ?? "[]")).toEqual([]);
   expect(stored.month).toBeNull();
+});
+
+test("PDF da folha é exportado separadamente e atualizado pelo mesmo ID", async ({ page }) => {
+  const drive = new FakeDrive();
+  await seedLocal(page, { ...localProfile, googleSub: SUB }, "2026-11", [reuniao], { pet_folha_active_profile_id_v2: localProfile.id });
+  const google = await mockGoogle(page, drive, { authenticated: true });
+  await page.goto("/");
+  await expect.poll(() => drive.byProp("petFolha", "month").length).toBe(1);
+  await page.getByRole("button", { name: "Folha", exact: true }).click();
+  const save = page.getByRole("button", { name: "Salvar PDF no Drive" });
+  google.rejectNextPdf = true;
+  await save.click();
+  await expect(page.getByRole("dialog", { name: "Não foi possível salvar no Drive" })).toBeVisible();
+  await page.getByRole("dialog", { name: "Não foi possível salvar no Drive" }).getByRole("button", { name: "Entendido" }).click();
+  const local = page.getByRole("dialog", { name: "PDF pronto" });
+  await expect(local.getByRole("link", { name: "Baixar PDF" })).toBeVisible();
+  await local.getByRole("button", { name: "Fechar", exact: true }).click();
+  expect(drive.byProp("petFolha", "sheetPdf")).toHaveLength(0);
+  await save.click();
+  const link = page.getByRole("link", { name: "Abrir PDF no Drive" });
+  await expect(link).toBeVisible();
+  const [first] = drive.byProp("petFolha", "sheetPdf");
+  expect(first.content).toMatch(/^%PDF-/);
+  const oldContent = first.content;
+  await page.getByRole("button", { name: "Frequência", exact: true }).click();
+  await page.getByRole("button", { name: /^Editar atividade:/ }).click();
+  await page.getByLabel("Descrição da Atividade", { exact: true }).fill("Versão atualizada da atividade");
+  await page.getByRole("button", { name: "Salvar Alterações" }).click();
+  await page.getByRole("button", { name: "Folha", exact: true }).click();
+  await save.click();
+  await expect.poll(() => drive.byProp("petFolha", "sheetPdf")[0]?.content).not.toBe(oldContent);
+  expect(drive.byProp("petFolha", "sheetPdf").map((item) => item.id)).toEqual([first.id]);
+  expect(drive.byProp("petFolha", "month")).toHaveLength(1);
+  await expect(link).toHaveAttribute("href", `https://drive.google.com/file/d/${first.id}/view`);
+  await page.getByRole("group", { name: "Tipo de folha" }).getByRole("button", { name: "Modelo em branco", exact: true }).click();
+  await expect(save).toHaveCount(0);
+});
+
+test("a confirmação de entrega acompanha a cópia mensal em outro navegador", async ({ page, browser }) => {
+  const drive = new FakeDrive();
+  const profile = { ...localProfile, googleSub: SUB };
+  await seedLocal(page, profile, "2026-11", [reuniao], { pet_folha_active_profile_id_v2: profile.id });
+  await page.clock.setSystemTime(new Date("2026-12-07T15:00:00Z"));
+  await mockGoogle(page, drive, { authenticated: true });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Sim, já enviei" }).click();
+  await expect.poll(() => drive.byProp("petFolha", "month").some((file) =>
+    file.appProperties.monthKey === "2026-11" && JSON.parse(file.content ?? "{}").submission === "sent",
+  ), { timeout: 12_000 }).toBe(true);
+
+  const second = await browser.newContext({ locale: "pt-BR", baseURL: new URL(page.url()).origin });
+  try {
+    const remote = await second.newPage();
+    await seedLocal(remote);
+    await remote.clock.setSystemTime(new Date("2026-12-07T15:00:00Z"));
+    await mockGoogle(remote, drive, { authenticated: true });
+    await remote.goto("/");
+    await remote.getByRole("button", { name: "Abrir minha folha", exact: true }).click();
+    await remote.getByRole("button", { name: "Folha", exact: true }).click();
+    await remote.getByLabel("Mês da folha").selectOption("2026-11");
+    await expect(remote.getByText("Entrega marcada como enviada")).toBeVisible();
+    await expect(remote.locator(".submission-reminder")).toHaveCount(0);
+  } finally {
+    await second.close();
+  }
 });

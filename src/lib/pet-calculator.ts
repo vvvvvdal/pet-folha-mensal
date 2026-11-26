@@ -105,6 +105,15 @@ export function getSubmissionDeadline(monthKey: string): string {
   return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}-${pad2(date.getUTCDate())}`;
 }
 
+/** Monthly handoff uses the program's date even when the participant travels. */
+export function getSubmissionPeriod(now = new Date()) {
+  const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "America/Sao_Paulo" }).format(now);
+  const current = today.slice(0, 7);
+  const [year, month] = current.split("-").map(Number);
+  const previous = new Date(Date.UTC(year, month - 2, 1)).toISOString().slice(0, 7);
+  return { current, previous, today, due: today >= getSubmissionDeadline(previous) };
+}
+
 /** "ter, 01/12" */
 export function formatShortDate(dateStr: string): string {
   const [, month, day] = dateStr.split("-");

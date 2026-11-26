@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 const user = { id: "proof-review-user", name: "Pessoa de teste", role: "Estudante", gatNumber: "04", gatName: "Mangaba", createdAt: "2026-10-01T00:00:00.000Z" };
 const records = [
@@ -374,11 +375,22 @@ test("anexo direto na aba Frequência, opção de 1ª página em PDF e compress�
   const coverPdf = storedInfo.find((i) => i.name === "apostila-multipage.pdf")!;
   expect(coverPdf.firstPageOnly).toBe(true);
 
-  await page.evaluate(() => { window.print = () => { document.body.dataset.printed = "1"; }; });
   await page.getByRole("button", { name: "Folha", exact: true }).filter({ visible: true }).click();
-  await page.getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
-  await expect(page.locator("body")).toHaveAttribute("data-printed", "1");
-  const printPages = page.locator(".print-attachment-page");
-  await expect(printPages).toHaveCount(2);
-  await expect(printPages.nth(1)).toContainText("Página 1 de 2 (1ª página)");
+  await page.getByRole("button", { name: "Baixar PDF", exact: true }).click();
+  const result = page.getByRole("dialog", { name: "PDF pronto" });
+  await expect(result).toBeVisible();
+  const download = page.waitForEvent("download");
+  await result.getByRole("link", { name: "Baixar PDF" }).click();
+  const bytes = await readFile((await (await download).path())!);
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const task = getDocument({ data: new Uint8Array(bytes), standardFontDataUrl: `${process.cwd()}/node_modules/pdfjs-dist/standard_fonts/` });
+  const pdf = await task.promise;
+  try {
+    expect(pdf.numPages).toBe(3);
+    const cover = await pdf.getPage(3);
+    const content = await cover.getTextContent();
+    expect(content.items.map((item) => "str" in item ? item.str : "").join(" ")).toContain("Página 1 de 2 (1ª página)");
+  } finally {
+    await task.destroy();
+  }
 });

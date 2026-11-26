@@ -96,7 +96,7 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32, activ
             <p className="summary-figure"><strong>{totalHours}</strong> <span>de {targetHours} h</span></p>
             <Progress label="Referência mensal de horas" value={totalHours} max={targetHours} tone="done" />
             <span className="summary-status">
-              {remaining ? `faltam ${remaining} h` : "Referência mensal alcançada"} · {activitiesCount} {activitiesCount === 1 ? "atividade" : "atividades"}
+              {remaining > 0 && `Faltam ${remaining} h · `}{activitiesCount} {activitiesCount === 1 ? "atividade" : "atividades"}
             </span>
           </div>
           {currentWeek ? (
@@ -117,7 +117,6 @@ export function StatsGrid({ totalHours, activitiesCount, targetHours = 32, activ
             <div className="summary-tile">
               <span className="summary-tile-label">Entrega da folha assinada</span>
               <p className="summary-figure summary-deadline"><strong>{formatShortDate(deadline)}</strong></p>
-              <span className="summary-status">1º dia útil de {getMonthName(deadline.slice(0, 7))}</span>
               {formsPending !== undefined && (
                 <span className="summary-status" data-tone={formsPending ? "warning" : "done"}>
                   {formsPending ? `${formsPending} ${formsPending === 1 ? "atividade pendente" : "atividades pendentes"} no Forms` : "Forms em dia"}

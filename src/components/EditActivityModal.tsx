@@ -5,7 +5,7 @@ import { DateInput } from "./DateInput";
 import React, { useState, useEffect } from "react";
 import { Activity, ModalityType, ActivityTemplate } from "@/types";
 import { calcPetHours, cleanActivityDescription } from "@/lib/pet-calculator";
-import { X, Check } from "lucide-react";
+import { X } from "lucide-react";
 import { useDialog } from "@/context/DialogContext";
 
 interface EditActivityModalProps {
@@ -187,18 +187,18 @@ export function EditActivityModal({
                 </select>
               </div>
               <div className="hours-preview">
-                <span>Horas PET</span>
+                <span>Horas</span>
                 <strong>{previewHours}h</strong>
               </div>
               <p className="field-hint">Cada hora do relógio iniciada conta para a carga horária.</p>
             </section>
           </div>
+          {onDelete && <button type="button" className="text-button editor-danger edit-delete-action" onClick={() => onDelete(activity.id)}>Excluir atividade</button>}
         </div>
         <footer className="editor-foot">
-          {onDelete && <button type="button" className="text-button editor-danger" onClick={() => onDelete(activity.id)}>Excluir atividade</button>}
-          <div className="editor-actions">
+          <div className="editor-actions activity-editor-actions">
             <button type="button" className="secondary-button" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="primary-button"><Check size={18} aria-hidden="true" /> Salvar Alterações</button>
+            <button type="submit" className="primary-button" aria-label="Salvar Alterações">Salvar</button>
           </div>
         </footer>
       </form>

@@ -37,3 +37,44 @@
 @container (max-width: 719px) {
   .print-panel { padding: 20px; }
 }
+
+.sheet-preview { display: grid; gap: 10px; }
+.sheet-zoom { justify-self: end; }
+.sheet-paper-viewport { overflow: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.sheet-paper-viewport:not([tabindex]) { overflow: hidden; }
+.sheet-paper-frame { position: relative; }
+.sheet-paper-document { width: 297mm; max-width: none; transform-origin: top left; }
+.sheet-paper-document .official-sheet { width: 100%; max-width: none; }
+.sheet-paper-viewport:not([tabindex]) .sheet-paper-document { position: absolute; top: 0; left: 0; }
+.print-actions .text-button { min-height: 44px; text-align: center; }
+.print-actions p { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.review-next { justify-content: flex-end; }
+.submission-reminder { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px; margin-block-end: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.submission-reminder > svg { color: var(--accent); flex-shrink: 0; }
+.submission-reminder h2 { flex: 1; min-width: min(230px, 100%); font-size: 16px; }
+.submission-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.submission-actions button { min-height: 44px; }
+.pdf-result { display: grid; gap: 12px; padding: 24px; }
+.pdf-result h2 { font-size: 21px; font-weight: 700; }
+.pdf-result p { color: var(--muted); overflow-wrap: anywhere; }
+.pdf-result :is(a, button) { min-height: 44px; justify-content: center; text-align: center; }
+.pdf-print-frame { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; }
+@container (min-width: 720px) and (max-width: 1299px) {
+  .print-actions { grid-column: 2; }
+}
+@media (max-width: 550px) {
+  .submission-actions { width: 100%; }
+  .submission-actions button { flex: 1; }
+}
+@media (max-width: 550px) {
+  .sheet-view .sheet-mode-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .dashboard-shell .sheet-view .sheet-mode-option { padding-inline: 8px; white-space: normal; line-height: 1.25; }
+  .dashboard-shell .footer-utilities { flex-wrap: wrap; }
+  .submission-reminder { display: grid; grid-template-columns: auto minmax(0, 1fr); padding: 12px; gap: 10px; }
+  .submission-reminder h2 { min-width: 0; }
+  .submission-actions { grid-column: 1 / -1; }
+  .submission-actions button { padding-inline: 10px; }
+}
+@media (max-width: 899px) {
+  html:has(.dashboard-shell) { scroll-padding-block: 84px calc(84px + env(safe-area-inset-bottom)); }
+}

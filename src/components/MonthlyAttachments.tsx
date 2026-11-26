@@ -285,7 +285,7 @@ export function MonthlyAttachments({
         <div className="attachments-actions">
           <button
             type="button"
-            className="primary-button"
+            className="secondary-button"
             disabled={busy || !items}
             onClick={() => choose(headerTargetId, "gallery")}
           >

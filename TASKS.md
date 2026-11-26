@@ -91,3 +91,9 @@ Plano: [docs/entrega-2-login-google-drive.md](docs/entrega-2-login-google-drive.
 - [ ] Projeto no Google Cloud, variáveis na Vercel e status **In production** (mantenedor).
 - [ ] Teste manual com conta real: recusar Drive, conceder na nova tentativa, importar JSON e confirmar envio. Conferir também dois navegadores, conflito, revogação de acesso e saída.
 - [ ] Sincronizar a nota do Obsidian quando a entrega for publicada.
+
+## Identificação da entrega e PDF no celular — 26/11/2026
+
+- [x] Gerar PDF para baixar, imprimir ou substituir o arquivo mensal na pasta PET Folha, com modelo em branco para baixar e imprimir.
+- [x] Registrar a confirmação de entrega por mês e sincronizá-la junto da cópia mensal. [Fluxo e limites](docs/ui-ux.md#pdf-e-entrega-da-folha-no-celular)
+- [ ] Homologar download, menu de impressão e compartilhamento em iPhone e Android físicos.

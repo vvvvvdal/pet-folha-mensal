@@ -175,7 +175,7 @@ export function Navbar(props: NavbarProps) {
         <h2>Cópia de segurança</h2>
         <button type="button" onClick={() => { backupRef.current?.hidePopover(); onExportBackup(); }}><Download size={22} aria-hidden="true" /><span><strong>Salvar cópia</strong><small>Baixar seus registros e comprovantes.</small></span></button>
         <button type="button" onClick={() => { backupRef.current?.hidePopover(); chooseBackup(); }}><Upload size={22} aria-hidden="true" /><span><strong>Restaurar cópia</strong><small>Abrir uma cópia salva em arquivo.</small></span></button>
-      </div></>}<NewsPopover /><button className="avatar mobile-avatar" aria-label="Abrir Conta" onClick={() => onTabChange("account")}>{initials(user.name)}</button></div></header>
+      </div></>}<NewsPopover /><button type="button" className="mobile-avatar mobile-account-trigger" aria-label="Abrir Conta" onClick={() => onTabChange("account")}><span className="avatar" aria-hidden="true">{initials(user.name)}</span>Conta<ChevronDown size={14} aria-hidden="true" /></button></div></header>
     <nav className="mobile-tabbar" aria-label="Seções da folha no celular">{tabs.map(({value, label, Icon}) => <button key={value} aria-pressed={activeTab === value} onClick={() => onTabChange(value)}><Icon size={22} aria-hidden="true" /><span>{label}</span></button>)}</nav>
     <input ref={fileRef} type="file" accept=".json,application/json" aria-label="Restaurar cópia de segurança" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) onImportBackup(file); event.target.value = ""; }} />
   </>;

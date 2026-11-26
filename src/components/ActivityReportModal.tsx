@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Check, ClipboardCopy, ExternalLink, X } from "lucide-react";
+import { ClipboardCopy, ExternalLink, X } from "lucide-react";
 import type { Activity, FormReport, UserProfile } from "@/types";
 import {
   ACTIVITY_FORM_URL, FORM_ACTIVITY_TYPES, FORM_GROUPS, FORM_ROLES,
@@ -124,13 +124,12 @@ export function ActivityReportModal({ activity, user, googleEmail, onClose, onEd
     const url = persist("keep");
     if (!url) return;
     setPreparedUrl(url);
-    const tab = window.open("about:blank", "_blank");
+    const tab = window.open(url, "_blank");
     if (!tab) {
       setError("O navegador bloqueou a nova aba. Use o link abaixo para abrir o Forms.");
       return;
     }
     tab.opener = null;
-    tab.location.replace(url);
     setMessage("Confira os dados no Forms, resolva o CAPTCHA e envie.");
   }
 
@@ -264,9 +263,8 @@ export function ActivityReportModal({ activity, user, googleEmail, onClose, onEd
             <input type="checkbox" checked={state === "Enviado" || state === "Revisar envio"}
               onChange={(event) => toggleSent(event.target.checked)} />
             <span>{state === "Revisar envio" ? "Revisar envio" : "Já enviei"}</span>
-            {state === "Enviado" && <Check size={16} aria-hidden="true" />}
           </label>
-          <span className="fm-status">{state}</span>
+          {state === "Revisar envio" && <span className="fm-status">Confira os dados antes de enviar novamente.</span>}
           <div className="fm-actions">
             <button className="secondary-button fm-cancel" type="button" onClick={onClose}>Cancelar</button>
             <button className="primary-button" type="submit">

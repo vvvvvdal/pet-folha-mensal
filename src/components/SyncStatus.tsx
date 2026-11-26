@@ -30,7 +30,7 @@ export function SyncStatus({ sync }: { sync: Pick<DriveSync, "status" | "pending
     return (
       <span className="sync-status" data-state="reauth">
         <span className="sync-status-text">Cópia no Drive parada</span>
-        <a className="secondary-button sync-reconnect" href={GOOGLE_LOGIN_URL}>Reconectar ao Google</a>
+        <a className="secondary-button sync-reconnect" href={GOOGLE_LOGIN_URL} aria-label="Reconectar ao Google">Reconectar<span className="sync-reconnect-suffix"> ao Google</span></a>
       </span>
     );
 
@@ -43,10 +43,14 @@ export function SyncStatus({ sync }: { sync: Pick<DriveSync, "status" | "pending
     idle: { icon: <CloudCheck size={18} aria-hidden="true" />, text: lastSynced ? `Salvo no Drive · ${relative(lastSynced, now)}` : "Google Drive conectado" },
   };
   const { icon, text } = labels[status] ?? labels.idle;
+  const short = status === "saved" || status === "idle" ? "Drive" :
+    status === "syncing" || status === "pending" ? "Enviando" :
+    status === "offline" ? "Offline" : "Falha";
   return (
     <span className="sync-status" data-state={status} role="status" title={status === "error" ? sync.error : undefined}>
       {icon}
       <span className="sync-status-text">{text}</span>
+      <span className="sync-status-short" aria-hidden="true">{short}</span>
       {status === "error" && (
         <button type="button" className="sync-retry" aria-label="Tentar enviar de novo" onClick={() => void sync.flush()}>
           <RefreshCw size={16} aria-hidden="true" />

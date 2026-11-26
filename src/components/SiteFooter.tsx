@@ -8,11 +8,13 @@ export function SiteFooter({
   onHelp,
   onFeedback,
   onNews,
+  onBlankSheet,
 }: {
   compact?: boolean;
   onHelp: () => void;
   onFeedback: () => void;
   onNews?: () => void;
+  onBlankSheet?: () => void;
 }) {
   return (
     <footer className="site-footer screen-only compact">
@@ -38,7 +40,7 @@ export function SiteFooter({
           </p>
           <nav className="footer-utilities" aria-label="Links do rodapé">
             <a href={repository} target="_blank" rel="noreferrer">Projeto</a>
-            <a href={template} target="_blank" rel="noreferrer">Modelo em branco</a>
+            {onBlankSheet ? <button type="button" onClick={onBlankSheet}>Modelo em branco</button> : <a href={template} target="_blank" rel="noreferrer">Modelo em branco</a>}
             {onNews && <button onClick={onNews}>Novidades</button>}
             <button onClick={onHelp}>Ajuda</button>
             <button onClick={onFeedback}>Avaliar</button>

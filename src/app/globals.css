@@ -2615,7 +2615,6 @@ select optgroup {
 .fm-message,.fm-body > .operation-notice { margin-top: 16px; font-size: 14px; }
 .activity-entry-fields { display: grid; gap: 14px; }
 .activity-entry-actions .primary-button { width: 100%; }
-.mobile-activity-entry { display: flex; justify-content: flex-end; }
 .pair-fields { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .activity-form .field textarea { min-height: 84px; }
 .entry-template .field-hint { font-size: 14px; font-weight: 400; }
@@ -2689,7 +2688,6 @@ select optgroup {
   .workspace-overview .summary-total strong { font-size: 24px; }
   .workspace-overview .summary-progress { display: none; }
   .frequency-workbench { display: flex; flex-direction: column; gap: 16px; }
-  .mobile-activity-entry { order: -1; }
   .record-cards { display: block; }
   .records-table { display: none; }
   .records-empty { padding-inline: 0; }
@@ -2719,7 +2717,10 @@ select optgroup {
   .fm-actions .primary-button { flex: 1; }
   .fm-cancel { display: none; }
   .fm-status { margin-right: auto; }
-  .activity-entry .time-fields { grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto; }
+  .activity-entry .time-fields { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .activity-entry .time-fields .hours-preview { grid-column: 1 / -1; justify-self: start; }
+  .fm-body .pair-fields, .fm-grid { grid-template-columns: minmax(0,1fr); }
+  .fm-head { padding-block: 12px; }
 }
 .activity-fields .hours-preview,
 .activity-entry .hours-preview,

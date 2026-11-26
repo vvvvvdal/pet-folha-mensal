@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Activity, ModalityType, ActivityTemplate } from "@/types";
 import {
@@ -32,6 +33,7 @@ interface ActivityFormProps {
   templates?: ActivityTemplate[];
   monthKey?: string;
   onDirtyChange?: (dirty: boolean) => void;
+  mobileActionSlot?: HTMLDivElement | null;
 }
 
 export function ActivityForm({
@@ -41,6 +43,7 @@ export function ActivityForm({
   templates = [],
   monthKey = getCurrentMonth(),
   onDirtyChange,
+  mobileActionSlot,
 }: ActivityFormProps) {
   const [date, setDate] = useState(() => getDefaultActivityDate(monthKey));
   const [start, setStart] = useState("");
@@ -181,7 +184,7 @@ export function ActivityForm({
       className="hours-preview"
       title="Cada hora do relógio iniciada conta. Ex.: 13h30 às 17h30 = 5h."
     >
-      <span>Horas PET</span>
+      <span>Horas</span>
       <strong>{hours}h</strong>
     </div>
   );
@@ -220,10 +223,14 @@ export function ActivityForm({
     );
 
   return (
-    <div className="mobile-activity-entry">
-      <button id="add-activity-trigger" type="button" className="primary-button" onClick={() => setDialogOpen(true)}>
-        <Plus size={18} aria-hidden="true" /> {hasDraft ? "Continuar atividade" : "Adicionar atividade"}
-      </button>
+    <>
+      {mobileActionSlot && createPortal(
+        <button id="add-activity-trigger" type="button" className="primary-button" aria-label={hasDraft ? "Continuar atividade" : "Adicionar atividade"} onClick={() => setDialogOpen(true)}>
+          <Plus size={18} aria-hidden="true" />
+          {hasDraft ? "Continuar" : "Adicionar"}
+        </button>,
+        mobileActionSlot,
+      )}
       <Modal isOpen={dialogOpen} onClose={() => setDialogOpen(false)} label="Adicionar atividade" variant="editor">
         <section id="nova-atividade" className="new-activity-dialog">
           <form onSubmit={submit} className="editor-panel activity-entry">
@@ -239,10 +246,8 @@ export function ActivityForm({
             <div className="editor-body editor-fields">
               {templateField}
               {descriptionField}
-              <div className="pair-fields">
-                {dateField}
-                {modalityField}
-              </div>
+              {dateField}
+              {modalityField}
               <div className="time-fields">
                 {timeField("activity-start", "Entrada", start, setStart)}
                 {timeField("activity-end", "Saída", end, setEnd)}
@@ -251,16 +256,13 @@ export function ActivityForm({
               {hours > 0 && <p className="pet-hours-explained">Entram <strong>{hours} {hours === 1 ? "hora" : "horas"}</strong> na folha. A hora iniciada conta inteira.</p>}
               {errorMessage}
             </div>
-            <footer className="editor-foot">
-              <button type="button" className="secondary-button" onClick={() => setDialogOpen(false)}>Voltar à lista</button>
-              <button type="submit" className="primary-button">
-                <Plus size={18} aria-hidden="true" />
-                Adicionar atividade
-              </button>
+            <footer className="editor-foot activity-editor-actions">
+              <button type="button" className="secondary-button" aria-label="Voltar à lista" onClick={() => setDialogOpen(false)}>Voltar</button>
+              <button type="submit" className="primary-button" aria-label="Adicionar atividade">Adicionar</button>
             </footer>
           </form>
         </section>
       </Modal>
-    </div>
+    </>
   );
 }

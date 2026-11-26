@@ -11,11 +11,14 @@ const UPLOAD = "https://www.googleapis.com/upload/drive/v3";
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const MULTIPART_LIMIT = 5 * 1024 * 1024;
 const STATE_KEY = "pet_folha_drive_sync_v1";
+const PDF_IDS_KEY = "pet_folha_pdf_ids_v1";
+const pdfUploads = new Set<string>();
 
 export interface MonthSyncState {
   fileId?: string;
   remoteModified?: string;
   dirty?: boolean;
+  editRevision?: string;
   syncedAt?: string;
 }
 interface AccountState {
@@ -34,6 +37,12 @@ export class DriveConflictError extends Error {
   constructor(public monthKey: string, public remote: RemoteMonth) {
     super(`${getMonthYearLabel(monthKey)} mudou em outro aparelho.`);
     this.name = "DriveConflictError";
+  }
+}
+
+class DriveRequestError extends Error {
+  constructor(public status: number) {
+    super(`O Google Drive recusou a operação (${status}).`);
   }
 }
 
@@ -61,7 +70,7 @@ function setMonth(sub: string, monthKey: string, patch: MonthSyncState) {
 }
 
 export function markMonthDirty(sub: string, monthKey: string) {
-  setMonth(sub, monthKey, { dirty: true });
+  setMonth(sub, monthKey, { dirty: true, editRevision: crypto.randomUUID() });
 }
 /** Months with local data that were never synced are sent (or reported as conflicts), never overwritten. */
 export function trackUnsyncedMonths(sub: string, months: string[]) {
@@ -89,7 +98,7 @@ async function drive(path: string, init: RequestInit = {}, base = API): Promise<
     headers: { ...(init.headers as Record<string, string>), Authorization: `Bearer ${token}` },
   });
   if (response.status === 401) throw new GoogleAuthError();
-  if (!response.ok) throw new Error(`O Google Drive recusou a operação (${response.status}).`);
+  if (!response.ok) throw new DriveRequestError(response.status);
   return response;
 }
 
@@ -119,6 +128,99 @@ async function ensureFolder(sub: string): Promise<string> {
 export function driveFolderUrl(sub: string): string {
   const folderId = account(sub).folderId;
   return folderId ? `https://drive.google.com/drive/folders/${folderId}` : "https://drive.google.com/drive/my-drive";
+}
+
+/** Save a generated PDF separately from the editable monthly backup. */
+export async function saveSheetPdf(
+  sub: string,
+  monthKey: string,
+  pdf: Blob,
+  stillCurrent: () => boolean,
+): Promise<{ id: string; url: string }> {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey) || pdf.type !== "application/pdf") {
+    throw new Error("Não foi possível identificar a folha para salvar no Drive.");
+  }
+  const lock = `${sub}:${monthKey}`;
+  if (pdfUploads.has(lock)) throw new Error("O PDF deste mês já está sendo salvo.");
+  pdfUploads.add(lock);
+  try {
+    const folderId = await ensureFolder(sub);
+    const query = `${quote(folderId)} in parents and appProperties has { key='petFolha' and value='sheetPdf' } and appProperties has { key='monthKey' and value=${quote(monthKey)} } and trashed=false`;
+    const found = await drive(`/files?q=${encodeURIComponent(query)}&fields=files(id)&pageSize=100`)
+      .then((response) => response.json());
+    if (found.files?.length > 1) {
+      throw new Error("Há mais de um PDF deste mês na pasta PET Folha. Confira os arquivos no Drive antes de salvar novamente.");
+    }
+
+    const remote = (await listRemoteMonths()).find((month) => month.monthKey === monthKey);
+    const state = account(sub).months[monthKey];
+    if (state?.dirty || (remote && (remote.fileId !== state?.fileId || remote.modifiedTime !== state.remoteModified)) || (!remote && state?.fileId)) {
+      throw new Error("A folha precisa ser sincronizada antes de salvar o PDF. Confira o estado do Drive e tente novamente.");
+    }
+    if (!stillCurrent()) throw new Error("A folha mudou durante o preparo. Gere o PDF novamente.");
+
+    let reserved: Record<string, string>;
+    try {
+      reserved = JSON.parse(localStorage.getItem(PDF_IDS_KEY) ?? "{}");
+      if (!reserved || typeof reserved !== "object" || Array.isArray(reserved)) reserved = {};
+    } catch {
+      reserved = {};
+    }
+    let fileId: string | undefined = found.files?.[0]?.id;
+    const existing = Boolean(fileId);
+    if (!fileId) {
+      fileId = reserved[lock];
+      if (!fileId) {
+        const generated = await drive("/files/generateIds?count=1&space=drive&type=files")
+          .then((response) => response.json());
+        fileId = generated.ids?.[0];
+        if (!fileId) throw new Error("O Google Drive não reservou o arquivo. Tente novamente.");
+        reserved[lock] = fileId;
+        try {
+          localStorage.setItem(PDF_IDS_KEY, JSON.stringify(reserved));
+        } catch {
+          throw new Error("Não foi possível preparar o salvamento neste aparelho. Tente novamente.");
+        }
+      }
+    }
+    if (!stillCurrent() || account(sub).months[monthKey]?.dirty) {
+      throw new Error("A folha mudou durante o preparo. Aguarde a sincronização e gere o PDF novamente.");
+    }
+
+    const metadata = existing
+      ? { appProperties: { petFolha: "sheetPdf", monthKey } }
+      : { id: fileId, name: `PET Folha - ${monthKey}.pdf`, mimeType: "application/pdf", parents: [folderId], appProperties: { petFolha: "sheetPdf", monthKey } };
+    const target = `/files${existing ? `/${encodeURIComponent(fileId)}` : ""}?uploadType=resumable&fields=id`;
+    const startUpload = (path: string, method: "POST" | "PATCH", data: object) => drive(path, {
+      method,
+      headers: { "Content-Type": "application/json; charset=UTF-8", "X-Upload-Content-Type": "application/pdf", "X-Upload-Content-Length": String(pdf.size) },
+      body: JSON.stringify(data),
+    }, UPLOAD);
+    let response: Response;
+    try {
+      response = await startUpload(target, existing ? "PATCH" : "POST", metadata);
+    } catch (error) {
+      if (existing || !(error instanceof DriveRequestError) || error.status !== 409) throw error;
+      const saved = await drive(`/files/${encodeURIComponent(fileId)}?fields=id,trashed,parents,appProperties`)
+        .then((result) => result.json());
+      if (saved.trashed || !saved.parents?.includes(folderId) || saved.appProperties?.petFolha !== "sheetPdf" || saved.appProperties?.monthKey !== monthKey) throw error;
+      if (!stillCurrent() || account(sub).months[monthKey]?.dirty) {
+        throw new Error("A folha mudou durante o preparo. Aguarde a sincronização e gere o PDF novamente.");
+      }
+      response = await startUpload(`/files/${encodeURIComponent(fileId)}?uploadType=resumable&fields=id`, "PATCH", { appProperties: { petFolha: "sheetPdf", monthKey } });
+    }
+    const location = response.headers.get("Location");
+    if (!location) throw new Error("O Google Drive não abriu o envio do PDF.");
+    if (!stillCurrent() || account(sub).months[monthKey]?.dirty)
+      throw new Error("A folha mudou durante o preparo. Gere o PDF novamente.");
+    const sent = await fetch(location, { method: "PUT", headers: { "Content-Type": "application/pdf" }, body: pdf });
+    if (!sent.ok) throw new Error(`O envio do PDF para o Google Drive falhou (${sent.status}). Tente novamente.`);
+    const saved = await sent.json();
+    if (!saved.id) throw new Error("O Google Drive não confirmou o salvamento do PDF.");
+    return { id: saved.id, url: `https://drive.google.com/file/d/${encodeURIComponent(saved.id)}/view` };
+  } finally {
+    pdfUploads.delete(lock);
+  }
 }
 
 export async function listRemoteMonths(): Promise<RemoteMonth[]> {
@@ -207,6 +309,7 @@ export async function pushMonth(sub: string, user: UserProfile, monthKey: string
     fileId = current?.fileId;
   }
   if (current && !force && current.modifiedTime !== state.remoteModified) throw new DriveConflictError(monthKey, current);
+  const editRevision = account(sub).months[monthKey]?.editRevision;
   const json = await createMonthBackup(user, monthKey);
   const metadata: Record<string, unknown> = {
     name: fileName(user, monthKey),
@@ -215,7 +318,8 @@ export async function pushMonth(sub: string, user: UserProfile, monthKey: string
   };
   if (!fileId) metadata.parents = [folderId];
   const saved = await upload(fileId ? "PATCH" : "POST", fileId, metadata, json);
-  setMonth(sub, monthKey, { fileId: saved.id, remoteModified: saved.modifiedTime, dirty: false, syncedAt: new Date().toISOString() });
+  const changedDuringUpload = account(sub).months[monthKey]?.editRevision !== editRevision;
+  setMonth(sub, monthKey, { fileId: saved.id, remoteModified: saved.modifiedTime, dirty: changedDuringUpload, syncedAt: new Date().toISOString() });
 }
 
 /** Downloads one month from Drive and writes it into this browser. */

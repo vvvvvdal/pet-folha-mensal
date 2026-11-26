@@ -147,10 +147,12 @@ html[data-theme="light"] { --primary-soft:#e6f3ec; --info-soft:#e3f1f6; --warnin
 .dashboard-shell > .site-footer {grid-row:3;align-self:end}
 @media (max-width:899px) {.workspace-overview .workspace-month {flex:none;min-height:54px;height:auto;align-self:stretch;width:100%}}
 @media (max-width:899px) {.workspace-overview .workspace-month {max-width:100%}.dashboard-shell .app-topbar {flex:none}}
+.mobile-add-slot {display:none}
 @media (max-width:899px) {
- .dashboard-shell {padding-bottom:152px}
- .mobile-activity-entry #add-activity-trigger {position:fixed;left:16px;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:25;width:calc(100% - 32px);min-height:56px;box-shadow:var(--shadow-float)}
- .dashboard-shell .pet-toast {bottom:160px!important}
+ .workspace-title-row {display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+ .workspace-title-row > div:first-child {min-width:0;overflow-wrap:anywhere}
+ .mobile-add-slot {display:block;flex-shrink:0}
+ .mobile-add-slot .primary-button {min-height:44px;gap:6px;padding-inline:12px;white-space:nowrap}
 }
 .pet-toast button {text-decoration:underline;text-underline-offset:4px;font-weight:700;min-height:44px;padding:8px}
 

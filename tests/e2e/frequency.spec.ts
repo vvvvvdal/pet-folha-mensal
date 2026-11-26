@@ -28,6 +28,36 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date("2026-11-02T15:00:00Z") });
 });
 
+async function downloadSheet(page: Page, trigger = page.getByRole("button", { name: "Baixar PDF", exact: true })) {
+  await trigger.click();
+  const result = page.getByRole("dialog", { name: "PDF pronto" });
+  const download = page.waitForEvent("download");
+  await result.getByRole("link", { name: "Baixar PDF", exact: true }).click();
+  const bytes = await readFile((await (await download).path())!);
+  expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+  await result.getByRole("button", { name: "Fechar" }).click();
+  return bytes;
+}
+
+async function pdfText(bytes: Buffer) {
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const task = getDocument({ data: new Uint8Array(bytes), standardFontDataUrl: `${process.cwd()}/node_modules/pdfjs-dist/standard_fonts/` });
+  const pdf = await task.promise;
+  try {
+    const pages = [];
+    for (let number = 1; number <= pdf.numPages; number++) {
+      const sheet = await pdf.getPage(number);
+      const viewport = sheet.getViewport({ scale: 1 });
+      expect(viewport.width).toBeGreaterThan(viewport.height);
+      const content = await sheet.getTextContent();
+      pages.push(content.items.map((item) => "str" in item ? item.str : "").join(" "));
+    }
+    return pages;
+  } finally {
+    await task.destroy();
+  }
+}
+
 async function create(page: Page) {
   await page.goto("/");
   await expect(page.locator(".entry-page")).toBeVisible();
@@ -238,30 +268,12 @@ test("lançar, editar, exportar, restaurar, imprimir e excluir", async ({
   await page
     .getByRole("button", { name: "Folha", exact: true })
     .click();
-  await expect(page.locator(".sheet-stage .official-sheet")).toContainText(
+  await expect(page.locator(".sheet-preview .official-sheet")).toContainText(
     "TOTAL: 6 horas",
   );
-  await page.evaluate(() => {
-    window.print = () => {
-      document.documentElement.dataset.printOpened = "true";
-    };
-  });
-  await page
-    .getByRole("button", { name: "Imprimir ou salvar PDF", exact: true })
-    .click();
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-print-opened",
-    "true",
-  );
-  if (testInfo.project.name === "desktop") {
-    await page.emulateMedia({ media: "print" });
-    await page.pdf({
-      path: testInfo.outputPath("folha.pdf"),
-      preferCSSPageSize: true,
-      printBackground: true,
-    });
-    await page.emulateMedia({ media: "screen" });
-  }
+  const pdf = await downloadSheet(page);
+  if (testInfo.project.name === "desktop")
+    expect((await pdfText(pdf)).join(" ")).toContain("TOTAL: 6 horas");
   await page
     .getByRole("button", { name: "Frequência", exact: true })
     .click();
@@ -340,6 +352,35 @@ test("busca e modalidade filtram os registros junto com as pendências", async (
   await expect(search).toBeFocused();
   await expect(modality).toHaveValue("");
   await expect(editButtons).toHaveCount(3);
+});
+
+test("lembrete mensal mantém a pendência e avança após confirmar o envio", async ({ page }) => {
+  await page.addInitScript(({ keys, user, activity }) => {
+    if (localStorage.getItem(keys.profiles)) return;
+    localStorage.setItem(keys.profiles, JSON.stringify([user]));
+    localStorage.setItem(keys.active, user.id);
+    localStorage.setItem(keys.october, JSON.stringify([activity]));
+  }, { keys, user, activity });
+  // 1º de novembro de 2026 é domingo e o dia 2 é feriado.
+  await page.goto("/");
+  await expect(page.getByText("Você enviou a folha de outubro à coordenação?")).toHaveCount(0);
+  await page.clock.setSystemTime(new Date("2026-11-03T13:00:00Z"));
+  await page.reload();
+  const reminder = page.locator(".submission-reminder");
+  await expect(reminder).toContainText("Você enviou a folha de outubro à coordenação?");
+  await reminder.getByRole("button", { name: "Ainda não" }).click();
+  await expect(page.getByRole("heading", { name: "Folha", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-10");
+  await page.reload();
+  await expect(reminder).toContainText("Folha de outubro pendente");
+  await reminder.getByRole("button", { name: "Marcar como enviada" }).click();
+  await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-11");
+  await expect(reminder).toHaveCount(0);
+  await page.getByRole("button", { name: "Folha", exact: true }).click();
+  await page.getByLabel("Mês da folha").selectOption("2026-10");
+  await page.getByRole("button", { name: "Desfazer confirmação" }).click();
+  await expect(reminder).toContainText("Folha de outubro pendente");
 });
 
 test("calendário usa o mesmo ícone e a cor da data na criação e na edição", async ({ page }) => {
@@ -526,37 +567,15 @@ test("folha extensa pagina e mantém assinaturas somente no final", async ({
   await page
     .getByRole("button", { name: "Folha", exact: true })
     .click();
-  await page.evaluate(() => {
-    window.print = () => {
-      document.documentElement.dataset.printOpened = "true";
-    };
-  });
-  await page
-    .getByRole("button", { name: "Imprimir ou salvar PDF", exact: true })
-    .click();
-  await expect(page.locator("html")).toHaveAttribute("data-print-opened", "true");
-  const bytes = await page.pdf({ preferCSSPageSize: true });
-  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const task = getDocument({ data: new Uint8Array(bytes) });
-  const pdf = await task.promise;
-  try {
-    expect(pdf.numPages).toBeGreaterThan(1);
-    for (let number = 1; number <= pdf.numPages; number++) {
-      const sheet = await pdf.getPage(number);
-      const content = await sheet.getTextContent();
-      const text = content.items.map((item) => "str" in item ? item.str : "").join(" ");
-      if (number === pdf.numPages) {
-        expect(text).toContain("Assinatura do Participante");
-        expect(text).toContain("Assinatura da Supervisão do GAT");
-        expect(text).toContain("TOTAL: 40 horas");
-      } else {
-        expect(text).not.toContain("Assinatura do Participante");
-        expect(text).not.toContain("Assinatura da Supervisão do GAT");
-      }
-    }
-  } finally {
-    await task.destroy();
+  const pages = await pdfText(await downloadSheet(page));
+  expect(pages.length).toBeGreaterThan(1);
+  for (const text of pages.slice(0, -1)) {
+    expect(text).toContain("Atividade");
+    expect(text).not.toContain("Assinatura do Participante");
   }
+  expect(pages.at(-1)).toContain("Assinatura do Participante");
+  expect(pages.at(-1)).toContain("Assinatura da Supervisão do GAT");
+  expect(pages.at(-1)).toContain("TOTAL: 40 horas");
   expect(
     await page.evaluate(() => {
       const id = localStorage.getItem("pet_folha_active_profile_id_v2");
@@ -713,10 +732,10 @@ async function restoreCopy(page: Page, data: object, inputLabel = "Restaurar có
   });
   const dialog = page.getByRole("dialog", { name: "Restaurar esta cópia?" });
   await dialog.getByRole("button", { name: "Restaurar cópia", exact: true }).click();
-  await expect(page.getByText("Lendo e conferindo a cópia…", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Gravando registros neste navegador", { exact: true })).toHaveCount(0);
 }
 
-test("comprovantes opcionais persistem por mês e perfil e entram nas duas impressões", async ({ page }, testInfo) => {
+test("comprovantes opcionais persistem por mês e perfil e entram nos PDFs", async ({ page }) => {
   await create(page);
   await openSheet(page);
   await expect(proofs(page)).toContainText("Nenhum comprovante neste mês");
@@ -739,31 +758,21 @@ test("comprovantes opcionais persistem por mês e perfil e entram nas duas impre
   await page.reload();
   await openSheet(page);
   await expect(proofs(page).getByRole("button", { name: "Visualizar foto.png em outra aba" })).toBeVisible();
-  await page.evaluate(() => {
-    window.print = () => {
-      const pages = [...document.querySelectorAll<HTMLImageElement>(".print-attachment-page img")];
-      document.documentElement.dataset.printPages = pages.map(({ naturalWidth, naturalHeight }) =>
-        naturalWidth === naturalHeight ? "quadrada" : naturalWidth > naturalHeight ? "paisagem" : "retrato"
-      ).join(",") || "sem-comprovantes";
-    };
-  });
   await page.getByRole("button", { name: "Folha", exact: true }).click();
-  const print = () => page.getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
-  await print();
-  await expect(page.locator("html")).toHaveAttribute("data-print-pages", "quadrada,paisagem,retrato");
-  if (testInfo.project.name === "desktop") {
-    const pdf = await page.pdf({ path: testInfo.outputPath("folha-com-comprovantes.pdf"), preferCSSPageSize: true });
-    expect(pdf.toString("latin1").match(/\/Type \/Page\b/g)).toHaveLength(4);
-  }
+  const filled = await pdfText(await downloadSheet(page));
+  expect(filled).toHaveLength(4);
+  expect(filled.slice(1).every((text) => text.includes("Comprovantes"))).toBe(true);
 
-  await page.getByRole("button", { name: "Modelo em branco", exact: true }).click();
+  await page.getByRole("group", { name: "Tipo de folha" }).getByRole("button", { name: "Modelo em branco", exact: true }).click();
   await expect(proofs(page)).toHaveCount(0);
-  await page.getByRole("button", { name: "Imprimir modelo", exact: true }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-print-pages", "sem-comprovantes");
+  const blank = await pdfText(await downloadSheet(page));
+  expect(blank).toHaveLength(1);
+  expect(blank[0]).not.toContain("Comprovantes");
   await openExit(page);
-  await page.getByRole("dialog", { name: "Antes de sair" })
-    .getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-print-pages", "quadrada,paisagem,retrato");
+  const fromExit = await pdfText(await downloadSheet(page,
+    page.getByRole("dialog", { name: "Antes de sair" }).getByRole("button", { name: "Baixar PDF", exact: true }),
+  ));
+  expect(fromExit).toEqual(filled);
   await page.getByRole("button", { name: "Continuar editando", exact: true }).click();
 
   await openSheet(page);
@@ -835,7 +844,7 @@ test("cópias com comprovantes levam os originais e a restauração reverte falh
 
   const invalid = { ...data, attachments: [{ ...data.attachments[0], activityIds: ["id-ausente"] }] };
   await page.getByLabel("Restaurar cópia de segurança", { exact: true }).setInputFiles({
-    name: "copia.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(invalid)),
+    name: "copia-com-vinculo-invalido.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(invalid)),
   });
   await expect(page.getByText("A cópia contém vínculos de comprovantes inválidos.")).toBeVisible();
   await expect(proofs(page).getByRole("list", { name: "Atividades vinculadas" })).toContainText("Atividade sintética");
@@ -936,28 +945,17 @@ test("comprovantes agrupados repetem as páginas e mantêm vínculos ao editar",
   await review.getByRole("button", { name: "Salvar comprovantes" }).click();
   await expect(region).toContainText("5 de 60 páginas");
 
-  await page.evaluate(() => { window.print = () => { document.body.dataset.printed = "true"; }; });
   await page.getByRole("button", { name: "Folha", exact: true }).click();
-  await page.getByRole("button", { name: "Imprimir ou salvar PDF", exact: true }).click();
-  await expect(page.locator("body")).toHaveAttribute("data-printed", "true");
-  const pages = page.locator(".print-attachment-page");
-  await expect(pages.locator("h2")).toHaveText([
-    "Comprovantes · Atividade 1",
-    "Comprovantes · Atividade 2",
-    "Comprovantes · Atividade 2",
-    "Comprovantes · Atividade 2",
-    "Comprovantes · Sem atividade vinculada",
-  ]);
-  await expect(pages.nth(0)).toContainText("02/11/2026 · Chegada 14:00 · Saída 15:30");
-  await expect(pages.nth(2)).toContainText("Página 1 de 2");
-  await expect(pages.nth(3)).toContainText("Página 2 de 2");
-  const imageUrls = await pages.locator("img").evaluateAll((images) =>
-    images.map((image) => (image as HTMLImageElement).src));
-  expect(imageUrls[0]).toBe(imageUrls[1]);
+  const pages = await pdfText(await downloadSheet(page));
+  const proofsInPdf = pages.slice(-5);
+  expect(pages.at(-6)).toContain("Assinatura do Participante");
+  expect(proofsInPdf[0]).toContain("Comprovantes · Atividade 1");
+  expect(proofsInPdf[0]).toContain("02/11/2026 · Chegada 14:00 · Saída 15:30");
+  for (const text of proofsInPdf.slice(1, 4)) expect(text).toContain("Comprovantes · Atividade 2");
+  expect(proofsInPdf[2]).toContain("Página 1 de 2");
+  expect(proofsInPdf[3]).toContain("Página 2 de 2");
+  expect(proofsInPdf[4]).toContain("Comprovantes · Sem atividade vinculada");
   if (testInfo.project.name === "desktop") {
-    const pdf = await page.pdf({ path: testInfo.outputPath("folha-com-vinculos.pdf"), preferCSSPageSize: true });
-    // Two official pages, including the one with signatures, followed by five proof pages.
-    expect(pdf.toString("latin1").match(/\/Type \/Page\b/g)).toHaveLength(7);
     await openSheet(page);
     for (const width of [360, 768, 1440]) {
       await page.setViewportSize({ width, height: 1000 });

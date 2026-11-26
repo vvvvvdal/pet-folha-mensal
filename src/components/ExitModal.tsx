@@ -73,11 +73,10 @@ function CloudExit({ isOpen, onClose, onDownloadPdf, userName, cloud }: ExitModa
             <FileText size={24} aria-hidden="true" />
             <div>
               <h3>Folha para assinatura (opcional)</h3>
-              <p>Quando precisar, salve o PDF em A4 na horizontal para assinar.</p>
             </div>
             <button className="secondary-button" disabled={Boolean(busy)} aria-busy={busy === "pdf"} onClick={() => void run("pdf")}>
               {busy === "pdf" && <InlineSpinner size={16} />}
-              {busy === "pdf" ? "Preparando PDF…" : "Imprimir ou salvar PDF"}
+              {busy === "pdf" ? "Preparando PDF…" : "Baixar PDF"}
             </button>
           </div>
           <label className="exit-erase">
@@ -167,12 +166,11 @@ function Conclusion({
           <FileText size={24} aria-hidden="true" />
           <div>
             <h3>Folha para assinatura (opcional)</h3>
-            <p>Quando precisar, salve o PDF em A4 na horizontal para assinar.</p>
-            {pdfTriggered && <p role="status">Impressão aberta. Salve o PDF ou imprima na janela do navegador.</p>}
+            {pdfTriggered && <p role="status">PDF pronto para baixar.</p>}
           </div>
           <button className="secondary-button" disabled={busy} aria-busy={busyKind === "pdf"} onClick={() => void download("pdf")}>
             {busyKind === "pdf" && <InlineSpinner size={16} />}
-            {busyKind === "pdf" ? "Preparando PDF…" : "Imprimir ou salvar PDF"}
+            {busyKind === "pdf" ? "Preparando PDF…" : "Baixar PDF"}
           </button>
         </div>
         {exitWarning && (

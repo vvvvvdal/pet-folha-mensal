@@ -258,11 +258,31 @@ export function getProfileMonths(profileId: string): string[] {
   return months.filter((month) => /^\d{4}-\d{2}$/.test(month)).sort();
 }
 
+const submissionKey = (profileId: string, month: string) =>
+  `pet_folha_submission_v1_${profileId}_${month}`;
+
+export type SheetSubmission = "pending" | "sent";
+
+export function getSheetSubmission(profileId: string, month: string): SheetSubmission | undefined {
+  try {
+    const value = localStorage.getItem(submissionKey(profileId, month));
+    return value === "sent" || value === "pending" ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function setSheetSubmission(profileId: string, month: string, value: SheetSubmission): void {
+  localStorage.setItem(submissionKey(profileId, month), value);
+}
+
 /** Removes a profile and its monthly activities from this browser (sign-out on a shared device). */
 export function removeProfileFromDevice(profileId: string): void {
   if (typeof window === "undefined") return;
-  for (const month of getProfileMonths(profileId))
+  for (const month of getProfileMonths(profileId)) {
     localStorage.removeItem(`${ACTIVITIES_PREFIX}${profileId}_${month}`);
+    localStorage.removeItem(submissionKey(profileId, month));
+  }
   deleteUserProfile(profileId);
   if (localStorage.getItem(ACTIVE_PROFILE_ID_KEY) === profileId) setActiveProfileId(null);
 }
@@ -587,6 +607,7 @@ export function exportUserData(
     user: removeLegacyPin(user),
     monthKey,
     activities,
+    submission: getSheetSubmission(user.id, monthKey),
   };
   return JSON.stringify(data, null, 2);
 }
@@ -606,6 +627,7 @@ export type RestoreResult = {
   activities?: Activity[];
   attachmentData?: unknown[];
   hasAttachmentLinks?: boolean;
+  submission?: SheetSubmission;
   error?: string;
   code: RestoreCode;
 };
@@ -717,6 +739,7 @@ export function inspectUserData(jsonStr: string): RestoreResult {
     user,
     monthKey: data.monthKey,
     activities: sortActivitiesChronologically(activities),
+    ...(data.submission === "sent" || data.submission === "pending" ? { submission: data.submission } : {}),
     ...(hasAttachments && { attachmentData: data.attachments }),
     ...(data.version === "1.3" && { hasAttachmentLinks: true }),
   };
@@ -737,7 +760,9 @@ export function applyUserData(
   if (typeof window === "undefined") return restoreFailure("STORAGE_FAILED");
   const { user, monthKey, activities } = result;
   const activityKey = `${ACTIVITIES_PREFIX}${user.id}_${monthKey}`;
+  const { submission } = result;
   const keys = [activityKey, PROFILES_KEY, ACTIVE_PROFILE_ID_KEY];
+  if (submission) keys.push(submissionKey(user.id, monthKey));
   const previous = new Map<string, string | null>();
   const written: Array<{ key: string; value: string }> = [];
   const rollback = () => {
@@ -783,6 +808,7 @@ export function applyUserData(
       JSON.stringify(updated),
       user.id,
     ];
+    if (submission) values.push(submission);
     for (let index = 0; index < keys.length; index++) {
       localStorage.setItem(keys[index], values[index]);
       written.push({ key: keys[index], value: values[index] });

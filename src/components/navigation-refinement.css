@@ -67,3 +67,43 @@ html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .d
 @media (min-width: 1200px) {
   .dashboard-shell { --sidebar-width: 304px; }
 }
+
+@media (max-width: 899px) {
+  .app-top-actions .mobile-account-trigger {
+    width: auto; min-height: 44px; padding: 4px 7px; gap: 5px;
+    align-items: center; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); color: var(--foreground); font-weight: 600;
+  }
+  .mobile-account-trigger .avatar { width: 25px; height: 25px; font-size: 11px; }
+  .mobile-account-trigger:hover { background: var(--surface-raised); }
+  .app-top-actions .sync-status:has(.sync-status-short) .sync-status-text {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .app-top-actions .sync-status { white-space: nowrap; }
+}
+@media (min-width: 900px) { .sync-status-short { display: none; } }
+@media (max-width: 380px) {
+  .dashboard-shell .app-topbar { gap: 8px; padding-inline: 12px; }
+  .app-topbar .app-top-actions { gap: 6px; }
+  .app-topbar .mobile-copy { gap: 5px; padding-inline: 7px; }
+  .app-topbar .mobile-copy > svg:first-child { display: none; }
+  .app-topbar .sync-reconnect { padding-inline: 7px; }
+  .app-topbar .sync-reconnect-suffix { display: none; }
+}
+
+.edit-delete-action { display: block; min-height: 44px; margin-top: 16px; }
+@media (max-width: 899px) {
+  .pet-dialog .activity-editor-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+  .pet-dialog .activity-editor-actions :is(.primary-button, .secondary-button) {
+    min-height: 48px;
+    min-width: 0;
+    margin: 0;
+    padding-inline: 10px;
+    justify-content: center;
+  }
+}

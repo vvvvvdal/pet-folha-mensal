@@ -17,6 +17,8 @@ import {
   setActiveProfileId,
   getActivitiesForMonth,
   saveActivitiesForMonth,
+  getSheetSubmission,
+  setSheetSubmission,
   loadSampleActivitiesForUser,
   inspectUserData,
   getRestoreDiagnostic,
@@ -32,12 +34,10 @@ import {
   linkedActivityIds,
   listAttachments,
   prepareAttachmentFiles,
-  prepareAttachmentPages,
   savePreparedAttachments,
   type Attachment,
 } from "@/lib/attachments";
 import { restoreWithAttachments } from "@/lib/attachment-backup";
-import { buildAttachmentPrintPages } from "@/lib/attachment-print";
 import {
   calcPetHours,
   getMonthYearLabel,
@@ -49,6 +49,7 @@ import {
   formatShortDate,
   getMonthName,
   getSubmissionDeadline,
+  getSubmissionPeriod,
 } from "@/lib/pet-calculator";
 import { formReportStatus } from "@/lib/form-report";
 import { SavedSheets } from "@/components/SavedSheets";
@@ -59,7 +60,6 @@ import { ProfileModal } from "@/components/ProfileModal";
 import { AdminModal } from "@/components/AdminModal";
 import { StatsGrid, useSummaryView } from "@/components/StatsGrid";
 import { ActivityForm } from "@/components/ActivityForm";
-import { ACTIVITY_FORM_URL } from "@/lib/form-report";
 import { ActivityReportModal } from "@/components/ActivityReportModal";
 import { ActivityTable } from "@/components/ActivityTable";
 import { AttachmentReviewModal } from "@/components/AttachmentReviewModal";
@@ -70,6 +70,8 @@ import {
   WorkspaceSkeleton,
 } from "@/components/LoadingStates";
 import { EditActivityModal } from "@/components/EditActivityModal";
+import { SheetPdfResult, type SheetPdfAction } from "@/components/SheetPdfResult";
+import { SheetPreview } from "@/components/SheetPreview";
 import { OfficialSheet } from "@/components/OfficialSheet";
 import { MonthlyAttachments } from "@/components/MonthlyAttachments";
 import { LandingPage } from "@/components/LandingPage";
@@ -80,6 +82,7 @@ import { HelpModal } from "@/components/Help";
 import {
   Calendar,
   CalendarDays,
+  CloudUpload,
   CircleAlert,
   CircleCheck,
   Download,
@@ -93,7 +96,7 @@ import { FirstEntry } from "@/components/FirstEntry";
 import { SyncStatus } from "@/components/SyncStatus";
 import { SyncConflictModal } from "@/components/SyncConflictModal";
 import { fetchGoogleSession, logoutGoogle, type GoogleLoginError, type GoogleSession } from "@/lib/google-session";
-import { driveFolderUrl, forgetAccountState, markMonthDirty } from "@/lib/drive-sync";
+import { driveFolderUrl, forgetAccountState, markMonthDirty, saveSheetPdf } from "@/lib/drive-sync";
 import { useDriveSync } from "@/lib/use-drive-sync";
 import { createMonthBackup, removeMonthAttachments } from "@/lib/month-backup";
 import { removeProfileFromDevice } from "@/lib/storage";
@@ -129,6 +132,7 @@ export default function Home() {
     "dashboard",
   );
   const [sheetsOpen, setSheetsOpen] = useState(false);
+  const [mobileActivitySlot, setMobileActivitySlot] = useState<HTMLDivElement | null>(null);
   const [showBlankTemplate, setShowBlankTemplate] = useState(false);
   const [reportingActivity, setReportingActivity] = useState<{
     profileId: string; monthKey: string; id: string;
@@ -138,10 +142,12 @@ export default function Home() {
   const [attachmentsBusy, setAttachmentsBusy] = useState(false);
   const [preparingPrint, setPreparingPrint] = useState(false);
   const printInProgress = useRef(false);
-  const printSheetRef = useRef<HTMLDivElement>(null);
-  const printActivitiesRef = useRef(activities);
-  const printAttachmentsRef = useRef<HTMLDivElement>(null);
-  const clearPrintAttachments = useRef<(() => void) | null>(null);
+  const pdfScope = useRef<object>(null);
+  const cachedPdf = useRef<{ scope: object; blank: boolean; file: File } | null>(null);
+  const [pdfResult, setPdfResult] = useState<{ file: File; action: SheetPdfAction } | null>(null);
+  const [savedPdf, setSavedPdf] = useState<{ month: string; sub: string; url: string } | null>(null);
+  const [period, setPeriod] = useState(() => getSubmissionPeriod());
+  const [, refreshSubmission] = useState(0);
   const [undoActivity, setUndoActivity] = useState<{ before: Activity[]; after: string; profileId: string; month: string } | null>(null);
   const [toastRevision, setToastRevision] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -208,7 +214,23 @@ export default function Home() {
     },
   });
   const activeProfileId = activeUser?.id;
-  useEffect(() => () => clearPrintAttachments.current?.(), [activeProfileId, monthKey, showBlankTemplate]);
+  useEffect(() => {
+    const refreshPeriod = () => setPeriod(getSubmissionPeriod());
+    window.addEventListener("focus", refreshPeriod);
+    const onStorage = () => refreshSubmission((revision) => revision + 1);
+    window.addEventListener("storage", onStorage);
+    const timer = window.setInterval(refreshPeriod, 60_000);
+    return () => {
+      window.removeEventListener("focus", refreshPeriod);
+      window.removeEventListener("storage", onStorage);
+      window.clearInterval(timer);
+    };
+  }, []);
+  useEffect(() => {
+    pdfScope.current = {};
+    cachedPdf.current = null;
+    return () => { pdfScope.current = null; };
+  }, [activeUser, monthKey, showBlankTemplate, activities, attachmentsRevision, syncSub]);
   // Proof counts for the activity list and the print review; the Comprovantes tab keeps its own copy.
   useEffect(() => {
     if (!activeProfileId) return;
@@ -219,7 +241,6 @@ export default function Home() {
       .catch(() => { if (current) setAttachmentState(null); });
     return () => { current = false; };
   }, [activeProfileId, monthKey, attachmentsRevision, formRevision]);
-  useEffect(() => { printActivitiesRef.current = activities; }, [activities]);
 
   // Estados Dinâmicos de Configuração (GATs, Funções e Templates)
   const [gats, setGats] = useState<Record<string, GATInfo>>({});
@@ -496,74 +517,68 @@ export default function Home() {
       setEditingActivity(null);
   };
 
-  const handlePrint = async (blank = showBlankTemplate): Promise<boolean> => {
-    const wrapper = printSheetRef.current;
-    const proofs = printAttachmentsRef.current;
-    if (!wrapper || !proofs || !activeUser || printInProgress.current || attachmentsBusy || importInProgress.current)
+  const exportSheet = async (action: SheetPdfAction | "drive", blank = showBlankTemplate): Promise<boolean> => {
+    const scope = pdfScope.current;
+    if (!scope || !activeUser || printInProgress.current || attachmentsBusy || importInProgress.current)
       return false;
+    if (action === "drive" && (!syncUser || !syncSub || blank)) return false;
 
+    const stillCurrent = () => pdfScope.current === scope;
     printInProgress.current = true;
     setPreparingPrint(true);
-    clearPrintAttachments.current?.();
     try {
-      const scope = { profileId: activeUser.id, monthKey };
-      const stillCurrent = () =>
-        wrapper.isConnected &&
-        printActivitiesRef.current === activities &&
-        wrapper.dataset.profileId === scope.profileId &&
-        wrapper.dataset.month === scope.monthKey &&
-        wrapper.dataset.blank === String(blank);
-
-      if (!stillCurrent()) return false;
-
-      if (!blank) {
-        const attachments = await listAttachments(scope).catch(() => null);
-        if (!attachments) {
-          const proceed = await confirm({
-            title: "Imprimir só a folha?",
-            message: "O navegador não conseguiu ler os comprovantes deste mês. Você pode tentar novamente ou imprimir apenas a folha oficial.",
-            confirmText: "Imprimir só a folha",
-            cancelText: "Voltar",
-            variant: "warning",
-          });
-          if (!proceed) return false;
-        } else if (attachments.length) {
-          const printActivityIds = new Set(activities.map(({ id }) => id));
-          setPrintProgress({ done: 0, total: attachments.length });
-          const { pagesByAttachment, release } = await prepareAttachmentPages(attachments, {
-            activityIds: printActivityIds,
-            onProgress: (done, total) => setPrintProgress({ done, total }),
-          });
-          const pages = await buildAttachmentPrintPages(attachments, activities, pagesByAttachment)
-            .catch((error: unknown) => {
-              release();
-              throw error;
+      const cached = cachedPdf.current;
+      let file = cached?.scope === scope && cached.blank === blank ? cached.file : null;
+      if (!file) {
+        const { createSheetPdf } = await import("@/lib/sheet-pdf");
+        let partial = false;
+        file = await createSheetPdf(activeUser, monthKey, activities, blank,
+          (done, total) => setPrintProgress({ done, total }),
+          async () => {
+            setPrintProgress(null);
+            partial = await confirm({
+              title: "Gerar PDF só com a folha?",
+              message: "Não foi possível incluir os comprovantes deste mês.",
+              confirmText: "Gerar só a folha",
+              cancelText: "Voltar",
+              variant: "warning",
             });
-          setPrintProgress(null);
-          if (!stillCurrent()) {
-            release();
-            return false;
-          }
-          proofs.replaceChildren(pages);
-          const cleanup = () => {
-            proofs.replaceChildren();
-            release();
-            window.removeEventListener("afterprint", cleanup);
-            clearPrintAttachments.current = null;
-          };
-          clearPrintAttachments.current = cleanup;
-          window.addEventListener("afterprint", cleanup, { once: true });
+            return partial;
+          });
+        if (file && stillCurrent() && !partial) cachedPdf.current = { scope, blank, file };
+        if (file && stillCurrent() && partial && action === "drive") {
+          // Preserve a previously exported complete PDF when proof preparation failed.
+          setPdfResult({ file, action: "download" });
+          return false;
         }
       }
-
-      if (!stillCurrent()) return false;
-      window.print();
+      if (!file) return false;
+      if (!stillCurrent()) throw new Error("A folha mudou durante o preparo. Tente novamente.");
+      if (action === "drive" && syncSub) {
+        try {
+          await sync.flush();
+          const saved = await saveSheetPdf(syncSub, monthKey, file, stillCurrent);
+          if (stillCurrent()) {
+            setSavedPdf({ month: monthKey, sub: syncSub, url: saved.url });
+            showToast("PDF salvo no Drive.");
+          }
+        } catch (error) {
+          await alert({
+            title: "Não foi possível salvar no Drive",
+            message: error instanceof Error ? error.message : "Tente novamente.",
+            variant: "warning",
+          });
+          if (stillCurrent()) setPdfResult({ file, action: "download" });
+          return false;
+        }
+      } else if (action !== "drive") {
+        setPdfResult({ file, action });
+      }
       return true;
     } catch (error) {
-      clearPrintAttachments.current?.();
       await alert({
         title: "Não foi possível preparar o PDF",
-        message: error instanceof Error ? error.message : "Tente imprimir novamente.",
+        message: error instanceof Error ? error.message : "Tente novamente.",
         variant: "warning",
       });
       return false;
@@ -572,14 +587,6 @@ export default function Home() {
       setPreparingPrint(false);
       setPrintProgress(null);
     }
-  };
-
-  const printParticipantSheet = async () => {
-    setShowBlankTemplate(false);
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => resolve()),
-    );
-    return handlePrint(false);
   };
 
   // Exportar Backup Local em JSON
@@ -798,12 +805,11 @@ export default function Home() {
       )}
       {printProgress && (
         <OperationProgressModal
-          title="Preparando PDF para impressão"
+          title="Preparando PDF"
           done={printProgress.done}
           total={printProgress.total}
           steps={[
-            { label: "Montando folha oficial A4 horizontal", state: "done" },
-            { label: "Otimizando páginas de comprovantes em JPEG", state: "active" },
+            { label: "Preparando comprovantes", state: "active" },
           ]}
         />
       )}
@@ -940,6 +946,39 @@ export default function Home() {
   const proofPages = attachmentItems ? countAttachmentPages(attachmentItems, activityIdSet) : 0;
   const formsPending = activities.filter((activity) => formReportStatus(activeUser, activity) !== "Enviado").length;
   const deadline = getSubmissionDeadline(monthKey);
+  const previousStatus = getSheetSubmission(activeUser.id, period.previous);
+  const selectedStatus = getSheetSubmission(activeUser.id, monthKey);
+  const showSubmissionReminder = activeTab !== "account" && period.due && previousStatus !== "sent" &&
+    getActivitiesForMonth(activeUser.id, period.previous).length > 0;
+  const namePreviousMonth = getMonthName(period.previous);
+
+  async function respondToSubmission(target: string, sent: boolean, advance = false) {
+    if (!activeUser || !(await confirmDraft())) return;
+    try {
+      setSheetSubmission(activeUser.id, target, sent ? "sent" : "pending");
+      refreshSubmission((revision) => revision + 1);
+      sync.schedule(target);
+      if (advance) {
+        setEditingActivity(null);
+        setUndoActivity(null);
+        setAttachmentsFocus(null);
+        setMonthKey(sent ? period.current : target);
+        setShowBlankTemplate(false);
+        setActiveTab(sent ? "dashboard" : "official");
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+      if (sent) showToast("Folha marcada como enviada.");
+    } catch {
+      showToast("Não foi possível salvar o estado da entrega. Tente novamente.");
+    }
+  }
+
+  async function showPreviousSheet() {
+    if (!(await changeMonth(period.previous))) return;
+    setShowBlankTemplate(false);
+    setActiveTab("official");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
   const quickBusy = attachmentsBusy || preparingPrint || restoring;
 
   const chooseQuickAttach = (activityId: string | null, source: AttachmentSource) => {
@@ -1073,16 +1112,29 @@ export default function Home() {
 
         <main id="conteudo" className="workspace-main" data-tab={activeTab}>
           {notices}
+          {showSubmissionReminder && (
+            <section className="submission-reminder" aria-labelledby="submission-reminder-title">
+              <CalendarDays size={19} aria-hidden="true" />
+              <h2 id="submission-reminder-title">
+                {previousStatus === "pending" ? `Folha de ${namePreviousMonth} pendente` : `Você enviou a folha de ${namePreviousMonth} à coordenação?`}
+              </h2>
+              <div className="submission-actions">
+                <button type="button" className="secondary-button" onClick={() => void (previousStatus === "pending" ? showPreviousSheet() : respondToSubmission(period.previous, false, true))}>
+                  {previousStatus === "pending" ? "Ver folha" : "Ainda não"}
+                </button>
+                <button type="button" className="primary-button" onClick={() => void respondToSubmission(period.previous, true, true)}>
+                  {previousStatus === "pending" ? "Marcar como enviada" : "Sim, já enviei"}
+                </button>
+              </div>
+            </section>
+          )}
           <div className="workspace-overview" hidden={activeTab === "account"}>
-            <div>
-              <h1>
-                {activeTab === "dashboard" ? "Frequência" : activeTab === "attachments" ? "Comprovantes" : "Folha"}
-              </h1>
-              <p hidden={activeTab === "attachments"}>
-                {activeTab === "dashboard"
-                  ? `GAT ${activeUser.gatNumber} · ${activeUser.gatName || gats[activeUser.gatNumber]?.name || "PET"}`
-                  : activeTab === "attachments" ? "Fotos e PDFs que acompanham as atividades do mês." : "Confira os dados antes de imprimir e assinar."}
-              </p>
+            <div className="workspace-title-row">
+              <div>
+                <h1>{activeTab === "dashboard" ? "Frequência" : activeTab === "attachments" ? "Comprovantes" : "Folha"}</h1>
+                {activeTab === "dashboard" && <p>GAT {activeUser.gatNumber} · {activeUser.gatName || gats[activeUser.gatNumber]?.name || "PET"}</p>}
+              </div>
+              {activeTab === "dashboard" && <div className="mobile-add-slot" ref={setMobileActivitySlot} />}
             </div>
             <div className="workspace-overview-actions">
               <label className="workspace-month">
@@ -1137,6 +1189,7 @@ export default function Home() {
                   key={`${activeUser.id}-${monthKey}-${formRevision}`}
                   monthKey={monthKey}
                   onDirtyChange={setDraftDirty}
+                  mobileActionSlot={mobileActivitySlot}
                   onSave={handleSaveActivity}
                   defaultGatNumber={activeUser.gatNumber}
                   defaultGatName={
@@ -1168,13 +1221,6 @@ export default function Home() {
                 />
               </div>
               <div className="review-next">
-                <p>
-                  Registre também cada atividade no{" "}
-                  <a target="_blank" rel="noopener noreferrer" href={ACTIVITY_FORM_URL}>
-                    formulário do PET-Saúde Clima
-                  </a>
-                  . Terminou? Confira a folha antes de imprimir.
-                </p>
                 <button
                   className="primary-button"
                   onClick={async () => {
@@ -1217,17 +1263,15 @@ export default function Home() {
                   {showBlankTemplate ? (
                     <div className="print-panel-intro">
                       <h2 id="print-panel-title">Modelo em branco</h2>
-                      <p>Para preencher à mão. Mesmo formato oficial, sem os seus registros.</p>
                     </div>
                   ) : (
                     <div className="print-panel-intro">
-                      <h2 id="print-panel-title">Antes de imprimir</h2>
+                      <h2 id="print-panel-title">Conferir folha</h2>
                       <ul className="print-checks">
                         <li data-tone={totalHours >= 32 ? "done" : "warning"}>
                           {totalHours >= 32 ? <CircleCheck size={20} aria-hidden="true" /> : <CircleAlert size={20} aria-hidden="true" />}
                           <span>
                             <strong>{totalHours} de 32 h no mês</strong>
-                            <small>{totalHours >= 32 ? "Referência mensal alcançada." : `Faltam ${32 - totalHours} h para a referência mensal.`}</small>
                           </span>
                         </li>
                         <li data-tone={formsPending ? "warning" : "done"}>
@@ -1236,9 +1280,7 @@ export default function Home() {
                             <strong>{formsPending ? `${formsPending} ${formsPending === 1 ? "atividade pendente" : "atividades pendentes"} no Forms` : "Forms em dia"}</strong>
                             {formsPending ? (
                               <button type="button" className="text-button" onClick={() => void changeTab("dashboard")}>Ver pendências</button>
-                            ) : (
-                              <small>Envios marcados em todas as atividades.</small>
-                            )}
+                            ) : null}
                           </span>
                         </li>
                         <li data-tone={attachmentItems?.length ? "done" : "neutral"}>
@@ -1251,14 +1293,17 @@ export default function Home() {
                                   ? `${attachmentItems.length} ${attachmentItems.length === 1 ? "comprovante" : "comprovantes"} · ${proofPages} ${proofPages === 1 ? "página" : "páginas"}`
                                   : "Sem comprovantes"}
                             </strong>
-                            <small>{attachmentItems?.length ? "Entram depois das assinaturas." : "Opcional. Adicione em Comprovantes se o seu GAT pedir."}</small>
                           </span>
                         </li>
                         <li data-tone="neutral">
                           <CalendarDays size={20} aria-hidden="true" />
                           <span>
-                            <strong>Entrega até {formatShortDate(deadline)}</strong>
-                            <small>1º dia útil de {getMonthName(deadline.slice(0, 7))}. Envie como o seu GAT orientar.</small>
+                            <strong>{selectedStatus === "sent" ? "Entrega marcada como enviada" : `Entrega até ${formatShortDate(deadline)}`}</strong>
+                            {monthKey < period.current && activities.length > 0 && !(showSubmissionReminder && monthKey === period.previous) && (
+                              <button type="button" className="text-button" onClick={() => void respondToSubmission(monthKey, selectedStatus !== "sent")}>
+                                {selectedStatus === "sent" ? "Desfazer confirmação" : "Marcar como enviada"}
+                              </button>
+                            )}
                           </span>
                         </li>
                       </ul>
@@ -1269,43 +1314,27 @@ export default function Home() {
                     <span>Papel <strong>A4</strong> · orientação <strong>Horizontal</strong></span>
                   </p>
                   <div className="print-actions">
-                    {showBlankTemplate && (
-                      <a
-                        href="/templates/PET%20-%20Folha%20de%20Frequ%C3%AAncia%20-%20Modelo%20Vazio.pdf"
-                        download="PET - Folha de Frequência - Modelo Vazio.pdf"
-                        className="primary-button"
-                      >
-                        <Download size={18} aria-hidden="true" />
-                        Baixar modelo em PDF
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => void handlePrint()}
-                      disabled={preparingPrint || attachmentsBusy}
-                      aria-busy={preparingPrint}
-                      className={showBlankTemplate ? "secondary-button" : "primary-button"}
-                    >
-                      {preparingPrint ? <InlineSpinner size={18} /> : <Printer size={18} aria-hidden="true" />}
-                      {preparingPrint ? "Preparando PDF…" : showBlankTemplate ? "Imprimir modelo" : "Imprimir ou salvar PDF"}
+                    <button type="button" className="primary-button" disabled={preparingPrint || attachmentsBusy} onClick={() => void exportSheet("download")}>
+                      <Download size={18} aria-hidden="true" />Baixar PDF
                     </button>
-                    <p>Para gerar o arquivo, escolha “Salvar como PDF” no destino da impressão.</p>
+                    <button type="button" className="secondary-button" disabled={preparingPrint || attachmentsBusy} onClick={() => void exportSheet("print")}>
+                      <Printer size={18} aria-hidden="true" />Imprimir
+                    </button>
+                    {!showBlankTemplate && syncUser && (
+                      <button type="button" className="secondary-button" disabled={preparingPrint || attachmentsBusy} onClick={() => void exportSheet("drive")}>
+                        <CloudUpload size={18} aria-hidden="true" />Salvar PDF no Drive
+                      </button>
+                    )}
+                    {preparingPrint && <p aria-live="polite"><InlineSpinner size={16} /> Preparando PDF…</p>}
+                    {!showBlankTemplate && savedPdf?.month === monthKey && savedPdf.sub === syncSub && (
+                      <a href={savedPdf.url} target="_blank" rel="noopener" className="text-button">Abrir PDF no Drive</a>
+                    )}
                   </div>
                 </aside>
 
-                <section className="sheet-preview" aria-label="Prévia da folha">
-                  <div className="sheet-stage overflow-x-auto max-w-full p-2.5 sm:p-8 md:p-10 bg-canvas rounded-2xl border border-line flex justify-start sm:justify-center shadow-inner">
-                    <div className="shadow-[var(--page-shadow)] rounded-xs ring-1 ring-line overflow-hidden">
-                      <OfficialSheet
-                        user={activeUser}
-                        monthLabel={monthLabel}
-                        activities={activities}
-                        totalHours={totalHours}
-                        isBlankTemplate={showBlankTemplate}
-                      />
-                    </div>
-                  </div>
-                </section>
+                <SheetPreview>
+                  <OfficialSheet user={activeUser} monthLabel={monthLabel} activities={activities} totalHours={totalHours} isBlankTemplate={showBlankTemplate} />
+                </SheetPreview>
               </div>
             </div>
           )}
@@ -1440,7 +1469,7 @@ export default function Home() {
               showToast("Sessão encerrada com sucesso.");
             }}
             onDownloadJson={handleExportBackup}
-            onDownloadPdf={printParticipantSheet}
+            onDownloadPdf={() => exportSheet("download", false)}
             userName={activeUser.name}
             hasChanges={hasChanges}
             cloud={syncUser && syncSub ? {
@@ -1495,6 +1524,12 @@ export default function Home() {
 
         <SiteFooter
           compact
+          onBlankSheet={async () => {
+            if (!(await confirmDraft())) return;
+            setShowBlankTemplate(true);
+            setActiveTab("official");
+            window.scrollTo({ top: 0, behavior: "instant" });
+          }}
           onHelp={() => setIsHelpOpen(true)}
           onFeedback={() => setIsFeedbackModalOpen(true)}
         />
@@ -1505,7 +1540,6 @@ export default function Home() {
            CONTAINER EXCLUSIVO DE IMPRESSÃO (@media print)
            ============================================================ */}
       <div
-        ref={printSheetRef}
         className="print-only-wrapper"
         data-profile-id={activeUser.id}
         data-month={monthKey}
@@ -1519,7 +1553,7 @@ export default function Home() {
           isBlankTemplate={showBlankTemplate}
         />
       </div>
-      <div ref={printAttachmentsRef} className="print-attachments" aria-hidden="true" />
+      {pdfResult && <SheetPdfResult {...pdfResult} onClose={() => setPdfResult(null)} />}
     </>
   );
 }
