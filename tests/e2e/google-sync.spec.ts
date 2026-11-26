@@ -135,11 +135,14 @@ test("conta nova cria a folha e envia o mês ao Drive", async ({ page }) => {
   await page.getByRole("button", { name: "Começar minha folha" }).click();
   await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
 
+  // No celular, o formulário abre numa janela.
+  const trigger = page.locator("#add-activity-trigger");
+  if (await trigger.isVisible()) await trigger.click();
   await page.getByLabel("Atividade realizada", { exact: true }).fill("Oficina de audiodescrição");
   await page.getByLabel("Data", { exact: true }).fill("2026-11-23");
   await page.getByLabel("Entrada", { exact: true }).fill("14:00");
   await page.getByLabel("Saída", { exact: true }).fill("15:30");
-  await page.getByRole("button", { name: "Adicionar atividade", exact: true }).filter({ visible: true }).click();
+  await page.getByRole("button", { name: "Adicionar atividade", exact: true }).filter({ visible: true }).last().click();
   await page.clock.runFor(4000);
 
   await expect.poll(() => drive.byProp("petFolha", "month").length).toBe(1);

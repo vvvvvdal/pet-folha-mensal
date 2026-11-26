@@ -54,9 +54,9 @@ export function ConfirmModal({
           <button
             onClick={onClose}
             aria-label="Fechar confirmação"
-            className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-raised cursor-pointer transition-colors"
+            className="icon-button dialog-close"
           >
-            <X className="size-4" />
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 

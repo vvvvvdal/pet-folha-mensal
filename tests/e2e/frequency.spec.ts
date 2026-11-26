@@ -580,6 +580,7 @@ test("entrada oculta só o exemplo antigo sem uso e explica os arquivos sem expa
     localStorage.setItem("pet_folha_profiles_v2", JSON.stringify([legacy]));
   }, legacy);
   await page.reload();
+  await expect(page.locator(".entry-page")).toBeVisible();
   const skip = page.getByRole("button", { name: "Pular", exact: true });
   if (await skip.isVisible()) await skip.click();
   await expect(page.getByLabel("Nome completo", { exact: true })).toBeVisible();

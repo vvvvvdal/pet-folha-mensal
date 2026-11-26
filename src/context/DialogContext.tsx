@@ -180,10 +180,11 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-raised cursor-pointer transition-colors"
+                className="icon-button dialog-close"
+                aria-label="Fechar"
                 title="Fechar"
               >
-                <X className="size-4" />
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
 

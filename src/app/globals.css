@@ -457,8 +457,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   box-shadow: var(--page-shadow);
   animation: fade-in 160ms ease-out;
 }
+/* Icon-only buttons stay square so the hover and focus outline is symmetric around the icon. */
 .pet-dialog button:has(> svg:only-child) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   min-width: 44px;
+  min-height: 44px;
+}
+.dialog-close {
+  margin: -8px -8px 0 0;
 }
 .help-panel {
   width: 100%;
