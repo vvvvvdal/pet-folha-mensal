@@ -82,8 +82,8 @@ test("Minhas folhas muda mês e o resumo semanal permanece após recarregar", as
   await page.reload();
   await expect(summary.getByRole("button", { name: "Semanal" })).toHaveAttribute("aria-pressed", "true");
   await summary.getByRole("button", { name: "Mensal" }).click();
-  await openAccount(page);
-  await page.locator("#profile-menu, .account-screen").getByText("Minhas folhas", { exact: true }).filter({ visible: true }).click();
+  if (await page.getByRole("button", { name: "Abrir Conta" }).isVisible()) await openAccount(page);
+  await page.getByRole("button", { name: "Minhas folhas", exact: true }).filter({ visible: true }).click();
   const sheets = page.getByRole("dialog", { name: "Minhas folhas" });
   const surface = sheets.locator(".saved-sheets");
   await expect(surface).toBeVisible();
@@ -271,8 +271,7 @@ test("Minhas folhas preserva rascunho ao cancelar descarte do mês atual", async
   const description = page.getByLabel("Atividade realizada", { exact: true });
   await description.fill("Rascunho que deve continuar disponível");
   await page.getByLabel("Entrada", { exact: true }).fill("14:00");
-  await page.locator(".profile-trigger").click();
-  await page.getByRole("menuitem", { name: "Minhas folhas" }).click();
+  await page.getByRole("button", { name: "Minhas folhas", exact: true }).click();
   const sheets = page.getByRole("dialog", { name: "Minhas folhas" });
   await sheets.getByRole("button", { name: /Novembro\/2026/ }).click();
   const confirmation = page.getByRole("dialog", { name: "Atividade ainda não adicionada" });
@@ -305,12 +304,25 @@ test("navegação e menus cabem na tela e o perfil acompanha o rodapé", async (
       await profile.click();
       const menu = page.locator("#profile-menu");
       const menuBox = await menu.boundingBox();
-      expect(menuBox!.x).toBeGreaterThanOrEqual(sidebarBox!.x);
-      expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(sidebarBox!.x + sidebarBox!.width);
       const triggerBox = await profile.boundingBox();
+      expect(menuBox!.x).toBeCloseTo(triggerBox!.x, 0);
+      expect(menuBox!.width).toBeCloseTo(triggerBox!.width, 0);
       expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(triggerBox!.y);
+      expect(menuBox!.height).toBeLessThanOrEqual(270);
+      await expect(menu.getByRole("menuitem", { name: "Meu perfil" })).toBeFocused();
       await page.keyboard.press("Escape");
+      await expect(profile).toBeFocused();
     }
+    await page.setViewportSize({ width: 1000, height: 600 });
+    await page.locator(".profile-trigger").click();
+    const navigation = page.getByRole("navigation", { name: "Seções da folha" });
+    const menu = page.locator("#profile-menu");
+    const tabsBox = await navigation.boundingBox();
+    expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(tabsBox!.y + tabsBox!.height);
+    expect(await menu.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+    await navigation.getByRole("button", { name: "Folha", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Folha", exact: true })).toBeVisible();
+    await expect(page.locator("#profile-menu")).toBeHidden();
   } else {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
   }

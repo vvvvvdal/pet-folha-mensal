@@ -61,13 +61,13 @@ html[data-theme="light"] { --primary-soft:#e6f3ec; --info-soft:#e3f1f6; --warnin
 .new-release {background:var(--primary-soft);color:var(--accent);border-radius:999px;padding:3px 8px;font-size:14px;font-weight:700}
 .news-popover footer {padding:12px 24px;font-size:14px;color:var(--muted);border-top:1px solid var(--border)}
 .previous-release {margin-top:16px}.previous-release time {font-size:14px;color:var(--muted)}
-.profile-popover {inset:auto auto 92px 16px;position:fixed;width:296px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 120px);overflow:auto;margin:0;padding:12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--foreground);box-shadow:var(--shadow-dialog)}
+.profile-popover {position:fixed;overflow:auto;margin:0;padding:6px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--surface);color:var(--foreground);box-shadow:var(--shadow-dialog)}
 .profile-identity {display:flex;gap:12px;align-items:center;padding:12px;min-width:0}
 .profile-identity div {min-width:0}.profile-identity strong {display:block;overflow-wrap:anywhere}.profile-identity small {display:block;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
-.profile-popover [role="menu"] {display:grid;border-top:1px solid var(--border);padding-block:8px}
+.profile-popover [role="menu"] {display:grid}
 .profile-popover [role="menuitem"] {display:flex;align-items:center;gap:12px;min-height:44px;text-align:left;padding:10px 12px;border-radius:10px}
 .profile-popover button:hover {background:var(--surface-raised)}
-.profile-theme {border-top:1px solid var(--border);padding:12px}.profile-theme > p {font-size:14px;margin-bottom:8px}
+.profile-theme {border-top:1px solid var(--border);margin-top:6px;padding-top:8px}
 .theme-options {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--surface-raised);padding:4px;border-radius:12px}
 .theme-options button {display:flex;flex-direction:column;gap:4px;justify-content:center;align-items:center;min-height:56px;border-radius:10px;font-size:14px!important;color:var(--body)}
 .theme-options button[aria-pressed="true"] {background:var(--primary-soft);color:var(--accent);font-weight:700}

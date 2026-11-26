@@ -198,13 +198,18 @@ barra inferior do celular. No desktop, lista e formulário ficam lado a lado;
 no celular, Adicionar atividade abre uma folha inferior e preserva o rascunho
 ao voltar. A página rola para acomodar os campos e listas extensas.
 
-No computador, Restaurar cópia e Salvar cópia ficam juntos no cabeçalho.
-No celular, o botão Cópia abre um menu curto com Salvar cópia e Restaurar cópia,
-ícones e explicações. As duas ações ficam disponíveis durante o uso diário. Não há “Fechar o mês”. O menu de perfil (computador) e Conta (avatar
-no celular) reúnem identificação, Minhas folhas, tema, ajuda e Sair.
-A saída preserva os registros, oferece cópia/PDF e alerta sobre alterações
-sem cópia. Minhas folhas permite escolher um mês do perfil; o seletor de mês
-continua disponível. Trocas preservam a confirmação de descarte de rascunho.
+No computador, **Minhas folhas** fica no cabeçalho. Com sincronização ativa,
+o botão **Drive** ao lado do status agrupa o acesso à pasta e as ações de baixar
+ou importar JSON. Sem configuração do Google, Restaurar cópia e Salvar cópia
+ficam no cabeçalho. No celular, o avatar abre a Conta com os atalhos de folhas e
+Drive, e o botão Cópia reúne as ações do modo local.
+
+O menu de perfil abre acima do nome na barra lateral. Ele reúne Meu perfil,
+Ajuda e suporte, Configurações, Sair e o seletor de tema. Em janelas mais baixas,
+o menu rola no espaço disponível abaixo das três seções e abre a tela Conta
+se esse espaço for insuficiente. A saída preserva os registros, oferece
+cópia/PDF e alerta sobre alterações pendentes. Minhas folhas permite escolher um
+mês do perfil, com a mesma confirmação de descarte de rascunho.
 
 Tema inicial claro, com Claro/Escuro/Sistema persistidos no navegador. O resumo
 alterna Mensal/Semanal, lembrando a escolha. Semanas começam na segunda-feira,

@@ -267,6 +267,40 @@ test("folha que já estava no navegador é vinculada e enviada", async ({ page }
   await expect.poll(() => drive.byProp("petFolha", "month").map((file) => file.appProperties.monthKey)).toEqual(["2026-11"]);
 });
 
+test("os atalhos do Drive ficam no topo do desktop e na Conta do celular", async ({ page }, testInfo) => {
+  const drive = new FakeDrive();
+  await seedLocal(page, { ...localProfile, googleSub: SUB }, "2026-11", [reuniao], { pet_folha_active_profile_id_v2: localProfile.id });
+  await mockGoogle(page, drive, { authenticated: true });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
+  await expect.poll(() => drive.byProp("petFolha", "root").length).toBe(1);
+
+  const toolbar = page.locator(".app-topbar");
+  const trigger = toolbar.getByRole("button", { name: "Drive", exact: true });
+  if (testInfo.project.name === "desktop") {
+    await expect(toolbar.getByRole("button", { name: "Minhas folhas" })).toBeVisible();
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const menu = page.getByRole("region", { name: "Google Drive e cópias" });
+    const folder = drive.byProp("petFolha", "root")[0];
+    await expect(menu.getByRole("link", { name: "Abrir no Drive" })).toHaveAttribute("href", `https://drive.google.com/drive/folders/${folder.id}`);
+    await expect(menu.getByRole("button", { name: "Baixar cópia .json" })).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(menu.getByRole("link")).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+  } else {
+    await expect(trigger).toBeHidden();
+    await toolbar.getByRole("button", { name: "Abrir Conta" }).click();
+    await expect(page.getByRole("button", { name: "Abrir no Google Drive" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Minhas folhas" })).toBeVisible();
+  }
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Importar cópia .json", exact: true }).click();
+  expect(await (await chooser).element().getAttribute("accept")).toBe(".json,application/json");
+});
+
 test("conflito entre aparelhos guarda a versão descartada", async ({ page }) => {
   const drive = new FakeDrive();
   const folder = drive.create({ name: "PET Folha", mimeType: "application/vnd.google-apps.folder", appProperties: { petFolha: "root" } });

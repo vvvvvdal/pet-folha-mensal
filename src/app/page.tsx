@@ -1068,7 +1068,7 @@ export default function Home() {
           onOpenExitModal={openConclusion}
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
           onOpenHelp={() => setIsHelpOpen(true)}
-          cloud={syncUser && syncSub ? { status: <SyncStatus sync={sync} />, folderUrl: driveFolderUrl(syncSub), email: google?.email } : undefined}
+          cloud={syncUser && syncSub ? { status: <SyncStatus sync={sync} />, folderUrl: driveFolderUrl(syncSub) } : undefined}
         />
 
         <main id="conteudo" className="workspace-main" data-tab={activeTab}>
@@ -1104,7 +1104,7 @@ export default function Home() {
           </div>
 
           {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} formsPending={formsPending} view={summaryView} onViewChange={setSummaryView} />}
-          {activeTab === "account" && <AccountScreen user={activeUser} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} />}
+          {activeTab === "account" && <AccountScreen user={activeUser} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onSheets={() => setSheetsOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} onOpenDrive={syncUser && syncSub ? () => window.open(driveFolderUrl(syncSub), "_blank", "noopener") : undefined} />}
           {sheetsOpen && (
             <SavedSheets
               profileId={activeUser.id}

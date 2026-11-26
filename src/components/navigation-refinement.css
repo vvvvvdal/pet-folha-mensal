@@ -2,12 +2,41 @@
 .profile-chevron { flex-shrink: 0; color: var(--muted); transition: transform 200ms ease; }
 .profile-trigger[aria-expanded="true"] .profile-chevron { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .profile-chevron { transition: none; } }
-html :is(.news-popover, .profile-popover, .backup-popover, .entry-options-panel, .attachment-source-popover) {
+html :is(.news-popover, .profile-popover, .backup-popover, .drive-popover, .entry-options-panel, .attachment-source-popover) {
   box-shadow: 0 12px 36px rgb(0 0 0 / 18%);
 }
-html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .entry-options-panel, .attachment-source-popover) {
+html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .drive-popover, .entry-options-panel, .attachment-source-popover) {
   box-shadow: 0 12px 36px rgb(0 0 0 / 42%);
 }
+.drive-popover {
+  position: fixed;
+  inset: var(--drive-top, 76px) var(--drive-right, 28px) auto auto;
+  width: 236px;
+  max-height: calc(100dvh - var(--drive-top, 76px) - 12px);
+  overflow: auto;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--foreground);
+}
+.drive-popover > :is(a, button) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--control-sm);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  text-decoration: none;
+}
+.drive-popover > :is(a, button):hover { background: var(--surface-raised); }
+@media (max-width: 899px) {
+  .app-topbar :is(.desktop-sheets, .desktop-drive, .drive-popover) { display: none; }
+}
+@media print { .drive-popover { display: none !important; } }
 @media (min-width: 900px) {
   .dashboard-shell { --sidebar-width: 280px; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
   /* The sidebar box reaches the footer; its contents stay in view while the workspace scrolls. */
@@ -17,16 +46,23 @@ html[data-theme="dark"] :is(.news-popover, .profile-popover, .backup-popover, .e
   .dashboard-shell > .site-footer { grid-column: 1 / -1; }
   .dashboard-shell > .site-footer .footer-inner { max-width: none; padding-inline: 20px; }
   .dashboard-shell .profile-popover {
-    left: 16px;
+    left: var(--profile-left, 16px);
     right: auto;
     top: auto;
     bottom: var(--profile-bottom, 92px);
-    width: calc(var(--sidebar-width) - 32px);
+    width: var(--profile-width, calc(var(--sidebar-width) - 32px));
     max-height: var(--profile-max-height, calc(100dvh - 120px));
+    overscroll-behavior: contain;
   }
+  .app-topbar .desktop-sheets, .app-topbar .desktop-drive { flex-shrink: 0; white-space: nowrap; }
+  .app-topbar .app-top-actions { flex-shrink: 1; min-width: 0; }
+  .app-topbar .sync-status { min-width: 0; }
+  .app-topbar .sync-status-text { overflow: hidden; text-overflow: ellipsis; }
+  .app-topbar .sync-reconnect { flex-shrink: 0; }
 }
 @media (min-width: 900px) and (max-width: 1199px) {
   .dashboard-shell .sidebar-inner { padding-inline: 16px; }
+  .dashboard-shell .app-topbar { padding-inline: 20px; }
 }
 @media (min-width: 1200px) {
   .dashboard-shell { --sidebar-width: 304px; }
