@@ -14,8 +14,14 @@ const load = createRequire(path.join(root, "package.json"));
 const ts = load("typescript");
 // CSS is bundled by Next.js; static markup checks do not execute stylesheets.
 Module._extensions[".css"] = () => {};
+// `server-only` só existe no bundle do Next.js; aqui basta um módulo vazio.
+const serverOnlyStub = path.join(root, "scripts", "__server-only-stub__.js");
+const serverOnlyModule = new Module(serverOnlyStub);
+serverOnlyModule.loaded = true;
+Module._cache[serverOnlyStub] = serverOnlyModule;
 const originalResolve = Module._resolveFilename;
 Module._resolveFilename = function (name, ...args) {
+  if (name === "server-only") return serverOnlyStub;
   return originalResolve.call(
     this,
     name.startsWith("@/") ? path.join(root, "src", name.slice(2)) : name,
@@ -621,4 +627,103 @@ test("cópias 1.2 e 1.3 preservam relatórios e cópias antigas começam pendent
   }
   exported.activities[0].formReport.confirmation.at = "data inválida";
   assert.equal(storage.inspectUserData(JSON.stringify(exported)).success, false);
+});
+
+test("sessão Google: selagem AES-256-GCM rejeita adulteração, chave errada e expiração", () => {
+  const env = { ...process.env };
+  const realNow = Date.now;
+  try {
+    process.env.GOOGLE_CLIENT_ID = "cliente-teste.apps.googleusercontent.com";
+    process.env.GOOGLE_CLIENT_SECRET = "segredo-de-teste";
+    process.env.GOOGLE_SESSION_SECRET = "a".repeat(32);
+    const auth = load("./src/lib/google-auth.ts");
+    const session = { refreshToken: "1//refresh-teste", sub: "123", email: "pessoa@teste.local", name: "Pessoa" };
+
+    assert.equal(auth.isGoogleAuthConfigured(), true);
+    const sealed = auth.sealSession(session);
+    assert.match(sealed, /^v1\.[\w-]+\.[\w-]+\.[\w-]+$/);
+    assert.doesNotMatch(sealed, /refresh-teste|pessoa@teste/);
+    assert.deepEqual(auth.openSession(sealed), session);
+    assert.notEqual(auth.sealSession(session), sealed, "IV aleatório a cada selagem");
+
+    const [version, iv, ciphertext, tag] = sealed.split(".");
+    const flipped = (ciphertext[0] === "A" ? "B" : "A") + ciphertext.slice(1);
+    assert.equal(auth.openSession([version, iv, flipped, tag].join(".")), null);
+    assert.equal(auth.openSession([version, iv, ciphertext].join(".")), null);
+    assert.equal(auth.openSession(["v2", iv, ciphertext, tag].join(".")), null);
+    assert.equal(auth.openSession("lixo"), null);
+    assert.equal(auth.openSession(undefined), null);
+    // Cookie do fluxo OAuth usa outra chave derivada: não serve como sessão.
+    const flow = auth.createOAuthFlow("http://localhost:5013/api/google/callback", true);
+    assert.equal(auth.openSession(auth.sealOAuthFlow(flow)), null);
+    assert.deepEqual(auth.openOAuthFlow(auth.sealOAuthFlow(flow)), flow);
+
+    process.env.GOOGLE_SESSION_SECRET = "b".repeat(32);
+    assert.equal(auth.openSession(sealed), null);
+    process.env.GOOGLE_SESSION_SECRET = "a".repeat(32);
+    assert.deepEqual(auth.openSession(sealed), session);
+
+    Date.now = () => realNow() + (auth.GOOGLE_SESSION_MAX_AGE_SECONDS + 1) * 1000;
+    assert.equal(auth.openSession(sealed), null);
+    Date.now = realNow;
+
+    process.env.GOOGLE_SESSION_SECRET = "curto";
+    assert.equal(auth.isGoogleAuthConfigured(), false);
+    assert.equal(auth.sealSession(session), null);
+    assert.equal(auth.openSession(sealed), null);
+  } finally {
+    Date.now = realNow;
+    process.env = env;
+  }
+});
+
+test("sessão Google: PKCE S256 e id_token conferem aud, iss, exp e nonce", () => {
+  const env = { ...process.env };
+  try {
+    process.env.GOOGLE_CLIENT_ID = "cliente-teste.apps.googleusercontent.com";
+    process.env.GOOGLE_CLIENT_SECRET = "segredo-de-teste";
+    process.env.GOOGLE_SESSION_SECRET = "a".repeat(32);
+    const auth = load("./src/lib/google-auth.ts");
+
+    // Vetor do RFC 7636, apêndice B.
+    assert.equal(
+      auth.createCodeChallenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+      "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+    );
+    const flow = auth.createOAuthFlow("http://localhost:5013/api/google/callback", true);
+    const url = new URL(auth.buildAuthorizationUrl(flow, "consent"));
+    assert.equal(url.searchParams.get("code_challenge_method"), "S256");
+    assert.equal(url.searchParams.get("code_challenge"), auth.createCodeChallenge(flow.codeVerifier));
+    assert.equal(url.searchParams.get("access_type"), "offline");
+    assert.equal(url.searchParams.get("prompt"), "consent");
+    assert.equal(url.searchParams.get("state"), flow.state);
+    assert.match(url.searchParams.get("scope"), /^openid email profile https:\/\/www\.googleapis\.com\/auth\/drive\.file$/);
+
+    const now = Math.floor(Date.now() / 1000);
+    const idToken = (claims) =>
+      ["e30", Buffer.from(JSON.stringify(claims)).toString("base64url"), "assinatura"].join(".");
+    const valid = {
+      aud: process.env.GOOGLE_CLIENT_ID,
+      iss: "https://accounts.google.com",
+      exp: now + 3600,
+      iat: now,
+      nonce: flow.nonce,
+      sub: "123",
+      email: "pessoa@teste.local",
+      name: "Pessoa",
+    };
+    assert.deepEqual(auth.verifyIdToken(idToken(valid), flow.nonce), {
+      sub: "123",
+      email: "pessoa@teste.local",
+      name: "Pessoa",
+    });
+    assert.equal(auth.verifyIdToken(idToken({ ...valid, aud: "outro-cliente" }), flow.nonce), null);
+    assert.equal(auth.verifyIdToken(idToken({ ...valid, iss: "https://malicioso.local" }), flow.nonce), null);
+    assert.equal(auth.verifyIdToken(idToken({ ...valid, exp: now - 3600 }), flow.nonce), null);
+    assert.equal(auth.verifyIdToken(idToken({ ...valid, nonce: "outro" }), flow.nonce), null);
+    assert.equal(auth.verifyIdToken(idToken({ ...valid, sub: "" }), flow.nonce), null);
+    assert.equal(auth.verifyIdToken("nao.e.jwt.valido", flow.nonce), null);
+  } finally {
+    process.env = env;
+  }
 });
