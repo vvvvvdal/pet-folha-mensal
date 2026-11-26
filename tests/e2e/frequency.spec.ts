@@ -1188,3 +1188,38 @@ test("sino de novidades preserva rascunho e guarda leitura", async ({ page }, te
   await page.locator("main").click({ position: { x: 5, y: 5 }, force: true });
   await expect(panel).not.toBeVisible();
 });
+
+test("tutorial de instalação na Conta e rodapé junto à barra móvel", async ({ page, request }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "A Conta e a barra inferior são móveis.");
+  const manifestResponse = await request.get("/manifest.webmanifest");
+  expect(manifestResponse.ok()).toBe(true);
+  const manifest = await manifestResponse.json();
+  expect(manifest).toMatchObject({ name: "PET Folha Mensal", start_url: "/", display: "standalone" });
+  expect(manifest.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ sizes: "192x192" }),
+    expect.objectContaining({ sizes: "512x512", purpose: "maskable" }),
+  ]));
+  await create(page);
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/icons/pet-folha-apple.png");
+  const nav = page.getByRole("navigation", { name: "Seções da folha no celular" });
+  await expect(nav.getByRole("button")).toHaveCount(3);
+  await nav.getByRole("button", { name: "Folha" }).click();
+  await expect(page.getByRole("heading", { name: "Folha", exact: true })).toBeVisible();
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+  const footer = page.locator(".dashboard-shell > .site-footer");
+  const [footerBox, navBox] = await Promise.all([footer.boundingBox(), nav.boundingBox()]);
+  expect(Math.abs(footerBox!.y + footerBox!.height - navBox!.y)).toBeLessThanOrEqual(1);
+  expect(navBox!.y + navBox!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
+
+  await page.getByRole("button", { name: "Abrir Conta" }).click();
+  const install = page.getByRole("button", { name: "Adicionar à tela inicial" });
+  await install.click();
+  const tutorial = page.getByRole("dialog", { name: "Adicionar à tela inicial" });
+  await expect(tutorial.getByText("iPhone · Safari")).toBeVisible();
+  await expect(tutorial.getByText("Android · Chrome")).toBeVisible();
+  await tutorial.getByRole("button", { name: "Fechar tutorial" }).click();
+  await expect(install).toBeFocused();
+  await page.getByRole("button", { name: "Ajuda e suporte" }).click();
+  await page.getByText("Como coloco o PET Folha na tela inicial?", { exact: true }).click();
+  await expect(page.getByText("Android · Chrome")).toBeVisible();
+});

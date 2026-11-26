@@ -54,7 +54,7 @@ import {
 import { formReportStatus } from "@/lib/form-report";
 import { SavedSheets } from "@/components/SavedSheets";
 import "@/components/print-panel.css";
-import { Navbar, AccountScreen, type WorkspaceTab } from "@/components/Navbar";
+import { Navbar, AccountScreen, MobileNavigation, type WorkspaceTab } from "@/components/Navbar";
 import { Toast } from "@/components/Toast";
 import { ProfileModal } from "@/components/ProfileModal";
 import { AdminModal } from "@/components/AdminModal";
@@ -105,7 +105,7 @@ export default function Home() {
   const { alert, confirm } = useDialog();
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeUser, setActiveUser] = useState<UserProfile | null>(null);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [helpTopic, setHelpTopic] = useState<"general" | "install" | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
@@ -1108,7 +1108,7 @@ export default function Home() {
           onOpenAdmin={() => setIsAdminModalOpen(true)}
           onOpenExitModal={openConclusion}
           onOpenFeedback={() => setIsFeedbackModalOpen(true)}
-          onOpenHelp={() => setIsHelpOpen(true)}
+          onOpenHelp={() => setHelpTopic("general")}
           cloud={syncUser && syncSub ? { status: <SyncStatus sync={sync} />, folderUrl: driveFolderUrl(syncSub) } : undefined}
         />
 
@@ -1165,7 +1165,7 @@ export default function Home() {
           </div>
 
           {activeTab === "dashboard" && <StatsGrid totalHours={totalHours} activitiesCount={activities.length} targetHours={32} activities={activities} monthKey={monthKey} formsPending={formsPending} view={summaryView} onViewChange={setSummaryView} />}
-          {activeTab === "account" && <AccountScreen user={activeUser} googlePicture={googlePicture} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onHelp={() => setIsHelpOpen(true)} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} onOpenDrive={syncUser && syncSub ? () => window.open(driveFolderUrl(syncSub), "_blank", "noopener") : undefined} />}
+          {activeTab === "account" && <AccountScreen user={activeUser} googlePicture={googlePicture} googleEmail={syncUser ? google?.email : undefined} onBack={() => setActiveTab("dashboard")} onProfile={() => setIsProfileModalOpen(true)} onHelp={() => setHelpTopic("general")} onInstall={() => setHelpTopic("install")} onAdmin={() => setIsAdminModalOpen(true)} onExit={openConclusion} onRestore={() => document.querySelector<HTMLInputElement>('input[aria-label="Restaurar cópia de segurança"]')?.click()} onDownload={syncUser ? () => void handleExportBackup() : undefined} onOpenDrive={syncUser && syncSub ? () => window.open(driveFolderUrl(syncSub), "_blank", "noopener") : undefined} />}
           {sheetsOpen && (
             <SavedSheets
               profileId={activeUser.id}
@@ -1532,10 +1532,11 @@ export default function Home() {
             setActiveTab("official");
             window.scrollTo({ top: 0, behavior: "instant" });
           }}
-          onHelp={() => setIsHelpOpen(true)}
+          onHelp={() => setHelpTopic("general")}
           onFeedback={() => setIsFeedbackModalOpen(true)}
         />
-        <HelpModal google={Boolean(syncUser)} isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+        <MobileNavigation activeTab={activeTab} onTabChange={(tab) => void changeTab(tab)} />
+        <HelpModal google={Boolean(syncUser)} topic={helpTopic ?? undefined} isOpen={helpTopic !== null} onClose={() => setHelpTopic(null)} />
       </div>
 
       {/* ============================================================

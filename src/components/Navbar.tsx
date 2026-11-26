@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { UserProfile } from "@/types";
-import { FolderOpen, Download, FileText, CircleHelp, ListChecks, Settings2, Upload, ChevronDown, ChevronUp, Paperclip, User, LogOut, ArrowLeft, ChevronRight } from "lucide-react";
+import { FolderOpen, Download, FileText, CircleHelp, ListChecks, Settings2, Upload, ChevronDown, ChevronUp, Paperclip, User, LogOut, ArrowLeft, ChevronRight, Smartphone } from "lucide-react";
 import { Brand } from "./Brand";
 import { NewsPopover } from "./NewsPopover";
 import { ThemeSelector } from "./ThemeSelector";
@@ -25,6 +25,8 @@ interface NavbarProps {
   /** Google Drive mode groups file actions next to the sync status. */
   cloud?: { status: ReactNode; folderUrl: string };
 }
+const tabs = [{value: "dashboard", label: "Frequência", Icon: ListChecks}, {value: "official", label: "Folha", Icon: FileText}, {value: "attachments", label: "Comprovantes", Icon: Paperclip}] as const;
+
 export function initials(name: string) { return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase(); }
 function ProfileAvatar({ name, picture }: { name: string; picture?: string }) {
   const [failed, setFailed] = useState<string>();
@@ -99,7 +101,6 @@ export function Navbar(props: NavbarProps) {
   function driveAction(action: () => void) { drivePanelRef.current?.hidePopover(); action(); }
   function chooseBackup() { fileRef.current?.click(); }
 
-  const tabs = [{value: "dashboard", label: "Frequência", Icon: ListChecks}, {value: "official", label: "Folha", Icon: FileText}, {value: "attachments", label: "Comprovantes", Icon: Paperclip}] as const;
   const profileActions = [
     { label: "Meu perfil", Icon: User, action: onOpenProfileModal },
     { label: "Ajuda e suporte", Icon: CircleHelp, action: onOpenHelp },
@@ -189,12 +190,24 @@ export function Navbar(props: NavbarProps) {
         <button type="button" onClick={() => { backupRef.current?.hidePopover(); onExportBackup(); }}><Download size={22} aria-hidden="true" /><span><strong>Salvar cópia</strong><small>Baixar seus registros e comprovantes.</small></span></button>
         <button type="button" onClick={() => { backupRef.current?.hidePopover(); chooseBackup(); }}><Upload size={22} aria-hidden="true" /><span><strong>Restaurar cópia</strong><small>Abrir uma cópia salva em arquivo.</small></span></button>
       </div></>}<NewsPopover /><button type="button" className="mobile-avatar mobile-account-trigger" aria-label="Abrir Conta" onClick={() => onTabChange("account")}><ProfileAvatar name={user.name} picture={props.googlePicture} /><ChevronDown size={14} aria-hidden="true" /></button></div></header>
-    <nav className="mobile-tabbar" aria-label="Seções da folha no celular">{tabs.map(({value, label, Icon}) => <button key={value} aria-pressed={activeTab === value} onClick={() => onTabChange(value)}><Icon size={22} aria-hidden="true" /><span>{label}</span></button>)}</nav>
     <input ref={fileRef} type="file" accept=".json,application/json" aria-label="Restaurar cópia de segurança" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) onImportBackup(file); event.target.value = ""; }} />
   </>;
 }
 
-export function AccountScreen({ user, googleEmail, googlePicture, onBack, onProfile, onHelp, onAdmin, onExit, onRestore, onDownload, onOpenDrive }: { user: UserProfile; googleEmail?: string; googlePicture?: string; onBack: () => void; onProfile: () => void; onHelp: () => void; onAdmin: () => void; onExit: () => void; onRestore: () => void; onDownload?: () => void; onOpenDrive?: () => void }) {
+export function MobileNavigation({ activeTab, onTabChange }: Pick<NavbarProps, "activeTab" | "onTabChange">) {
+  return (
+    <nav className="mobile-tabbar" aria-label="Seções da folha no celular">
+      {tabs.map(({ value, label, Icon }) => (
+        <button key={value} type="button" aria-pressed={activeTab === value} onClick={() => onTabChange(value)}>
+          <Icon size={22} aria-hidden="true" />
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+export function AccountScreen({ user, googleEmail, googlePicture, onBack, onProfile, onHelp, onInstall, onAdmin, onExit, onRestore, onDownload, onOpenDrive }: { user: UserProfile; googleEmail?: string; googlePicture?: string; onBack: () => void; onProfile: () => void; onHelp: () => void; onInstall: () => void; onAdmin: () => void; onExit: () => void; onRestore: () => void; onDownload?: () => void; onOpenDrive?: () => void }) {
   const accountEmail = googleEmail || user.email;
-  return <section className="account-screen"><header><button className="icon-button" onClick={onBack} aria-label="Voltar à frequência"><ArrowLeft size={22} /></button><h1>Conta</h1></header><div className="account-card profile-identity"><ProfileAvatar name={user.name} picture={googlePicture} /><div><strong>{user.name}</strong>{accountEmail && <small>{accountEmail}</small>}<small>{user.role} · GAT {user.gatNumber} · {user.gatName}</small></div></div><div className="account-card">{[{label:"Meu perfil", Icon:User, action:onProfile}, ...(onOpenDrive ? [{label:"Abrir no Google Drive", Icon:FolderOpen, action:onOpenDrive}] : []), ...(onDownload ? [{label:"Baixar cópia .json", Icon:Download, action:onDownload}] : []), {label: onDownload ? "Importar cópia .json" : "Restaurar cópia", Icon:Upload, action:onRestore}].map(({label,Icon,action}) => <button key={label} onClick={action}><Icon size={20}/>{label}<ChevronRight size={18}/></button>)}</div><div className="account-card account-theme"><h2>Tema</h2><ThemeSelector /></div><div className="account-card"><button onClick={onHelp}><CircleHelp size={20}/>Ajuda e suporte<ChevronRight size={18}/></button><button onClick={onAdmin}><Settings2 size={20}/>Configurações<ChevronRight size={18}/></button></div><button className="secondary-button account-exit" onClick={onExit}><LogOut size={20}/>Sair</button></section>;
+  return <section className="account-screen"><header><button className="icon-button" onClick={onBack} aria-label="Voltar à frequência"><ArrowLeft size={22} /></button><h1>Conta</h1></header><div className="account-card profile-identity"><ProfileAvatar name={user.name} picture={googlePicture} /><div><strong>{user.name}</strong>{accountEmail && <small>{accountEmail}</small>}<small>{user.role} · GAT {user.gatNumber} · {user.gatName}</small></div></div><div className="account-card">{[{label:"Meu perfil", Icon:User, action:onProfile}, ...(onOpenDrive ? [{label:"Abrir no Google Drive", Icon:FolderOpen, action:onOpenDrive}] : []), ...(onDownload ? [{label:"Baixar cópia .json", Icon:Download, action:onDownload}] : []), {label: onDownload ? "Importar cópia .json" : "Restaurar cópia", Icon:Upload, action:onRestore}].map(({label,Icon,action}) => <button key={label} onClick={action}><Icon size={20}/>{label}<ChevronRight size={18}/></button>)}</div><div className="account-card account-theme"><h2>Tema</h2><ThemeSelector /></div><div className="account-card"><button onClick={onInstall}><Smartphone size={20} aria-hidden="true" />Adicionar à tela inicial<ChevronRight size={18} aria-hidden="true" /></button><button onClick={onHelp}><CircleHelp size={20}/>Ajuda e suporte<ChevronRight size={18}/></button><button onClick={onAdmin}><Settings2 size={20}/>Configurações<ChevronRight size={18}/></button></div><button className="secondary-button account-exit" onClick={onExit}><LogOut size={20}/>Sair</button></section>;
 }

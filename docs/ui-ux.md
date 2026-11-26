@@ -280,3 +280,10 @@ Em **Folha**, as ações **Baixar PDF** e **Imprimir** aparecem na folha preench
 **Salvar PDF no Drive** grava a folha preenchida na pasta PET Folha. Atualizações reutilizam o arquivo mensal identificado pelas propriedades privadas do app. A cópia editável em JSON continua sendo sincronizada separadamente. A criação simultânea em aparelhos diferentes pode gerar arquivos duplicados. Nesse caso, o app pede conferência em vez de escolher qual deles atualizar.
 
 O lembrete de entrega aparece com registros do mês anterior a partir do primeiro dia útil, calculado em São Paulo com fins de semana e feriados nacionais fixos. **Ainda não** abre a folha pendente. **Sim, já enviei** registra a confirmação e abre Frequência no mês atual. A aba Folha permite ajustar a confirmação dos meses encerrados. O estado acompanha a cópia mensal em um campo opcional do JSON.
+
+
+## Acesso pela tela inicial
+
+O tutorial **Adicionar à tela inicial** fica na Conta do celular e nas Dúvidas frequentes, disponíveis antes do login. Ele orienta a instalação pelo Safari no iPhone e pelo Chrome no Android. A configuração do app web sugere o nome **PET Folha Mensal**, usa o símbolo do PET nos ícones e abre a página inicial em modo independente nos navegadores compatíveis. O sistema pode abreviar o nome abaixo do ícone.
+
+Referências de instalação [Safari no iPhone](https://support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/ios) e [Chrome no Android](https://support.google.com/chrome/answer/9658361?co=GENIE.Platform%3DAndroid&hl=pt-BR).

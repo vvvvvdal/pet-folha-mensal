@@ -13,11 +13,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "PET-Saúde Clima UFG: Folha de Frequência Mensal",
+  title: "PET Folha Mensal",
+  applicationName: "PET Folha Mensal",
+  appleWebApp: { capable: true, title: "PET Folha Mensal" },
   description:
     "Gestão e emissão da folha de frequência mensal para bolsistas do PET-Saúde Clima (SMS Goiânia, SES Goiás e UFG).",
   icons: {
     icon: "/images/avatar-pet-clima.png",
+    apple: { url: "/icons/pet-folha-apple.png", sizes: "180x180", type: "image/png" },
   },
 };
 

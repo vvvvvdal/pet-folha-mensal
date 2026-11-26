@@ -260,15 +260,17 @@ test("entrada apresenta acesso e explicação visível do JSON e PDF antes do FA
   assert.doesNotMatch(html, /hubfrequencia@gmail.com|Ver preços/);
 });
 
-test("FAQ compartilhado tem sete perguntas e ajuda usa o diálogo comum", () => {
+test("FAQ compartilhado inclui o tutorial e a ajuda usa o diálogo comum", () => {
   const html = renderToStaticMarkup(React.createElement(FAQ));
-  assert.equal((html.match(/<details>/g) || []).length, 7);
+  assert.equal((html.match(/<details>/g) || []).length, 8);
+  assert.match(html, /iPhone · Safari/);
+  assert.match(html, /Android · Chrome/);
   const help = render(
     React.createElement(HelpModal, { isOpen: true, onClose: noop }),
   );
   assert.match(help, /<dialog/);
   assert.match(help, /class="pet-dialog screen-only"/);
-  assert.equal((help.match(/<details>/g) || []).length, 7);
+  assert.equal((help.match(/<details>/g) || []).length, 8);
 });
 
 test("painel mantém backup acessível sem ocultar ações em telas menores", () => {

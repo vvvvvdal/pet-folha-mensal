@@ -56,6 +56,31 @@ const commonQuestions = [
   ],
 ];
 
+const installTitle = "Adicionar à tela inicial";
+
+function HomeScreenGuide() {
+  return (
+    <div className="home-screen-guide">
+      <section aria-label="iPhone">
+        <strong>iPhone · Safari</strong>
+        <ol>
+          <li>Abra o PET Folha no Safari. Toque em <b>Compartilhar</b>, na barra ou no menu da página.</li>
+          <li>Escolha <b>Adicionar à Tela de Início</b>.</li>
+          <li>Se aparecer, ative <b>Abrir como App da Web</b>. Toque em <b>Adicionar</b>.</li>
+        </ol>
+      </section>
+      <section aria-label="Android">
+        <strong>Android · Chrome</strong>
+        <ol>
+          <li>Abra o PET Folha no Chrome e toque no menu de três pontos.</li>
+          <li>Toque em <b>Instalar e criar atalho</b> ou <b>Adicionar à tela inicial</b>.</li>
+          <li>Confirme em <b>Instalar</b> ou <b>Instalar app</b>. Se só aparecer <b>Criar atalho</b>, escolha essa opção e confirme.</li>
+        </ol>
+      </section>
+    </div>
+  );
+}
+
 export function FAQ({ google = false }: { google?: boolean }) {
   const questions = google ? googleQuestions : localQuestions;
   return (
@@ -69,36 +94,46 @@ export function FAQ({ google = false }: { google?: boolean }) {
           <p>{answer}</p>
         </details>
       ))}
+      <details>
+        <summary>
+          Como coloco o PET Folha na tela inicial?
+          <ChevronDown size={18} aria-hidden="true" />
+        </summary>
+        <HomeScreenGuide />
+      </details>
     </div>
   );
 }
 
 export function HelpModal({
   google,
+  topic,
   isOpen,
   onClose,
 }: {
   google?: boolean;
+  topic?: "general" | "install";
   isOpen: boolean;
   onClose: () => void;
 }) {
   if (!isOpen) return null;
+  const isInstallGuide = topic === "install";
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Ajuda com sua folha">
+    <Modal isOpen={isOpen} onClose={onClose} label={isInstallGuide ? installTitle : "Ajuda com sua folha"}>
       <div className="help-panel">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h2>Ajuda</h2>
+            <h2>{isInstallGuide ? installTitle : "Ajuda"}</h2>
           </div>
           <button
             className="icon-button"
             onClick={onClose}
-            aria-label="Fechar ajuda"
+            aria-label={isInstallGuide ? "Fechar tutorial" : "Fechar ajuda"}
           >
             <X size={20} />
           </button>
         </div>
-        <FAQ google={google} />
+        {isInstallGuide ? <HomeScreenGuide /> : <FAQ google={google} />}
       </div>
     </Modal>
   );
