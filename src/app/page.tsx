@@ -1125,7 +1125,7 @@ export default function Home() {
                   {previousStatus === "pending" ? "Ver folha" : "Ainda não"}
                 </button>
                 <button type="button" className="primary-button" onClick={() => void respondToSubmission(period.previous, true, true)}>
-                  {previousStatus === "pending" ? "Marcar como enviada" : "Sim, já enviei"}
+                  {previousStatus === "pending" ? "Já enviei" : "Sim, já enviei"}
                 </button>
               </div>
             </section>

@@ -373,7 +373,7 @@ test("lembrete mensal mantém a pendência e avança após confirmar o envio", a
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-10");
   await page.reload();
   await expect(reminder).toContainText("Folha de outubro pendente");
-  await reminder.getByRole("button", { name: "Marcar como enviada" }).click();
+  await reminder.getByRole("button", { name: "Já enviei", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Frequência", exact: true })).toBeVisible();
   await expect(page.getByLabel("Mês da folha")).toHaveValue("2026-11");
   await expect(reminder).toHaveCount(0);
