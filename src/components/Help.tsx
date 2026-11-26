@@ -120,8 +120,8 @@ export function HelpModal({
   const isInstallGuide = topic === "install";
   return (
     <Modal isOpen={isOpen} onClose={onClose} label={isInstallGuide ? installTitle : "Ajuda com sua folha"}>
-      <div className="help-panel">
-        <div className="flex items-start justify-between gap-4 mb-6">
+      <div className={isInstallGuide ? "help-panel" : "help-panel help-panel-fixed"}>
+        <div className="flex shrink-0 items-start justify-between gap-4 mb-4">
           <div>
             <h2>{isInstallGuide ? installTitle : "Ajuda"}</h2>
           </div>
@@ -133,7 +133,7 @@ export function HelpModal({
             <X size={20} />
           </button>
         </div>
-        {isInstallGuide ? <HomeScreenGuide /> : <FAQ google={google} />}
+        {isInstallGuide ? <HomeScreenGuide /> : <div className="help-panel-scroll"><FAQ google={google} /></div>}
       </div>
     </Modal>
   );

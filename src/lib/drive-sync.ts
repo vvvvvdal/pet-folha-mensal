@@ -133,31 +133,43 @@ export function driveFolderUrl(sub: string): string {
 /** Save a generated PDF separately from the editable monthly backup. */
 export async function saveSheetPdf(
   sub: string,
-  monthKey: string,
+  monthKey: string | null,
   pdf: Blob,
   stillCurrent: () => boolean,
 ): Promise<{ id: string; url: string }> {
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey) || pdf.type !== "application/pdf") {
+  if ((monthKey !== null && !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)) || pdf.type !== "application/pdf") {
     throw new Error("Não foi possível identificar a folha para salvar no Drive.");
   }
-  const lock = `${sub}:${monthKey}`;
-  if (pdfUploads.has(lock)) throw new Error("O PDF deste mês já está sendo salvo.");
+  const lock = `${sub}:${monthKey ?? "blank"}`;
+  const appProperties: Record<string, string> = monthKey
+    ? { petFolha: "sheetPdf", monthKey }
+    : { petFolha: "blankSheetPdf" };
+  const name = monthKey ? `PET Folha - ${monthKey}.pdf` : "PET Folha - Modelo em branco.pdf";
+  const ensureCurrent = () => {
+    if (!stillCurrent() || (monthKey && account(sub).months[monthKey]?.dirty))
+      throw new Error("A folha mudou durante o preparo. Gere o PDF novamente.");
+  };
+  if (pdfUploads.has(lock)) throw new Error("Este PDF já está sendo salvo.");
   pdfUploads.add(lock);
   try {
     const folderId = await ensureFolder(sub);
-    const query = `${quote(folderId)} in parents and appProperties has { key='petFolha' and value='sheetPdf' } and appProperties has { key='monthKey' and value=${quote(monthKey)} } and trashed=false`;
+    const properties = Object.entries(appProperties).map(([key, value]) =>
+      `appProperties has { key=${quote(key)} and value=${quote(value)} }`);
+    const query = [`${quote(folderId)} in parents`, ...properties, "trashed=false"].join(" and ");
     const found = await drive(`/files?q=${encodeURIComponent(query)}&fields=files(id)&pageSize=100`)
       .then((response) => response.json());
     if (found.files?.length > 1) {
-      throw new Error("Há mais de um PDF deste mês na pasta PET Folha. Confira os arquivos no Drive antes de salvar novamente.");
+      throw new Error("Há mais de uma cópia deste PDF na pasta PET Folha. Confira os arquivos no Drive antes de salvar novamente.");
     }
 
-    const remote = (await listRemoteMonths()).find((month) => month.monthKey === monthKey);
-    const state = account(sub).months[monthKey];
-    if (state?.dirty || (remote && (remote.fileId !== state?.fileId || remote.modifiedTime !== state.remoteModified)) || (!remote && state?.fileId)) {
-      throw new Error("A folha precisa ser sincronizada antes de salvar o PDF. Confira o estado do Drive e tente novamente.");
+    if (monthKey) {
+      const remote = (await listRemoteMonths()).find((month) => month.monthKey === monthKey);
+      const state = account(sub).months[monthKey];
+      if (state?.dirty || (remote && (remote.fileId !== state?.fileId || remote.modifiedTime !== state.remoteModified)) || (!remote && state?.fileId)) {
+        throw new Error("A folha precisa ser sincronizada antes de salvar o PDF. Confira o estado do Drive e tente novamente.");
+      }
     }
-    if (!stillCurrent()) throw new Error("A folha mudou durante o preparo. Gere o PDF novamente.");
+    ensureCurrent();
 
     let reserved: Record<string, string>;
     try {
@@ -183,13 +195,11 @@ export async function saveSheetPdf(
         }
       }
     }
-    if (!stillCurrent() || account(sub).months[monthKey]?.dirty) {
-      throw new Error("A folha mudou durante o preparo. Aguarde a sincronização e gere o PDF novamente.");
-    }
+    ensureCurrent();
 
     const metadata = existing
-      ? { appProperties: { petFolha: "sheetPdf", monthKey } }
-      : { id: fileId, name: `PET Folha - ${monthKey}.pdf`, mimeType: "application/pdf", parents: [folderId], appProperties: { petFolha: "sheetPdf", monthKey } };
+      ? { appProperties }
+      : { id: fileId, name, mimeType: "application/pdf", parents: [folderId], appProperties };
     const target = `/files${existing ? `/${encodeURIComponent(fileId)}` : ""}?uploadType=resumable&fields=id`;
     const startUpload = (path: string, method: "POST" | "PATCH", data: object) => drive(path, {
       method,
@@ -203,16 +213,14 @@ export async function saveSheetPdf(
       if (existing || !(error instanceof DriveRequestError) || error.status !== 409) throw error;
       const saved = await drive(`/files/${encodeURIComponent(fileId)}?fields=id,trashed,parents,appProperties`)
         .then((result) => result.json());
-      if (saved.trashed || !saved.parents?.includes(folderId) || saved.appProperties?.petFolha !== "sheetPdf" || saved.appProperties?.monthKey !== monthKey) throw error;
-      if (!stillCurrent() || account(sub).months[monthKey]?.dirty) {
-        throw new Error("A folha mudou durante o preparo. Aguarde a sincronização e gere o PDF novamente.");
-      }
-      response = await startUpload(`/files/${encodeURIComponent(fileId)}?uploadType=resumable&fields=id`, "PATCH", { appProperties: { petFolha: "sheetPdf", monthKey } });
+      if (saved.trashed || !saved.parents?.includes(folderId) ||
+        !Object.entries(appProperties).every(([key, value]) => saved.appProperties?.[key] === value)) throw error;
+      ensureCurrent();
+      response = await startUpload(`/files/${encodeURIComponent(fileId)}?uploadType=resumable&fields=id`, "PATCH", { appProperties });
     }
     const location = response.headers.get("Location");
     if (!location) throw new Error("O Google Drive não abriu o envio do PDF.");
-    if (!stillCurrent() || account(sub).months[monthKey]?.dirty)
-      throw new Error("A folha mudou durante o preparo. Gere o PDF novamente.");
+    ensureCurrent();
     const sent = await fetch(location, { method: "PUT", headers: { "Content-Type": "application/pdf" }, body: pdf });
     if (!sent.ok) throw new Error(`O envio do PDF para o Google Drive falhou (${sent.status}). Tente novamente.`);
     const saved = await sent.json();

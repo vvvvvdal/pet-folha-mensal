@@ -53,7 +53,7 @@ export function SheetPdfResult({ file, action, onClose }: {
             {mobile && <p>{share ? "No menu do celular, toque em Imprimir." : "Abra o PDF e escolha Imprimir no menu do navegador."}</p>}
             {printError && <p role="alert">Abra o PDF e escolha Imprimir no menu do navegador.</p>}
             {!mobile && url && !printError && <iframe ref={frame} src={url} title="Documento para impressão" tabIndex={-1} aria-hidden="true" className="pdf-print-frame" onLoad={() => setFrameReady(true)} />}
-            {(share || (!mobile && !printError)) && <button type="button" className="primary-button" onClick={print} disabled={!share && !frameReady}>Imprimir</button>}
+            {(share || (!mobile && !printError)) && <button type="button" className="primary-button" onClick={print} disabled={!share && !frameReady}>Imprimir PDF</button>}
           </>
         )}
         {url && <>

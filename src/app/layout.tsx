@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     "Gestão e emissão da folha de frequência mensal para bolsistas do PET-Saúde Clima (SMS Goiânia, SES Goiás e UFG).",
   icons: {
     icon: "/images/avatar-pet-clima.png",
-    apple: { url: "/icons/pet-folha-apple.png", sizes: "180x180", type: "image/png" },
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
   },
 };
 

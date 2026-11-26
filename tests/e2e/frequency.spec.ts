@@ -1199,8 +1199,12 @@ test("tutorial de instalação na Conta e rodapé junto à barra móvel", async 
     expect.objectContaining({ sizes: "192x192" }),
     expect.objectContaining({ sizes: "512x512", purpose: "maskable" }),
   ]));
+  const touchIcon = await request.get("/apple-touch-icon.png");
+  expect(touchIcon.ok()).toBe(true);
+  expect(touchIcon.headers()["content-type"]).toMatch(/image\/png/);
   await create(page);
-  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/icons/pet-folha-apple.png");
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/apple-touch-icon.png");
+  await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute("content", "PET Folha Mensal");
   const nav = page.getByRole("navigation", { name: "Seções da folha no celular" });
   await expect(nav.getByRole("button")).toHaveCount(3);
   await nav.getByRole("button", { name: "Folha" }).click();
@@ -1222,4 +1226,34 @@ test("tutorial de instalação na Conta e rodapé junto à barra móvel", async 
   await page.getByRole("button", { name: "Ajuda e suporte" }).click();
   await page.getByText("Como coloco o PET Folha na tela inicial?", { exact: true }).click();
   await expect(page.getByText("Android · Chrome")).toBeVisible();
+});
+
+test("prévia amplia e volta ao ajuste, e Ajuda mantém o tamanho", async ({ page }) => {
+  await create(page);
+  await page.getByRole("button", { name: "Folha", exact: true }).click();
+  const preview = page.getByRole("region", { name: "Prévia da folha", exact: true });
+  const paper = preview.locator(".sheet-paper-document");
+  const fitButton = preview.getByRole("button", { name: "Ampliar prévia" });
+  await expect(fitButton).toBeVisible();
+  await expect.poll(async () => (await paper.boundingBox())?.width ?? 0).toBeGreaterThan(200);
+  const fitted = (await paper.boundingBox())!.width;
+  await fitButton.click();
+  await expect.poll(async () => (await paper.boundingBox())!.width).toBeGreaterThan(fitted * 1.1);
+  await preview.getByRole("button", { name: "Ajustar à tela" }).click();
+  await expect.poll(async () => Math.abs((await paper.boundingBox())!.width - fitted)).toBeLessThan(1);
+  await expect(page.getByRole("button", { name: "Imprimir PDF", exact: true })).toBeVisible();
+  await page.getByRole("group", { name: "Tipo de folha" }).getByRole("button", { name: "Modelo em branco" }).click();
+  await expect(page.getByRole("button", { name: "Imprimir PDF", exact: true })).toBeVisible();
+
+  await page.locator(".footer-utilities").getByRole("button", { name: "Ajuda", exact: true }).click();
+  const help = page.getByRole("dialog", { name: "Ajuda com sua folha" });
+  await expect(help).toBeVisible();
+  const before = (await help.boundingBox())!;
+  await help.getByText("Como as horas são calculadas?", { exact: true }).click();
+  await help.getByText("Como coloco o PET Folha na tela inicial?", { exact: true }).click();
+  await expect(help.getByText("iPhone · Safari")).toBeVisible();
+  const after = (await help.boundingBox())!;
+  expect(after.width).toBe(before.width);
+  expect(after.height).toBe(before.height);
+  await expect(help.getByRole("button", { name: "Fechar ajuda" })).toBeInViewport();
 });

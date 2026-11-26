@@ -477,6 +477,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: var(--surface);
   overflow-y: auto;
 }
+.pet-dialog > .help-panel-fixed {
+  display: flex;
+  flex-direction: column;
+  height: min(640px, calc(100dvh - 48px));
+  overflow: hidden;
+}
+.help-panel-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
 .help-panel h2 {
   font-size: 22px;
   font-weight: 600;

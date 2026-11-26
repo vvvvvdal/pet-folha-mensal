@@ -94,7 +94,7 @@ Plano: [docs/entrega-2-login-google-drive.md](docs/entrega-2-login-google-drive.
 
 ## Identificação da entrega e PDF no celular — 26/11/2026
 
-- [x] Gerar PDF para baixar, imprimir ou substituir o arquivo mensal na pasta PET Folha, com modelo em branco para baixar e imprimir.
+- [x] Gerar PDF para baixar, imprimir ou substituir o arquivo mensal na pasta PET Folha, com modelo em branco para baixar, imprimir e salvar como arquivo separado no Drive.
 - [x] Registrar a confirmação de entrega por mês e sincronizá-la junto da cópia mensal. [Fluxo e limites](docs/ui-ux.md#pdf-e-entrega-da-folha-no-celular)
 - [ ] Homologar download, menu de impressão e compartilhamento em iPhone e Android físicos.
 

@@ -275,9 +275,9 @@ avisos de perda de dados, cálculo e confirmação manual de envio do Forms.
 
 ## PDF e entrega da folha no celular
 
-Em **Folha**, as ações **Baixar PDF** e **Imprimir** aparecem na folha preenchida e no modelo em branco. O PDF preenchido é gerado no navegador em A4 horizontal, com comprovantes após a folha oficial. O celular usa o menu do sistema quando ele aceita PDF. A opção **Abrir PDF** permite imprimir pelo próprio visualizador.
+Em **Folha**, as ações **Baixar PDF** e **Imprimir PDF** aparecem na folha preenchida e no modelo em branco. O PDF preenchido é gerado no navegador em A4 horizontal, com comprovantes após a folha oficial. O celular usa o menu do sistema quando ele aceita PDF. A opção **Abrir PDF** permite imprimir pelo próprio visualizador.
 
-**Salvar PDF no Drive** grava a folha preenchida na pasta PET Folha. Atualizações reutilizam o arquivo mensal identificado pelas propriedades privadas do app. A cópia editável em JSON continua sendo sincronizada separadamente. A criação simultânea em aparelhos diferentes pode gerar arquivos duplicados. Nesse caso, o app pede conferência em vez de escolher qual deles atualizar.
+**Salvar PDF no Drive** grava a folha preenchida ou o modelo em branco na pasta PET Folha. Cada mês tem seu próprio arquivo preenchido, e o modelo em branco fica em um arquivo separado. Atualizações reutilizam o respectivo arquivo. A cópia editável em JSON continua sendo sincronizada separadamente. A criação simultânea em aparelhos diferentes pode gerar arquivos duplicados. Nesse caso, o app pede conferência em vez de escolher qual deles atualizar.
 
 O lembrete de entrega aparece com registros do mês anterior a partir do primeiro dia útil, calculado em São Paulo com fins de semana e feriados nacionais fixos. **Ainda não** abre a folha pendente. **Sim, já enviei** registra a confirmação e abre Frequência no mês atual. A aba Folha permite ajustar a confirmação dos meses encerrados. O estado acompanha a cópia mensal em um campo opcional do JSON.
 

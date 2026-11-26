@@ -405,7 +405,21 @@ test("PDF da folha é exportado separadamente e atualizado pelo mesmo ID", async
   expect(drive.byProp("petFolha", "month")).toHaveLength(1);
   await expect(link).toHaveAttribute("href", `https://drive.google.com/file/d/${first.id}/view`);
   await page.getByRole("group", { name: "Tipo de folha" }).getByRole("button", { name: "Modelo em branco", exact: true }).click();
-  await expect(save).toHaveCount(0);
+  await expect(link).toHaveCount(0);
+  await save.click();
+  await expect(link).toBeVisible();
+  const [blank] = drive.byProp("petFolha", "blankSheetPdf");
+  expect(blank.name).toBe("PET Folha - Modelo em branco.pdf");
+  expect(blank.appProperties.monthKey).toBeUndefined();
+  expect(blank.content).toMatch(/^%PDF-/);
+  expect(blank.id).not.toBe(first.id);
+  const blankModified = blank.modifiedTime;
+  await page.getByLabel("Mês da folha").selectOption("2026-10");
+  await save.click();
+  await expect.poll(() => drive.byProp("petFolha", "blankSheetPdf")[0].modifiedTime).not.toBe(blankModified);
+  expect(drive.byProp("petFolha", "blankSheetPdf").map((item) => item.id)).toEqual([blank.id]);
+  expect(drive.byProp("petFolha", "sheetPdf").map((item) => item.id)).toEqual([first.id]);
+  expect(drive.byProp("petFolha", "month")).toHaveLength(1);
 });
 
 test("a confirmação de entrega acompanha a cópia mensal em outro navegador", async ({ page, browser }) => {

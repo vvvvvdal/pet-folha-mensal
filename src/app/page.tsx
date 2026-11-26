@@ -145,7 +145,7 @@ export default function Home() {
   const pdfScope = useRef<object>(null);
   const cachedPdf = useRef<{ scope: object; blank: boolean; file: File } | null>(null);
   const [pdfResult, setPdfResult] = useState<{ file: File; action: SheetPdfAction } | null>(null);
-  const [savedPdf, setSavedPdf] = useState<{ month: string; sub: string; url: string } | null>(null);
+  const [savedPdf, setSavedPdf] = useState<{ month: string | null; sub: string; url: string } | null>(null);
   const [period, setPeriod] = useState(() => getSubmissionPeriod());
   const [, refreshSubmission] = useState(0);
   const [undoActivity, setUndoActivity] = useState<{ before: Activity[]; after: string; profileId: string; month: string } | null>(null);
@@ -520,9 +520,9 @@ export default function Home() {
 
   const exportSheet = async (action: SheetPdfAction | "drive", blank = showBlankTemplate): Promise<boolean> => {
     const scope = pdfScope.current;
-    if (!scope || !activeUser || printInProgress.current || attachmentsBusy || importInProgress.current)
+    if (!scope || !activeUser || printInProgress.current || (!blank && attachmentsBusy) || importInProgress.current)
       return false;
-    if (action === "drive" && (!syncUser || !syncSub || blank)) return false;
+    if (action === "drive" && (!syncUser || !syncSub)) return false;
 
     const stillCurrent = () => pdfScope.current === scope;
     printInProgress.current = true;
@@ -557,10 +557,11 @@ export default function Home() {
       if (!stillCurrent()) throw new Error("A folha mudou durante o preparo. Tente novamente.");
       if (action === "drive" && syncSub) {
         try {
-          await sync.flush();
-          const saved = await saveSheetPdf(syncSub, monthKey, file, stillCurrent);
+          const pdfMonth = blank ? null : monthKey;
+          if (pdfMonth) await sync.flush();
+          const saved = await saveSheetPdf(syncSub, pdfMonth, file, stillCurrent);
           if (stillCurrent()) {
-            setSavedPdf({ month: monthKey, sub: syncSub, url: saved.url });
+            setSavedPdf({ month: pdfMonth, sub: syncSub, url: saved.url });
             showToast("PDF salvo no Drive.");
           }
         } catch (error) {
@@ -1262,76 +1263,71 @@ export default function Home() {
 
               <div className="sheet-layout">
                 <aside className="print-panel" aria-labelledby="print-panel-title">
-                  {showBlankTemplate ? (
-                    <div className="print-panel-intro">
-                      <h2 id="print-panel-title">Modelo em branco</h2>
+                  <div className="print-panel-toolbar">
+                    <div>
+                      <h2 id="print-panel-title">{showBlankTemplate ? "Modelo em branco" : "Conferir folha"}</h2>
+                      <p className="print-paper">A4 horizontal</p>
                     </div>
-                  ) : (
-                    <div className="print-panel-intro">
-                      <h2 id="print-panel-title">Conferir folha</h2>
-                      <ul className="print-checks">
-                        <li data-tone={totalHours >= 32 ? "done" : "warning"}>
-                          {totalHours >= 32 ? <CircleCheck size={20} aria-hidden="true" /> : <CircleAlert size={20} aria-hidden="true" />}
-                          <span>
-                            <strong>{totalHours} de 32 h no mês</strong>
-                          </span>
-                        </li>
-                        <li data-tone={formsPending ? "warning" : "done"}>
-                          {formsPending ? <CircleAlert size={20} aria-hidden="true" /> : <CircleCheck size={20} aria-hidden="true" />}
-                          <span>
-                            <strong>{formsPending ? `${formsPending} ${formsPending === 1 ? "atividade pendente" : "atividades pendentes"} no Forms` : "Forms em dia"}</strong>
-                            {formsPending ? (
-                              <button type="button" className="text-button" onClick={() => void changeTab("dashboard")}>Ver pendências</button>
-                            ) : null}
-                          </span>
-                        </li>
-                        <li data-tone={attachmentItems?.length ? "done" : "neutral"}>
-                          <Paperclip size={20} aria-hidden="true" />
-                          <span>
-                            <strong>
-                              {attachmentItems === undefined
-                                ? "Conferindo comprovantes…"
-                                : attachmentItems.length
-                                  ? `${attachmentItems.length} ${attachmentItems.length === 1 ? "comprovante" : "comprovantes"} · ${proofPages} ${proofPages === 1 ? "página" : "páginas"}`
-                                  : "Sem comprovantes"}
-                            </strong>
-                          </span>
-                        </li>
-                        <li data-tone="neutral">
-                          <CalendarDays size={20} aria-hidden="true" />
-                          <span>
-                            <strong>{selectedStatus === "sent" ? "Entrega marcada como enviada" : `Entrega até ${formatShortDate(deadline)}`}</strong>
-                            {monthKey < period.current && activities.length > 0 && !(showSubmissionReminder && monthKey === period.previous) && (
-                              <button type="button" className="text-button" onClick={() => void respondToSubmission(monthKey, selectedStatus !== "sent")}>
-                                {selectedStatus === "sent" ? "Desfazer confirmação" : "Marcar como enviada"}
-                              </button>
-                            )}
-                          </span>
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                  <p className="print-paper">
-                    <Printer size={18} aria-hidden="true" />
-                    <span>Papel <strong>A4</strong> · orientação <strong>Horizontal</strong></span>
-                  </p>
-                  <div className="print-actions">
-                    <button type="button" className="primary-button" disabled={preparingPrint || attachmentsBusy} onClick={() => void exportSheet("download")}>
-                      <Download size={18} aria-hidden="true" />Baixar PDF
-                    </button>
-                    <button type="button" className="secondary-button" disabled={preparingPrint || attachmentsBusy} onClick={() => void exportSheet("print")}>
-                      <Printer size={18} aria-hidden="true" />Imprimir
-                    </button>
-                    {!showBlankTemplate && syncUser && (
-                      <button type="button" className="secondary-button" disabled={preparingPrint || attachmentsBusy} onClick={() => void exportSheet("drive")}>
-                        <CloudUpload size={18} aria-hidden="true" />Salvar PDF no Drive
+                    <div className="print-actions">
+                      <button type="button" className="primary-button" disabled={preparingPrint || (!showBlankTemplate && attachmentsBusy)} onClick={() => void exportSheet("download")}>
+                        <Download size={18} aria-hidden="true" />Baixar PDF
                       </button>
-                    )}
-                    {preparingPrint && <p aria-live="polite"><InlineSpinner size={16} /> Preparando PDF…</p>}
-                    {!showBlankTemplate && savedPdf?.month === monthKey && savedPdf.sub === syncSub && (
-                      <a href={savedPdf.url} target="_blank" rel="noopener" className="text-button">Abrir PDF no Drive</a>
-                    )}
+                      <button type="button" className="secondary-button" disabled={preparingPrint || (!showBlankTemplate && attachmentsBusy)} onClick={() => void exportSheet("print")}>
+                        <Printer size={18} aria-hidden="true" />Imprimir PDF
+                      </button>
+                      {syncUser && (
+                        <button type="button" className="secondary-button" disabled={preparingPrint || (!showBlankTemplate && attachmentsBusy)} onClick={() => void exportSheet("drive")}>
+                          <CloudUpload size={18} aria-hidden="true" />Salvar PDF no Drive
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  {!showBlankTemplate && (
+                    <ul className="print-checks">
+                      <li data-tone={totalHours >= 32 ? "done" : "warning"}>
+                        {totalHours >= 32 ? <CircleCheck size={20} aria-hidden="true" /> : <CircleAlert size={20} aria-hidden="true" />}
+                        <span>
+                          <strong>{totalHours} de 32 h no mês</strong>
+                        </span>
+                      </li>
+                      <li data-tone={formsPending ? "warning" : "done"}>
+                        {formsPending ? <CircleAlert size={20} aria-hidden="true" /> : <CircleCheck size={20} aria-hidden="true" />}
+                        <span>
+                          <strong>{formsPending ? `${formsPending} ${formsPending === 1 ? "atividade pendente" : "atividades pendentes"} no Forms` : "Forms em dia"}</strong>
+                          {formsPending ? (
+                            <button type="button" className="text-button" onClick={() => void changeTab("dashboard")}>Ver pendências</button>
+                          ) : null}
+                        </span>
+                      </li>
+                      <li data-tone={attachmentItems?.length ? "done" : "neutral"}>
+                        <Paperclip size={20} aria-hidden="true" />
+                        <span>
+                          <strong>
+                            {attachmentItems === undefined
+                              ? "Conferindo comprovantes…"
+                              : attachmentItems.length
+                                ? `${attachmentItems.length} ${attachmentItems.length === 1 ? "comprovante" : "comprovantes"} · ${proofPages} ${proofPages === 1 ? "página" : "páginas"}`
+                                : "Sem comprovantes"}
+                          </strong>
+                        </span>
+                      </li>
+                      <li data-tone="neutral">
+                        <CalendarDays size={20} aria-hidden="true" />
+                        <span>
+                          <strong>{selectedStatus === "sent" ? "Entrega marcada como enviada" : `Entrega até ${formatShortDate(deadline)}`}</strong>
+                          {monthKey < period.current && activities.length > 0 && !(showSubmissionReminder && monthKey === period.previous) && (
+                            <button type="button" className="text-button" onClick={() => void respondToSubmission(monthKey, selectedStatus !== "sent")}>
+                              {selectedStatus === "sent" ? "Desfazer confirmação" : "Marcar como enviada"}
+                            </button>
+                          )}
+                        </span>
+                      </li>
+                    </ul>
+                  )}
+                  {preparingPrint && <p className="print-progress" aria-live="polite"><InlineSpinner size={16} /> Preparando PDF…</p>}
+                  {savedPdf?.month === (showBlankTemplate ? null : monthKey) && savedPdf.sub === syncSub && (
+                    <a href={savedPdf.url} target="_blank" rel="noopener" className="text-button print-drive-link">Abrir PDF no Drive</a>
+                  )}
                 </aside>
 
                 <SheetPreview>
